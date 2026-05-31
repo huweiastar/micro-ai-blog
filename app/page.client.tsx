@@ -92,7 +92,11 @@ export function HomeClient({ stats }: HomeClientProps) {
       body: JSON.stringify({ visitorId }),
     })
       .then((res) => res.json())
-      .then((data) => setVisitStats(data))
+      .then((data) => {
+        // API response changed to { global: { pv, uv }, path: { ... } }
+        const stats = data.global || data;
+        setVisitStats({ pv: stats.pv ?? 0, uv: stats.uv ?? 0 });
+      })
       .catch(() => {});
   }, []);
 
