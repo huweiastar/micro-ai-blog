@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 function getOrCreateVisitorId(): string {
   if (typeof window === "undefined") return "";
@@ -13,7 +13,13 @@ function getOrCreateVisitorId(): string {
 }
 
 export function usePageView() {
+  const trackedRef = useRef(false);
+
   useEffect(() => {
+    // Prevent double counting in React.StrictMode (dev mode)
+    if (trackedRef.current) return;
+    trackedRef.current = true;
+
     const visitorId = getOrCreateVisitorId();
     if (!visitorId) return;
 
