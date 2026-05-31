@@ -36,6 +36,11 @@
     <priority>0.5</priority>
   </url>
   <url>
+    <loc>https://your-domain.com/blog/大模型演进史-从规模法则到通用人工智能的破局之路</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://your-domain.com/blog/llm-data-cleaning</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>

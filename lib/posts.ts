@@ -114,7 +114,9 @@ export async function getAllPosts(): Promise<BlogPost[]> {
 
 export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
   const posts = await getAllPosts();
-  return posts.find((post) => post.slug === slug) || null;
+  // URL may be encoded (e.g. Chinese characters), decode for matching
+  const decodedSlug = decodeURIComponent(slug);
+  return posts.find((post) => post.slug === decodedSlug) || null;
 }
 
 export function getAllTags(): Tag[] {

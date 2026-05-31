@@ -4,10 +4,23 @@
         <description><![CDATA[个人技术博客]]></description>
         <link>https://your-domain.com</link>
         <generator>RSS for Node</generator>
-        <lastBuildDate>Sun, 31 May 2026 14:53:38 GMT</lastBuildDate>
+        <lastBuildDate>Sun, 31 May 2026 15:08:15 GMT</lastBuildDate>
         <atom:link href="https://your-domain.com/rss.xml" rel="self" type="application/rss+xml"/>
-        <pubDate>Sun, 31 May 2026 14:53:38 GMT</pubDate>
+        <pubDate>Sun, 31 May 2026 15:08:15 GMT</pubDate>
         <language><![CDATA[zh-CN]]></language>
+        <item>
+            <title><![CDATA[大模型演进史：从规模法则到通用人工智能的破局之路]]></title>
+            <description><![CDATA[回顾大模型从RNN到Transformer的演进，探讨规模法则如何重塑AI范式，并解析对齐技术带来的质变。]]></description>
+            <link>https://your-domain.com/blog/大模型演进史-从规模法则到通用人工智能的破局之路</link>
+            <guid isPermaLink="true">https://your-domain.com/blog/大模型演进史-从规模法则到通用人工智能的破局之路</guid>
+            <category><![CDATA[大模型基础架构]]></category>
+            <category><![CDATA[大模型]]></category>
+            <category><![CDATA[Transformer]]></category>
+            <category><![CDATA[规模法则]]></category>
+            <category><![CDATA[RLHF]]></category>
+            <category><![CDATA[AI历史]]></category>
+            <pubDate>Sun, 31 May 2026 00:00:00 GMT</pubDate>
+        </item>
         <item>
             <title><![CDATA[大模型训练数据清洗流程详解]]></title>
             <description><![CDATA[介绍大模型训练数据中的去重、质量过滤、敏感信息识别和格式化流程]]></description>
