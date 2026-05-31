@@ -6,7 +6,7 @@
 
 <p align="center">
   <a href="https://huweiastar.cn">
-    <img src="https://img.shields.io/badge/🌐_在线访问-huweiastar.cn-2563eb?style=for-the-badge&labelColor=1e293b" alt="Online Demo" />
+    <img src="https://img.shields.io/badge/_huweiastar.cn-2563eb?style=flat&labelColor=1e293b" alt="Online Demo" />
   </a>
   <a href="https://github.com/huweiastar/micro-ai-blog/stargazers">
     <img src="https://img.shields.io/github/stars/huweiastar/micro-ai-blog?style=flat&logo=github&labelColor=333&color=blue" alt="Stars" />
@@ -15,10 +15,13 @@
     <img src="https://img.shields.io/github/forks/huweiastar/micro-ai-blog?style=flat&logo=github&labelColor=333&color=blue" alt="Forks" />
   </a>
   <a href="https://github.com/huweiastar/micro-ai-blog">
-    <img src="https://img.shields.io/badge/language-TypeScript-3178c6?style=flat&labelColor=333" alt="Language" />
+    <img src="https://img.shields.io/badge/TypeScript-3178c6?style=flat&labelColor=333&logo=typescript" alt="Language" />
   </a>
   <a href="https://nextjs.org/">
-    <img src="https://img.shields.io/badge/Next.js-14-black?style=flat&logo=next.js&labelColor=000" alt="Next.js" />
+    <img src="https://img.shields.io/badge/Next.js_14-black?style=flat&labelColor=333&logo=next.js" alt="Next.js" />
+  </a>
+  <a href="LICENSE">
+    <img src="https://img.shields.io/github/license/huweiastar/micro-ai-blog?style=flat&labelColor=333" alt="License" />
   </a>
 </p>
 
