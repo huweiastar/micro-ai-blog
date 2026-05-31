@@ -1,0 +1,16 @@
+[Unit]
+Description=Micro AI Blog Next.js Application
+After=network.target
+
+[Service]
+Type=forking
+User=root
+WorkingDirectory=/root/micro-ai-blog
+ExecStart=/usr/bin/npm start
+Restart=always
+RestartSec=10
+Environment=NODE_ENV=production
+Environment=PORT=3000
+
+[Install]
+WantedBy=multi-user.target
