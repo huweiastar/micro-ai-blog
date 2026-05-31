@@ -1,0 +1,19 @@
+name: "微观AI"
+avatar: "/images/avatar/avatar.webp"
+bio: "你好！我是一名专注于大数据开发和大模型数据工程方向的技术爱好者。主要研究方向包括大模型训练数据处理、RAG 知识库系统构建、多模态数据清洗流程设计以及 Spark 性能调优。"
+bio2: "我熟悉 Python、SQL、Linux、Spark、Hive 等技术栈，正在系统学习和实践大模型数据处理的全流程。这个博客是我记录和分享学习过程、项目经验和技术思考的地方。"
+email: "huweiastar@163.com"
+github: "https://github.com/huweiastar"
+skills:
+  - title: "编程语言"
+    items: ["Python", "SQL", "JavaScript", "TypeScript"]
+  - title: "操作系统"
+    items: ["Linux"]
+  - title: "大数据组件"
+    items: ["Hadoop", "Spark", "Hive"]
+  - title: "AI 方向"
+    items: ["LLM", "RAG", "Embedding", "数据清洗", "多模态数据处理"]
+  - title: "前端技术"
+    items: ["Next.js", "React", "Tailwind CSS"]
+  - title: "工程化"
+    items: ["Git", "GitHub Actions", "Vercel", "Docker"]

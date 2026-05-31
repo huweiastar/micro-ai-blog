@@ -1,0 +1,51 @@
+[
+  {
+    "title": "大模型训练数据清洗流程详解",
+    "summary": "介绍大模型训练数据中的去重、质量过滤、敏感信息识别和格式化流程",
+    "tags": [
+      "LLM",
+      "数据清洗",
+      "大模型数据工程"
+    ],
+    "category": "大模型数据工程",
+    "content": "\n 数据清洗的重要性\n\n在大模型训练过程中，数据质量直接决定了模型的表现。低质量的训练数据会导致模型产生不准确、有偏见甚至有害的输出。因此，构建一套完整的数据清洗流程是大模型数据工程的核心环节。\n\n 数据读取\n\n首先需要从多个数据源读取原始数据，常见的数据源包括：\n\n 网页爬取数据\n 开源数据集\n 企业内部数据\n 多模态数据（文本、图像、音频等）\n\npython\nimport pandas as pd\n\ndef loaddata(source: str)  pd.DataFrame:\n    \"\"\"从不同数据源加载数据\"\"\"\n    if source.endswith(\".csv\"):\n        return pd.readcsv(source)\n    elif source.endswith(\".json\"):\n        return pd.readjson(source, lines=True)\n    elif source.endswith(\".parquet\"):\n        return pd.readparquet(source)\n    else:\n        raise ValueError(f\"Unsupported format: {source}\")\n\n\n 数据去重\n\n数据去重是清洗流程中的关键步骤，主要包括：\n\n 文档级去重\n\n通过 MinHash + LSH 算法实现海量文本的近似重复检测。对于亿级文档，可以在数小时内完成去重。\n\npython\nfrom datasketch import MinHash, MinHashLSH\n\ndef computeminhash(text: str, numperm: int = 128)  MinHash:\n    \"\"\"计算文本的 MinHash 签名\"\"\"\n    m = MinHash(numperm=numperm)\n    for word in text.split():\n        m.update(word.encode(\"utf8\"))\n    return m\n\n\n 段落级去重\n\n在文档内部进行段落级别的精确去重，消除重复的段落和模板化内容。\n\n 质量过滤\n\n 规则过滤\n\n基于预设规则过滤低质量内容：\n\n1. 长度过滤：去除过短或过长的文本\n2. 语言识别：使用 fastText 识别文本语言\n3. 特殊字符比例：过滤包含过多特殊字符的文本\n4. 重复行比例：过滤包含大量重复行的文本\n\n 模型过滤\n\n使用分类模型对文本质量进行评分，过滤低质量内容：\n\npython\nimport fasttext\n\n 加载预训练模型\nmodel = fasttext.loadmodel(\"lid.176.bin\")\n\ndef detectlanguage(text: str)  str:\n    \"\"\"检测文本语言\"\"\"\n    predictions = model.predict(text.replace(\"\\n\", \" \"))\n    return predictions[0][0].replace(\"label\", \"\")\n\n\n 敏感信息识别\n\n识别并脱敏处理文本中的个人信息：\n\n 姓名\n 电话号码\n 邮箱地址\n 身份证号\n 银行卡号\n\npython\nimport re\n\ndef maskpii(text: str)  str:\n    \"\"\"脱敏个人信息\"\"\"\n     邮箱\n    text = re.sub(r\"[\\w.]+@[\\w.]+\\.\\w+\", \"[EMAIL]\", text)\n     手机号\n    text = re.sub(r\"1[39]\\d{9}\", \"[PHONE]\", text)\n     身份证\n    text = re.sub(r\"\\d{17}[\\dXx]\", \"[IDCARD]\", text)\n    return text\n\n\n 格式化输出\n\n最终将清洗后的数据转换为训练所需的格式：\n\njson\n{\n  \"messages\": [\n    { \"role\": \"user\", \"content\": \"什么是大模型数据清洗？\" },\n    { \"role\": \"assistant\", \"content\": \"大模型数据清洗是指...\" }\n  ]\n}\n\n\n 总结\n\n大模型训练数据清洗是一个系统性工程，需要从多个维度保证数据质量。通过规则过滤、模型过滤、去重和脱敏等手段，可以构建一套完整的自动化数据清洗流程，为大模型训练提供高质量的数据基础。\n",
+    "slug": "llm-data-cleaning"
+  },
+  {
+    "title": "RAG 系统设计实践",
+    "summary": "从零搭建 RAG 知识库系统，包括文档切分、向量存储、检索增强和问答生成",
+    "tags": [
+      "RAG",
+      "LLM",
+      "向量数据库",
+      "Embedding"
+    ],
+    "category": "大模型应用工程",
+    "content": "\n RAG 概述\n\nRAG（RetrievalAugmented Generation）是一种结合信息检索和文本生成的技术架构。它通过从知识库中检索相关上下文，增强大语言模型的生成能力。\n\n 系统架构\n\nRAG 系统的核心组件包括：\n\n1. 文档处理：文档加载、清洗和切分\n2. 向量化：将文本片段转换为向量表示\n3. 存储：向量数据库存储和索引\n4. 检索：根据查询向量召回相关片段\n5. 生成：结合检索结果和问题生成回答\n\n 文档切分策略\n\npython\nfrom langchain.textsplitter import RecursiveCharacterTextSplitter\n\nsplitter = RecursiveCharacterTextSplitter(\n    chunksize=500,\n    chunkoverlap=50,\n    separators=[\"\\n\\n\", \"\\n\", \"。\", \"！\", \"？\", \" \", \"\"]\n)\n\nchunks = splitter.splittext(longtext)\n\n\n 切分策略选择\n\n 固定长度切分：适合结构规整的文档\n 语义切分：基于段落标题和语义边界\n 递归切分：优先按大分隔符切分，不足则按小分隔符\n\n 向量模型选择\n\n常用的 Embedding 模型：\n\n| 模型 | 维度 | 语言 | 特点 |\n|||||\n| bgem3 | 1024 | 多语言 | 中英双语效果好 |\n| textembedding3 | 1536 | 英文为主 | OpenAI 官方模型 |\n| bgelargezh | 1024 | 中文 | 中文效果优秀 |\n\npython\nfrom langchain.embeddings import HuggingFaceBgeEmbeddings\n\nembeddings = HuggingFaceBgeEmbeddings(\n    modelname=\"BAAI/bgelargezhv1.5\",\n    modelkwargs={\"device\": \"cuda\"},\n    encodekwargs={\"normalizeembeddings\": True}\n)\n\n\n 检索增强\n\n检索阶段需要：\n\n1. 将用户问题转换为查询向量\n2. 在向量数据库中相似度搜索\n3. 返回 TopK 相关文本片段\n\npython\nfrom langchain.vectorstores import Chroma\n\ndb = Chroma.fromdocuments(chunks, embeddings)\nresults = db.similaritysearch(question, k=3)\n\n\n Prompt 构建\n\n将检索到的上下文与问题一起构建 Prompt：\n\npython\nprompt = f\"\"\"基于以下参考资料回答用户问题。如果资料中没有相关信息，请说明无法回答。\n\n参考资料：\n{context}\n\n问题：{question}\n回答：\"\"\"\n\n\n 总结\n\nRAG 系统通过检索增强生成，有效解决了大模型的知识时效性和幻觉问题。在实际应用中，需要根据业务场景调整切分策略、向量模型和检索参数，以达到最佳的问答效果。\n",
+    "slug": "rag-system-design"
+  },
+  {
+    "title": "大模型基础架构从入门到实践",
+    "summary": "总结大模型的基础架构知识，包括 Transformer 架构、注意力机制、位置编码和模型训练流程",
+    "tags": [
+      "LLM",
+      "Transformer",
+      "大模型基础架构"
+    ],
+    "category": "大模型基础架构",
+    "content": "\n Transformer 架构概述\n\nTransformer 是目前大模型最核心的基础架构，它完全基于自注意力机制，摒弃了传统的 RNN 和 CNN 结构。\n\n 核心组件\n\n1. 多头自注意力机制（MultiHead SelfAttention）\n2. 位置编码（Positional Encoding）\n3. 前馈神经网络（FeedForward Network）\n4. 层归一化（Layer Normalization）\n\n 注意力机制\n\n注意力机制的核心是让模型学会关注输入序列中最重要的部分：\n\npython\nimport torch\nimport torch.nn as nn\n\nclass SelfAttention(nn.Module):\n    def init(self, embedsize, heads):\n        super(SelfAttention, self).init()\n        self.heads = heads\n        self.headdim = embedsize // heads\n        \n        self.query = nn.Linear(embedsize, embedsize)\n        self.key = nn.Linear(embedsize, embedsize)\n        self.value = nn.Linear(embedsize, embedsize)\n        \n        self.fcout = nn.Linear(heads  self.headdim, embedsize)\n    \n    def forward(self, query, key, value):\n        N = query.shape[0]\n        querylen, keylen, valuelen = query.shape[1], key.shape[1], value.shape[1]\n        \n        Q = self.query(query).reshape(N, querylen, self.heads, self.headdim)\n        K = self.key(key).reshape(N, keylen, self.heads, self.headdim)\n        V = self.value(value).reshape(N, valuelen, self.heads, self.headdim)\n        \n        energy = torch.einsum(\"nqhd,nkhdnhqk\", [Q, K])\n        attention = torch.softmax(energy / (self.headdim  0.5), dim=3)\n        out = torch.einsum(\"nhql,nlhdnqhd\", [attention, V])\n        out = out.reshape(N, querylen, self.heads  self.headdim)\n        \n        return self.fcout(out)\n\n\n 模型训练流程\n\n大模型的训练通常分为以下几个阶段：\n\n1. 预训练（Pretraining）：在大规模语料上进行无监督学习\n2. 监督微调（SFT）：使用高质量指令数据微调模型\n3. 人类反馈强化学习（RLHF）：通过人类偏好对齐模型输出\n\n 总结\n\n理解大模型的基础架构对于从事大模型相关工作至关重要。Transformer 的注意力机制、位置编码和层归一化等核心组件是整个大模型生态的基石。\n",
+    "slug": "llm-architecture"
+  },
+  {
+    "title": "Spark 数据倾斜优化总结",
+    "summary": "总结 Spark 任务中常见的数据倾斜问题及解决方案，包括加盐聚合、随机前缀和两阶段聚合",
+    "tags": [
+      "Spark",
+      "性能优化",
+      "大数据开发"
+    ],
+    "category": "大数据开发工程",
+    "content": "\n 什么是数据倾斜\n\n数据倾斜是指在分布式计算中，某些分区的数据量远大于其他分区，导致部分任务执行时间过长，成为整个作业的瓶颈。\n\n 常见原因\n\n1. Join 倾斜：大表与小表 Join 时，某个 key 的数据量特别大\n2. GroupBy 倾斜：某个分组键的值分布极不均匀\n3. Distinct 倾斜：去重操作中某个值出现频率极高\n\n 优化方案\n\n 方案一：Broadcast Join\n\n当一张表足够小时，可以将其广播到所有 executor，避免 Shuffle：\n\nscala\nimport org.apache.spark.sql.functions.broadcast\n\nval result = largeDF.join(broadcast(smallDF), \"key\")\n\n\n 方案二：加盐聚合\n\n对于 GroupBy 倾斜，可以给 key 添加随机盐值，先做局部聚合再做全局聚合：\n\nscala\nimport org.apache.spark.sql.functions.\n\n// 加盐\nval salted = df.withColumn(\"saltedkey\", concat($\"key\", lit(\"\"), (rand()  10).cast(\"int\")))\n\n// 局部聚合\nval partial = salted.groupBy(\"saltedkey\").agg(sum(\"value\") as \"partialsum\")\n\n// 去盐后全局聚合\nval result = partial.withColumn(\"key\", split($\"saltedkey\", \"\")(0))\n  .groupBy(\"key\")\n  .agg(sum(\"partialsum\") as \"totalsum\")\n\n\n 方案三：过滤异常 Key\n\n如果倾斜是由某个异常 key 引起的，可以将其单独处理：\n\nscala\nval skewedKeys = Seq(\"null\", \"\", \"unknown\")\nval skewedDF = df.filter($\"key\".isin(skewedKeys: ))\nval normalDF = df.filter(!$\"key\".isin(skewedKeys: ))\n\n// 分别处理后再合并\n\n\n 监控与诊断\n\n通过 Spark UI 可以直观地观察数据倾斜：\n\n1. 查看 Stage 中各个 Task 的处理数据量\n2. 对比 Task 的执行时间差异\n3. 查看 Shuffle Read Size 分布\n\n 总结\n\n数据倾斜是 Spark 调优中最常见的问题之一。解决思路主要包括：避免 Shuffle（Broadcast）、打散数据（加盐）、分离处理（过滤异常值）。在实际应用中，需要结合具体场景选择最合适的优化方案。\n",
+    "slug": "spark-data-skew"
+  }
+]

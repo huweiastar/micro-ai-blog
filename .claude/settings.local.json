@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run dev)",
+      "Bash(npm run build)",
+      "Bash(npm run start)",
+      "Bash(npm run lint)",
+      "Bash(npm run type-check)",
+      "Bash(npm run format)",
+      "Bash(npm run generate:*)",
+      "Bash(npm run check:content)",
+      "Bash(npm run prebuild)",
+      "Bash(npx next dev*)",
+      "Bash(npx next build)",
+      "Bash(npx next lint)",
+      "Bash(npx tsc*)",
+      "Bash(npx tsx scripts/*)",
+      "Bash(npx prettier*)"
+    ]
+  }
+}

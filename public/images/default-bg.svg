@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <defs>
+    <radialGradient id="glow1" cx="30%" cy="30%" r="40%">
+      <stop offset="0%" stop-color="#6366f1" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#6366f1" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow2" cx="70%" cy="60%" r="35%">
+      <stop offset="0%" stop-color="#8b5cf6" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#8b5cf6" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow3" cx="50%" cy="80%" r="30%">
+      <stop offset="0%" stop-color="#a78bfa" stop-opacity="0.1"/>
+      <stop offset="100%" stop-color="#a78bfa" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1920" height="1080" fill="#0f172a"/>
+  <rect width="1920" height="1080" fill="url(#glow1)"/>
+  <rect width="1920" height="1080" fill="url(#glow2)"/>
+  <rect width="1920" height="1080" fill="url(#glow3)"/>
+
+  <!-- Neural network nodes and connections -->
+  <g stroke="#6366f1" stroke-opacity="0.3" stroke-width="1" fill="none">
+    <line x1="200" y1="150" x2="450" y2="280"/>
+    <line x1="450" y1="280" x2="700" y2="200"/>
+    <line x1="700" y1="200" x2="950" y2="350"/>
+    <line x1="950" y1="350" x2="1200" y2="250"/>
+    <line x1="1200" y1="250" x2="1450" y2="380"/>
+    <line x1="1450" y1="380" x2="1700" y2="300"/>
+    <line x1="300" y1="450" x2="550" y2="550"/>
+    <line x1="550" y1="550" x2="800" y2="480"/>
+    <line x1="800" y1="480" x2="1050" y2="600"/>
+    <line x1="1050" y1="600" x2="1300" y2="520"/>
+    <line x1="1300" y1="520" x2="1550" y2="650"/>
+    <line x1="1550" y1="650" x2="1800" y2="570"/>
+    <line x1="150" y1="700" x2="400" y2="800"/>
+    <line x1="400" y1="800" x2="650" y2="720"/>
+    <line x1="650" y1="720" x2="900" y2="850"/>
+    <line x1="900" y1="850" x2="1150" y2="770"/>
+    <line x1="1150" y1="770" x2="1400" y2="900"/>
+    <line x1="1400" y1="900" x2="1650" y2="820"/>
+    <!-- Cross connections -->
+    <line x1="450" y1="280" x2="550" y2="550"/>
+    <line x1="700" y1="200" x2="800" y2="480"/>
+    <line x1="950" y1="350" x2="1050" y2="600"/>
+    <line x1="1200" y1="250" x2="1300" y2="520"/>
+    <line x1="550" y1="550" x2="650" y2="720"/>
+    <line x1="800" y1="480" x2="900" y2="850"/>
+    <line x1="1050" y1="600" x2="1150" y2="770"/>
+    <line x1="1300" y1="520" x2="1400" y2="900"/>
+    <line x1="200" y1="150" x2="300" y2="450"/>
+    <line x1="1700" y1="300" x2="1800" y2="570"/>
+    <line x1="1450" y1="380" x2="1550" y2="650"/>
+  </g>
+
+  <!-- Nodes -->
+  <g fill="#818cf8" fill-opacity="0.6">
+    <circle cx="200" cy="150" r="4"/>
+    <circle cx="450" cy="280" r="5"/>
+    <circle cx="700" cy="200" r="4"/>
+    <circle cx="950" cy="350" r="6"/>
+    <circle cx="1200" cy="250" r="4"/>
+    <circle cx="1450" cy="380" r="5"/>
+    <circle cx="1700" cy="300" r="4"/>
+    <circle cx="300" cy="450" r="4"/>
+    <circle cx="550" cy="550" r="5"/>
+    <circle cx="800" cy="480" r="4"/>
+    <circle cx="1050" cy="600" r="6"/>
+    <circle cx="1300" cy="520" r="4"/>
+    <circle cx="1550" cy="650" r="5"/>
+    <circle cx="1800" cy="570" r="4"/>
+    <circle cx="150" cy="700" r="4"/>
+    <circle cx="400" cy="800" r="5"/>
+    <circle cx="650" cy="720" r="4"/>
+    <circle cx="900" cy="850" r="6"/>
+    <circle cx="1150" cy="770" r="4"/>
+    <circle cx="1400" cy="900" r="5"/>
+    <circle cx="1650" cy="820" r="4"/>
+  </g>
+
+  <!-- Highlight nodes -->
+  <g fill="#a78bfa" fill-opacity="0.8">
+    <circle cx="950" cy="350" r="3"/>
+    <circle cx="1050" cy="600" r="3"/>
+    <circle cx="900" cy="850" r="3"/>
+  </g>
+</svg>

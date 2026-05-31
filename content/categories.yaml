@@ -1,0 +1,23 @@
+- name: 大数据开发工程
+  description: Spark / Hive / SQL 性能优化与数据管道
+  background: gradient-1
+  bgOpacity: 15
+- name: 大模型数据工程
+  description: 训练数据清洗、质量控制与 SFT 数据处理
+  background: gradient-2
+  bgOpacity: 15
+- name: 大模型基础架构
+  description: LLM 架构、训练流程与模型优化
+  background: gradient-3
+  bgOpacity: 15
+- name: 大模型应用工程
+  description: RAG 知识库、Agent 与多模态应用
+  background: gradient-4
+  bgOpacity: 15
+- name: AI工具
+  description: AI 开发工具、效率工具与实用资源
+  background: gradient-5
+  bgOpacity: 15
+- name: sssss
+  description: ''
+  bgOpacity: 15

@@ -1,0 +1,96 @@
+---
+title: "RAG 系统设计实践"
+date: "2026-05-20"
+updated: "2026-05-20"
+summary: "从零搭建 RAG 知识库系统，包括文档切分、向量存储、检索增强和问答生成"
+tags: ["RAG", "LLM", "向量数据库", "Embedding"]
+category: "大模型应用工程"
+draft: false
+---
+
+## RAG 概述
+
+RAG（Retrieval-Augmented Generation）是一种结合信息检索和文本生成的技术架构。它通过从知识库中检索相关上下文，增强大语言模型的生成能力。
+
+## 系统架构
+
+RAG 系统的核心组件包括：
+
+1. **文档处理**：文档加载、清洗和切分
+2. **向量化**：将文本片段转换为向量表示
+3. **存储**：向量数据库存储和索引
+4. **检索**：根据查询向量召回相关片段
+5. **生成**：结合检索结果和问题生成回答
+
+## 文档切分策略
+
+```python
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+
+splitter = RecursiveCharacterTextSplitter(
+    chunk_size=500,
+    chunk_overlap=50,
+    separators=["\n\n", "\n", "。", "！", "？", " ", ""]
+)
+
+chunks = splitter.split_text(long_text)
+```
+
+### 切分策略选择
+
+- **固定长度切分**：适合结构规整的文档
+- **语义切分**：基于段落标题和语义边界
+- **递归切分**：优先按大分隔符切分，不足则按小分隔符
+
+## 向量模型选择
+
+常用的 Embedding 模型：
+
+| 模型 | 维度 | 语言 | 特点 |
+|------|------|------|------|
+| bge-m3 | 1024 | 多语言 | 中英双语效果好 |
+| text-embedding-3 | 1536 | 英文为主 | OpenAI 官方模型 |
+| bge-large-zh | 1024 | 中文 | 中文效果优秀 |
+
+```python
+from langchain.embeddings import HuggingFaceBgeEmbeddings
+
+embeddings = HuggingFaceBgeEmbeddings(
+    model_name="BAAI/bge-large-zh-v1.5",
+    model_kwargs={"device": "cuda"},
+    encode_kwargs={"normalize_embeddings": True}
+)
+```
+
+## 检索增强
+
+检索阶段需要：
+
+1. 将用户问题转换为查询向量
+2. 在向量数据库中相似度搜索
+3. 返回 Top-K 相关文本片段
+
+```python
+from langchain.vectorstores import Chroma
+
+db = Chroma.from_documents(chunks, embeddings)
+results = db.similarity_search(question, k=3)
+```
+
+## Prompt 构建
+
+将检索到的上下文与问题一起构建 Prompt：
+
+```python
+prompt = f"""基于以下参考资料回答用户问题。如果资料中没有相关信息，请说明无法回答。
+
+参考资料：
+{context}
+
+问题：{question}
+回答："""
+```
+
+## 总结
+
+RAG 系统通过检索增强生成，有效解决了大模型的知识时效性和幻觉问题。在实际应用中，需要根据业务场景调整切分策略、向量模型和检索参数，以达到最佳的问答效果。

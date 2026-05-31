@@ -1,0 +1,139 @@
+- slug: "llm-data-cleaning"
+  name: "大模型训练数据清洗平台"
+  description: "基于 Python 和 Spark 构建的大模型训练数据清洗流程，支持文本去重、低质量过滤、敏感信息识别和格式规范化。"
+  cover: "/images/projects/llm-data-cleaning.png"
+  techStack:
+    - Python
+    - Spark
+    - Hive
+    - MinHash
+    - SimHash
+    - FastText
+  githubUrl: "https://github.com/huweiastar/llm-data-cleaning"
+  highlights:
+    - 支持亿级文本数据清洗
+    - 实现文档级和段落级去重
+    - 支持规则过滤和模型过滤结合
+    - 输出符合 SFT 格式的数据集
+  details:
+    background: "大模型训练质量高度依赖训练数据质量。原始数据通常包含重复内容、低质量文本和敏感信息，需要系统化清洗。"
+    problem: "传统数据清洗方案难以处理海量文本数据，MinHash 近似去重和 SimHash 指纹在大规模场景下性能不足。"
+    solution: "基于 Spark 分布式计算构建数据清洗 Pipeline，结合规则过滤、统计过滤和模型过滤的多阶段策略。"
+    results: "实现亿级文档的高效去重和清洗，数据质量显著提升，训练效率提高 30%。"
+  relatedPosts:
+    - "llm-data-cleaning"
+  codeIndex:
+    enabled: false
+
+- slug: "multimodal-pipeline"
+  name: "多模态数据处理 Pipeline"
+  description: "构建支持文本、图像、音频等多模态数据的处理流水线，实现多模态数据的清洗、标注和格式转换。"
+  cover: "/images/projects/multimodal-pipeline.png"
+  techStack:
+    - Python
+    - OpenCV
+    - Whisper
+    - Pandas
+    - Apache Airflow
+  githubUrl: "https://github.com/huweiastar/multimodal-pipeline"
+  highlights:
+    - 支持文本、图像、音频三种模态
+    - 自动化数据处理流水线
+    - 可视化数据质量监控面板
+  details:
+    background: "多模态大模型需要处理文本、图像、音频等多种数据类型，每种模态的数据清洗和处理流程不同。"
+    problem: "各模态数据处理脚本分散、缺乏统一调度，数据质量监控困难。"
+    solution: "基于 Apache Airflow 构建统一的多模态数据处理 Pipeline，每种模态使用专用处理模块。"
+    results: "实现多模态数据的自动化处理和质量监控，处理效率提升 2 倍。"
+  relatedPosts: []
+  codeIndex:
+    enabled: false
+
+- slug: "rag-chatbot"
+  name: "RAG 知识库问答系统"
+  description: "基于 LangChain 和向量数据库构建的智能问答系统，支持企业知识库的文档检索和自然语言问答。"
+  cover: "/images/projects/rag-chatbot.png"
+  techStack:
+    - Python
+    - LangChain
+    - Chroma
+    - OpenAI API
+    - FastAPI
+  githubUrl: "https://github.com/huweiastar/rag-chatbot"
+  demoUrl: "https://rag-chatbot-demo.vercel.app"
+  highlights:
+    - 支持多种文档格式导入
+    - 语义检索 + 关键词检索混合
+    - 回答附带引用来源
+  details:
+    background: "企业知识库包含大量文档资料，员工需要快速检索和获取知识。传统关键词检索无法满足语义理解需求。"
+    problem: "关键词检索无法理解语义，返回结果不精准。知识库文档格式多样，导入和处理困难。"
+    solution: "基于 LangChain 构建 RAG 系统，使用向量数据库进行语义检索，结合关键词检索实现混合召回。"
+    results: "实现多格式文档导入、语义检索和自然语言问答，回答准确率 85%+。"
+  relatedPosts:
+    - "rag-system-design"
+  codeIndex:
+    enabled: false
+
+- slug: "spark-dedup"
+  name: "Spark 亿级数据去重项目"
+  description: "基于 MinHash + LSH 算法实现亿级文档的近似重复检测，将处理时间从数天缩短到数小时。"
+  cover: "/images/projects/spark-dedup.png"
+  techStack:
+    - Spark
+    - Scala
+    - MinHash
+    - LSH
+    - Hive
+  githubUrl: "https://github.com/huweiastar/spark-dedup"
+  highlights:
+    - 支持 10 亿级文档去重
+    - 分布式 MinHash 计算
+    - 去重准确率达 95%+
+  details:
+    background: "大数据场景下，海量文本数据中存在大量重复或近似重复内容，需要高效去重。"
+    problem: "精确去重需要 O(n²) 复杂度，无法处理亿级数据。MinHash + LSH 近似算法可以大幅降低计算量。"
+    solution: "基于 Spark 分布式实现 MinHash + LSH 算法，将文档分桶后进行桶内精确比较。"
+    results: "处理 10 亿文档，去重时间从数天缩短到数小时，准确率 95%+。"
+  relatedPosts:
+    - "spark-data-skew"
+  codeIndex:
+    enabled: false
+
+- slug: "ai-tech-blog"
+  name: "个人技术博客系统"
+  description: "基于 Next.js + TypeScript + Tailwind CSS 构建的个人技术博客系统，支持 MDX、分类标签、全文搜索、SEO 优化和自动化部署。"
+  cover: "/images/projects/ai-tech-blog.png"
+  techStack:
+    - Next.js
+    - TypeScript
+    - Tailwind CSS
+    - MDX
+    - Fuse.js
+    - GitHub Actions
+  githubUrl: "https://github.com/huweiastar/ai-tech-blog"
+  demoUrl: "https://ai-tech-blog.vercel.app"
+  highlights:
+    - 完整的 MDX 文章系统
+    - 全文搜索和分类标签
+    - SEO 优化和 RSS 支持
+    - GitHub Actions 自动部署
+  details:
+    background: "需要一个个人技术博客来分享大数据和大模型技术经验。"
+    problem: "现有博客平台功能受限，自定义程度低。自建博客需要完整的 MDX 渲染、搜索、SEO 等功能。"
+    solution: "基于 Next.js App Router 构建，使用 MDX 渲染、Fuse.js 全文搜索、Tailwind CSS 样式和 GitHub Actions 自动化部署。"
+    results: "实现完整的个人技术博客系统，支持暗色模式、全文搜索、SEO 优化、RSS 订阅等功能。"
+  relatedPosts: []
+  codeIndex:
+    enabled: true
+    sourceType: "local"
+    localPath: "."
+    include:
+      - "app/**"
+      - "lib/**"
+      - "components/**"
+      - "README.md"
+    exclude:
+      - "node_modules/**"
+      - ".next/**"
+      - ".env*"
