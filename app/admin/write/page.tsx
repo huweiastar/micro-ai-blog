@@ -576,9 +576,17 @@ export default function WritePage() {
 
   const renderPreview = (md: string) => {
     if (!md.trim()) return { __html: '<span class="text-[var(--muted)] text-sm">暂无内容</span>' };
-    
-    // 先处理表格
-    let processedMd = md.replace(/\|(.+)\|\n\|[-\s|:]+\|\n((?:\|.+\|\n?)*)/g, (match, headerRow, bodyRows) => {
+
+    // Step 1: Extract code blocks FIRST so heading regexes don't match `#` inside them
+    const codeBlocks: string[] = [];
+    let processedMd = md.replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) => {
+      const idx = codeBlocks.length;
+      codeBlocks.push(`<pre class="bg-[var(--code-bg)] text-[var(--code-text)] rounded-lg p-4 my-4 overflow-x-auto text-sm font-mono"><code class="language-${lang}">${code.trim().replace(/</g, "&lt;").replace(/>/g, "&gt;")}</code></pre>`);
+      return `\x00CODEBLOCK_${idx}\x00`;
+    });
+
+    // Step 2: Process tables
+    processedMd = processedMd.replace(/\|(.+)\|\n\|[-\s|:]+\|\n((?:\|.+\|\n?)*)/g, (match, headerRow, bodyRows) => {
       const headers = headerRow.split("|").filter((c: string) => c.trim()).map((c: string) => `<th class="px-4 py-3 text-left font-semibold bg-[var(--card)] border-b border-[var(--card-border)]">${c.trim()}</th>`).join("");
       const rows = bodyRows.trim().split("\n").map((row: string) => {
         const cells = row.split("|").filter((c: string) => c.trim()).map((c: string) => `<td class="px-4 py-3 border-b border-[var(--card-border)]">${c.trim()}</td>`).join("");
@@ -587,26 +595,23 @@ export default function WritePage() {
       return `<table class="w-full border-collapse my-4 rounded-lg overflow-hidden border border-[var(--card-border)]"><thead><tr>${headers}</tr></thead><tbody>${rows}</tbody></table>`;
     });
 
+    // Step 3: Process all other markdown (headings now safe since code blocks are placeholders)
     let html = processedMd
-      // Process <figure> blocks — wrap img with styled container + figcaption
+      // Process <figure> blocks
       .replace(/<figure[^>]*class="([^"]*image-block[^"]*)"[^>]*>([\s\S]*?)<\/figure>/gi, (_, cls, inner) => {
         const isSingle = !cls.includes("flex-1");
         const imgMatch = inner.match(/<img[^>]*>/i);
         const imgHtml = imgMatch ? imgMatch[0] : "";
         const captionMatch = inner.match(/<figcaption[^>]*>([\s\S]*?)<\/figcaption>/i);
         const caption = captionMatch ? captionMatch[1] : "";
-        const figClass = isSingle
-          ? "my-6 text-center"
-          : "flex-1 text-center";
+        const figClass = isSingle ? "my-6 text-center" : "flex-1 text-center";
         const imgEl = imgHtml.replace(/class="([^"]*)"/, `class="$1 rounded-lg shadow-sm"`);
         return `<div class="${figClass}">${imgEl}${caption ? `<p class="text-xs text-[var(--muted)] mt-2 italic">${caption}</p>` : ""}</div>`;
       })
-      // Process double-column <div class="flex gap-4">
       .replace(/<div\s+class="flex\s+gap-4">([\s\S]*?)<\/div>/gi, (_, inner) => {
         return `<div class="flex gap-4 my-6">${inner}</div>`;
       })
-      .replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) =>
-        `<pre class="bg-[var(--code-bg)] text-[var(--code-text)] rounded-lg p-4 my-4 overflow-x-auto text-sm font-mono"><code class="language-${lang}">${code.trim().replace(/</g, "&lt;").replace(/>/g, "&gt;")}</code></pre>`)
+      // Headings
       .replace(/^###### (.+)$/gm, "<h6 class='text-sm font-semibold mt-4 mb-2'>$1</h6>")
       .replace(/^##### (.+)$/gm, "<h5 class='text-base font-semibold mt-5 mb-2'>$1</h5>")
       .replace(/^#### (.+)$/gm, "<h4 class='text-lg font-semibold mt-6 mb-3'>$1</h4>")
@@ -628,6 +633,9 @@ export default function WritePage() {
       .replace(/\$\$(.+?)\$\$/g, '<div class="text-center my-4 p-3 bg-[var(--card)] rounded-lg font-mono">$1</div>')
       .replace(/\$(.+?)\$/g, '<span class="font-mono text-[var(--primary)]">$1</span>')
       .replace(/^---$/gm, '<hr class="border-[var(--card-border)] my-6"/>');
+
+    // Step 4: Restore code blocks (replace placeholders with actual HTML)
+    html = html.replace(/\x00CODEBLOCK_(\d+)\x00/g, (_, idx) => codeBlocks[parseInt(idx)] || "");
 
     html = html.replace(/\n\n/g, "<br/><br/>");
 
