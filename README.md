@@ -104,7 +104,7 @@
 - [项目结构](#-项目结构)
 - [配置指南](#-配置指南)
 - [部署指南](#-部署指南)
-- [文章编写](#-文章编写指南)
+- [项目更新与维护](#-项目更新与维护)- [文章编写](#-文章编写指南)
 - [故障排查](#-故障排查)
 
 ### 🤝 其他
@@ -502,6 +502,75 @@ server {
 ```
 
 ---
+
+## 🔄 项目更新与维护
+
+### Vercel 部署
+
+Vercel 会在每次 push 到 `main` 分支时**自动构建并部署**，无需任何手动操作。
+
+### 自建服务器部署
+
+当你向 GitHub 推送新代码后，登录服务器执行以下命令更新：
+
+```bash
+# 1. SSH 登录服务器
+ssh root@39.106.209.251
+
+# 2. 进入项目目录
+cd /root/micro-ai-blog
+
+# 3. 拉取最新代码
+git pull origin main
+
+# 4. 安装依赖（如有新增依赖）
+npm ci
+
+# 5. 重新构建并重启
+npm run build && pm2 restart micro-ai-blog
+```
+
+### 懒人模式：设置一键更新别名
+
+如果不想每次都输入多条命令，可以设置一个快捷别名：
+
+```bash
+# 添加别名到 ~/.bashrc
+echo 'alias update-blog="cd /root/micro-ai-blog && git pull origin main && npm ci && npm run build && pm2 restart micro-ai-blog"' >> ~/.bashrc
+
+# 使别名生效
+source ~/.bashrc
+```
+
+以后只需运行：
+
+```bash
+update-blog
+```
+
+### 常用维护命令
+
+| 命令 | 说明 |
+|:---|:---|
+| `pm2 status` | 查看服务运行状态 |
+| `pm2 logs micro-ai-blog` | 查看实时日志 |
+| `pm2 restart micro-ai-blog` | 重启服务 |
+| `pm2 stop micro-ai-blog` | 停止服务 |
+| `pm2 delete micro-ai-blog` | 删除服务 |
+| `pm2 monit` | 监控面板（CPU/内存实时图表） |
+| `git log --oneline -5` | 查看最近 5 条提交记录 |
+
+### 更新注意事项
+
+- **构建时间**：Next.js 构建大约需要 30-60 秒，期间旧版本仍可正常访问
+- **无缝更新**：`pm2 restart` 会平滑重启，不会丢失正在处理的请求
+- **故障排查**：如果更新后出现问题，运行 `pm2 logs micro-ai-blog --lines 50` 查看详细日志
+- **回滚操作**：如需回滚到上一个版本：
+  ```bash
+  git log --oneline        # 找到要回退的 commit hash
+  git reset --hard <hash>  # 回退代码
+  npm run build && pm2 restart micro-ai-blog  # 重新构建
+  ```
 
 ## ✍️ 文章编写指南
 
