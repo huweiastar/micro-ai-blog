@@ -573,6 +573,17 @@ SELECT * FROM users WHERE age > 18;
 
 ---
 
+##  Star History
+
+<div align="center">
+  <a href="https://star-history.com/#huweiastar/micro-ai-blog&Date">
+    <img src="https://api.star-history.com/svg?repos=huweiastar/micro-ai-blog&type=Date" alt="Star History Chart" width="600" />
+  </a>
+  <p>⭐ 如果这个项目对你有帮助，欢迎 Star 支持一下！</p>
+</div>
+
+---
+
 ##  贡献指南
 
 欢迎提交 Issue 和 Pull Request！
