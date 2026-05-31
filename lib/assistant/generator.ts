@@ -157,7 +157,7 @@ interface AIConfig {
   provider: "anthropic" | "openai-compatible";
 }
 
-function resolveAIConfig(): AIConfig | null {
+export function resolveAIConfig(): AIConfig | null {
   // Support both new unified config and legacy ANTHROPIC_API_KEY
   const apiKey = process.env.AI_API_KEY || process.env.ANTHROPIC_API_KEY || "";
   if (!apiKey) return null;

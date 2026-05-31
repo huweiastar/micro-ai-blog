@@ -12,6 +12,7 @@ const WRITE_API_PATHS = [
   "/api/feishu",
   "/api/admin/reindex",
   "/api/about",
+  "/api/assistant/write",
 ];
 
 const READ_ONLY_METHODS = ["GET", "HEAD", "OPTIONS"];

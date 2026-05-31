@@ -10,8 +10,9 @@ import {
   Underline, Superscript, Subscript, Highlighter, Footprints,
   Undo2, Redo2, Maximize2, Minimize2, Search,
   Palette, AlignVerticalJustifyCenter, Columns2,
-  Minus as MinusIcon, Code2, TextCursorInput,
+  Minus as MinusIcon, Code2, TextCursorInput, Sparkles,
 } from "lucide-react";
+import { AiWriteModal } from "../../../components/admin/ai-write-modal";
 
 type CategoryConfig = {
   name: string;
@@ -76,6 +77,9 @@ export default function WritePage() {
   const [feishuUrl, setFeishuUrl] = useState("");
   const [feishuLoading, setFeishuLoading] = useState(false);
   const [feishuError, setFeishuError] = useState("");
+
+  // AI write state
+  const [showAiWrite, setShowAiWrite] = useState(false);
 
   // Dialog states
   const [showMoreDialog, setShowMoreDialog] = useState(false);
@@ -510,6 +514,39 @@ export default function WritePage() {
     }
   };
 
+  const handleAiInsert = (result: { title: string; summary: string; tags: string; category: string; content: string }) => {
+    if (result.title) setArticleTitle(result.title);
+    if (result.summary) setArticleSummary(result.summary);
+    if (result.tags) setArticleTags(result.tags);
+    if (result.content) setArticleContent(result.content);
+
+    // Match AI-suggested category to configured categories
+    if (result.category) {
+      const match = categories.find((c) => c.name === result.category);
+      if (match) {
+        setArticleCategory(match.name);
+      } else {
+        // Fuzzy match: check if any category name is a substring
+        const fuzzyMatch = categories.find((c) =>
+          result.category.includes(c.name) || c.name.includes(result.category!)
+        );
+        if (fuzzyMatch) {
+          setArticleCategory(fuzzyMatch.name);
+        }
+        // Otherwise keep current category
+      }
+    }
+
+    // Trigger immediate draft save
+    localStorage.setItem("blog-draft", JSON.stringify({
+      title: result.title || articleTitle,
+      summary: result.summary || articleSummary,
+      tags: result.tags || articleTags,
+      category: articleCategory,
+      content: result.content || articleContent,
+    }));
+  };
+
   const mdToolbar = [
     { icon: Bold, action: () => insertMarkdown("**", "**"), title: "加粗 Ctrl+B" },
     { icon: Italic, action: () => insertMarkdown("*", "*"), title: "斜体 Ctrl+I" },
@@ -633,6 +670,9 @@ export default function WritePage() {
           <div className="flex items-center gap-3">
             <button onClick={() => setShowFeishuImport(true)} className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-[var(--card-border)] text-[var(--muted)] hover:text-[var(--primary)] hover:border-[var(--primary)]/50 transition-colors">
               <Import className="w-3.5 h-3.5" />从飞书导入
+            </button>
+            <button onClick={() => setShowAiWrite(true)} className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-[var(--card-border)] text-[var(--muted)] hover:text-[var(--primary)] hover:border-[var(--primary)]/50 transition-colors">
+              <Sparkles className="w-3.5 h-3.5" />AI 帮写
             </button>
             <button onClick={clearDraft} className="text-xs text-[var(--muted)] hover:text-red-400 transition-colors">清除草稿</button>
             <span className="text-xs text-[var(--muted)]">
@@ -1048,6 +1088,13 @@ export default function WritePage() {
           </div>
         </div>
       )}
+
+      {/* AI Write Modal */}
+      <AiWriteModal
+        isOpen={showAiWrite}
+        onClose={() => setShowAiWrite(false)}
+        onInsert={handleAiInsert}
+      />
 
       {/* Publish Success */}
       {publishResult?.success && (

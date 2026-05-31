@@ -1,3 +1,10 @@
+export type WriteRequest = {
+  topic: string;
+  style?: string;
+  tags?: string;
+  wordCount?: string;
+};
+
 export type SourceType = "blog" | "project" | "code" | "site" | "doc";
 
 export type KnowledgeChunk = {
