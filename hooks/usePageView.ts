@@ -13,28 +13,31 @@ function getOrCreateVisitorId(): string {
   return id;
 }
 
-export function usePageView(onUpdate?: (stats: { pv: number; uv: number }) => void) {
+export function usePageView(onUpdate?: (stats: { pv: number; uv: number; pathPv?: number }) => void) {
   const pathname = usePathname();
-  // Track the last pathname we recorded to avoid duplicate PV on StrictMode remount
   const lastPathnameRef = useRef("");
 
   useEffect(() => {
-    // Skip if pathname hasn't changed (handles React.StrictMode dev double-mount)
     if (pathname === lastPathnameRef.current) return;
     lastPathnameRef.current = pathname;
 
     const visitorId = getOrCreateVisitorId();
     if (!visitorId) return;
 
-    // Record page view
     fetch("/api/analytics", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ visitorId }),
+      body: JSON.stringify({ visitorId, path: pathname }),
       keepalive: true,
     })
       .then((res) => res.json())
-      .then((data) => onUpdate?.(data))
+      .then((data) =>
+        onUpdate?.({
+          pv: data.global?.pv ?? 0,
+          uv: data.global?.uv ?? 0,
+          pathPv: data.path?.pv,
+        })
+      )
       .catch(() => {});
   }, [pathname, onUpdate]);
 }

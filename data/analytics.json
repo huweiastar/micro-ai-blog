@@ -1,8 +1,18 @@
 {
-  "pv": 20,
+  "pv": 147,
   "uv": 1,
   "visitorIds": [
     "v_mpt44ux6_uc1ysi"
   ],
-  "updatedAt": "2026-05-31T03:03:18.873Z"
+  "updatedAt": "2026-05-31T09:23:48.017Z",
+  "paths": {
+    "/": {
+      "pv": 7,
+      "uv": 1,
+      "visitorIds": [
+        "v_mpt44ux6_uc1ysi"
+      ],
+      "updatedAt": "2026-05-31T09:23:48.017Z"
+    }
+  }
 }

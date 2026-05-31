@@ -75,9 +75,22 @@ export function HomeClient({ stats }: HomeClientProps) {
       });
   }, []);
 
-  // Load visit stats
+  // Load visit stats — POST to record and get updated count atomically
   useEffect(() => {
-    fetch("/api/analytics")
+    const visitorId = (() => {
+      let id = localStorage.getItem("_blog_visitor_id");
+      if (!id) {
+        id = "v_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 8);
+        localStorage.setItem("_blog_visitor_id", id);
+      }
+      return id;
+    })();
+
+    fetch("/api/analytics", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ visitorId }),
+    })
       .then((res) => res.json())
       .then((data) => setVisitStats(data))
       .catch(() => {});

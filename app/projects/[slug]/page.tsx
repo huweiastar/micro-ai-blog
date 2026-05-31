@@ -5,6 +5,7 @@ import { getPostBySlug, renderMarkdownToHtml } from "../../../lib/posts";
 import { formatDate } from "../../../lib/utils";
 import { generatePageMetadata } from "../../../lib/seo";
 import { Comment } from "../../../components/Comment";
+import { ViewCount } from "../../../components/ViewCount";
 import { ArrowLeft, Github, ExternalLink, Code2, FolderOpen } from "lucide-react";
 import type { Metadata } from "next";
 
@@ -43,6 +44,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
   // Render Markdown content if available, otherwise fall back to legacy details
   const hasMarkdownContent = project.content && project.content.trim().length > 0;
   const contentHtml = hasMarkdownContent ? { __html: await renderMarkdownToHtml(project.content!) } : null;
+  const currentPath = `/projects/${project.slug}`;
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-12">
@@ -59,7 +61,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
         <h1 className="text-3xl font-bold mb-3">{project.name}</h1>
         <p className="text-[var(--muted)] text-lg leading-relaxed mb-6">{project.description}</p>
 
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-3 items-center">
           {project.githubUrl && (
             <a
               href={project.githubUrl}
@@ -82,6 +84,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
               在线演示
             </a>
           )}
+          <ViewCount path={currentPath} className="ml-auto" />
         </div>
       </header>
 

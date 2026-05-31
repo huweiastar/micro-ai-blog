@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
+  // Disabled StrictMode to prevent double execution of useEffect in dev/production
+  // which caused page views to be counted twice.
+  reactStrictMode: false,
   poweredByHeader: false,
   images: {
     formats: ["image/avif", "image/webp"],

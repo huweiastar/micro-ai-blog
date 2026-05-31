@@ -3,11 +3,19 @@ import path from "path";
 
 const analyticsPath = path.join(process.cwd(), "data", "analytics.json");
 
+export type PathAnalytics = {
+  pv: number;
+  uv: number;
+  visitorIds: string[];
+  updatedAt: string;
+};
+
 export type AnalyticsData = {
   pv: number;
   uv: number;
   visitorIds: string[];
   updatedAt: string;
+  paths: Record<string, PathAnalytics>;
 };
 
 function ensureDataDir() {
@@ -20,10 +28,15 @@ function ensureDataDir() {
 function readAnalytics(): AnalyticsData {
   ensureDataDir();
   if (!fs.existsSync(analyticsPath)) {
-    return { pv: 0, uv: 0, visitorIds: [], updatedAt: new Date().toISOString() };
+    return { pv: 0, uv: 0, visitorIds: [], updatedAt: new Date().toISOString(), paths: {} };
   }
   const content = fs.readFileSync(analyticsPath, "utf-8");
-  return JSON.parse(content) as AnalyticsData;
+  const data = JSON.parse(content) as AnalyticsData;
+  // Ensure paths object exists for backward compatibility
+  if (!data.paths) {
+    data.paths = {};
+  }
+  return data;
 }
 
 function writeAnalytics(data: AnalyticsData) {
@@ -31,27 +44,64 @@ function writeAnalytics(data: AnalyticsData) {
   fs.writeFileSync(analyticsPath, JSON.stringify(data, null, 2), "utf-8");
 }
 
+function recordPathView(data: AnalyticsData, visitorId: string, pagePath: string): PathAnalytics {
+  if (!data.paths[pagePath]) {
+    data.paths[pagePath] = { pv: 0, uv: 0, visitorIds: [], updatedAt: new Date().toISOString() };
+  }
+
+  const pathData = data.paths[pagePath];
+  pathData.pv += 1;
+
+  const isNewVisitor = !pathData.visitorIds.includes(visitorId);
+  if (isNewVisitor) {
+    pathData.uv += 1;
+    pathData.visitorIds.push(visitorId);
+    if (pathData.visitorIds.length > 10000) {
+      pathData.visitorIds = pathData.visitorIds.slice(-10000);
+    }
+  }
+
+  pathData.updatedAt = new Date().toISOString();
+  return pathData;
+}
+
 export function getAnalytics(): { pv: number; uv: number } {
   const data = readAnalytics();
   return { pv: data.pv, uv: data.uv };
 }
 
-export function recordPageView(visitorId: string): { pv: number; uv: number } {
+export function getPathAnalytics(pagePath: string): PathAnalytics {
   const data = readAnalytics();
-  data.pv += 1;
+  return (
+    data.paths[pagePath] || { pv: 0, uv: 0, visitorIds: [], updatedAt: new Date().toISOString() }
+  );
+}
 
-  const isNewVisitor = !data.visitorIds.includes(visitorId);
-  if (isNewVisitor) {
+export function recordPageView(
+  visitorId: string,
+  pagePath: string
+): { global: { pv: number; uv: number }; path: PathAnalytics } {
+  const data = readAnalytics();
+
+  // Record global PV/UV
+  data.pv += 1;
+  const isNewGlobalVisitor = !data.visitorIds.includes(visitorId);
+  if (isNewGlobalVisitor) {
     data.uv += 1;
     data.visitorIds.push(visitorId);
-    // Keep only last 10000 visitor IDs to prevent unbounded growth
     if (data.visitorIds.length > 10000) {
       data.visitorIds = data.visitorIds.slice(-10000);
     }
   }
 
+  // Record path-specific PV/UV
+  const pathStats = recordPathView(data, visitorId, pagePath);
+
   data.updatedAt = new Date().toISOString();
   writeAnalytics(data);
 
-  return { pv: data.pv, uv: data.uv };
+  return {
+    global: { pv: data.pv, uv: data.uv },
+    path: pathStats,
+  };
 }

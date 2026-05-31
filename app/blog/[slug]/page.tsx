@@ -7,6 +7,7 @@ import { Tag } from "../../../components/Tag";
 import { ShareButtons } from "../../../components/blog/ShareButtons";
 import { BackToTop } from "../../../components/ui/BackToTop";
 import { ReadingProgress } from "../../../components/ui/ReadingProgress";
+import { ViewCount } from "../../../components/ViewCount";
 import { formatDate, formatShortDate } from "../../../lib/utils";
 import { generatePageMetadata, generateArticleStructuredData, getSiteUrl } from "../../../lib/seo";
 import { StructuredData } from "../../../components/StructuredData";
@@ -50,6 +51,7 @@ export default async function PostPage({ params }: PostPageProps) {
   const siteUrl = getSiteUrl();
   const postUrl = `${siteUrl}/blog/${post.slug}`;
   const structuredData = generateArticleStructuredData(post, postUrl);
+  const currentPath = `/blog/${post.slug}`;
 
   return (
     <>
@@ -95,6 +97,7 @@ export default async function PostPage({ params }: PostPageProps) {
                 <FolderOpen className="w-4 h-4" />
                 {post.category}
               </span>
+              <ViewCount path={currentPath} />
             </div>
 
             <div className="flex flex-wrap gap-2 mt-4">
