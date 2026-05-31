@@ -5,8 +5,8 @@
 </p>
 
 <p align="center">
-  <a href="https://huweiastar.cn">
-    <img src="https://img.shields.io/badge/blog-huweiastar.cn-2563eb?style=flat&labelColor=1e293b" alt="Online Demo" />
+  <a href="http://39.106.209.251:3000/">
+    <img src="https://img.shields.io/badge/blog-39.106.209.251:3000-2563eb?style=flat&labelColor=1e293b" alt="Online Demo" />
   </a>
   <a href="https://github.com/huweiastar/micro-ai-blog/stargazers">
     <img src="https://img.shields.io/github/stars/huweiastar/micro-ai-blog.svg?style=flat&logo=github&label=Stars" alt="Stars" />
@@ -38,7 +38,7 @@
 
 ## 🌐 在线预览
 
-> **访问我的个人博客**：[https://huweiastar.cn](https://huweiastar.cn)
+> **访问我的个人博客**：[http://39.106.209.251:3000](http://39.106.209.251:3000)
 
 <div align="center">
   <table>
@@ -74,7 +74,7 @@
 
 ## 📖 关于本项目
 
-本项目既是 **我的个人技术博客**（运行于 [huweiastar.cn](https://huweiastar.cn)），也是一个 **开源的博客框架**，你可以直接 Fork 并部署属于自己的技术博客。
+本项目既是 **我的个人技术博客**（运行于 [39.106.209.251:3000](http://39.106.209.251:3000)），也是一个 **开源的博客框架**，你可以直接 Fork 并部署属于自己的技术博客。
 
 ### 核心特色
 
@@ -115,7 +115,7 @@
 
 ## 我的博客介绍
 
-[微观 AI](https://huweiastar.cn) 是我个人的技术博客，主要聚焦以下方向：
+[微观 AI](http://39.106.209.251:3000) 是我个人的技术博客，主要聚焦以下方向：
 
 - **大数据开发**：Spark 性能调优、数据倾斜处理、Flink 实时计算
 - **大模型数据工程**：数据清洗、指令微调数据集构建、评估体系
@@ -124,7 +124,7 @@
 
 博客采用 **Next.js 14 + TypeScript + Tailwind CSS** 构建，内容以 **Markdown/MDX** 格式编写，支持在线管理后台和 AI 智能问答。
 
-> 如果你对大数据或大模型感兴趣，欢迎 [访问博客](https://huweiastar.cn) 交流讨论！
+> 如果你对大数据或大模型感兴趣，欢迎 [访问博客](http://39.106.209.251:3000) 交流讨论！
 
 ---
 
@@ -357,7 +357,7 @@ cp .env.example .env.local
 
 ```env
 # ========== 站点配置 ==========
-NEXT_PUBLIC_SITE_URL=https://huweiastar.cn
+NEXT_PUBLIC_SITE_URL=http://39.106.209.251:3000
 NEXT_PUBLIC_SITE_NAME=微观AI
 
 # ========== 管理后台密码 ==========
@@ -683,7 +683,7 @@ SELECT * FROM users WHERE age > 18;
 <div align="center">
   <p>如果这个项目对你有帮助，欢迎 ⭐ Star 支持一下！</p>
   <p>
-    <a href="https://huweiastar.cn">🌐 访问我的博客</a> · 
+    <a href="http://39.106.209.251:3000">🌐 访问我的博客</a> · 
     <a href="https://github.com/huweiastar/micro-ai-blog/issues">💬 提交 Issue</a> · 
     <a href="https://github.com/huweiastar/micro-ai-blog/pulls">🔧 提交 PR</a>
   </p>

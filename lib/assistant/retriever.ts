@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import Fuse, { type FuseResult } from "fuse.js";
-import type { KnowledgeChunk, KnowledgeIndex, SourceType, SourceReference } from "./types";
+import type { KnowledgeChunk, KnowledgeIndex, SourceReference } from "./types";
 
 const INDEX_PATH = path.join(process.cwd(), "public/knowledge-index.json");
 
@@ -14,7 +14,7 @@ function loadIndex(): KnowledgeIndex | null {
   }
 }
 
-function createFuseIndex(chunks: KnowledgeChunk[]): Fuse<KnowledgeChunk> {
+function createFuseIndex(chunks: KnowledgeChunk[], threshold: number = 0.3): Fuse<KnowledgeChunk> {
   return new Fuse(chunks, {
     keys: [
       { name: "title", weight: 0.4 },
@@ -22,11 +22,44 @@ function createFuseIndex(chunks: KnowledgeChunk[]): Fuse<KnowledgeChunk> {
       { name: "summary", weight: 0.2 },
       { name: "tags", weight: 0.1 },
     ],
-    threshold: 0.3,
-    minMatchCharLength: 2,
+    threshold,
+    minMatchCharLength: 1,
     includeScore: true,
     includeMatches: true,
   });
+}
+
+/**
+ * Remove common Chinese stop words and extract meaningful keywords from a query.
+ * Returns an array of keyword terms sorted by specificity (longer terms first).
+ */
+function extractKeywords(query: string): string[] {
+  // Only remove particles/function words that carry no semantic meaning.
+  // Domain words like 博客/文章/项目 are intentionally preserved.
+  const stopWords = [
+    "有哪些", "有什么", "是什么", "在哪里", "怎么样", "怎么办",
+    "怎么做", "好不好", "能不能", "是不是", "会不会", "可不可以",
+    "里", "的", "了", "呢", "吗", "吧", "啊", "呀", "嘛",
+    "哪些", "什么", "多少", "几个", "一下", "一个", "一些",
+    "请", "问", "帮", "我", "你", "他", "她", "它", "咱们",
+    "能", "会", "可以", "应该", "需要", "想",
+    "和", "与", "或", "但", "而", "如果", "因为", "所以",
+    "这", "那", "这些", "那些",
+  ];
+
+  let filtered = query;
+  for (const word of stopWords) {
+    filtered = filtered.replace(new RegExp(word, "g"), " ");
+  }
+
+  // Extract meaningful tokens: consecutive Chinese characters or alphanumeric words
+  const tokens = filtered
+    .split(/\s+/)
+    .map((t) => t.trim())
+    .filter((t) => t.length >= 1);
+
+  // Sort by length descending (longer/more specific terms first)
+  return tokens.sort((a, b) => b.length - a.length);
 }
 
 export interface RetrieveOptions {
@@ -39,6 +72,26 @@ export interface RetrieveOptions {
     tag?: string;
   };
   limit?: number;
+}
+
+/**
+ * Search with a single query string using Fuse.js.
+ * Returns matched chunks deduplicated by id.
+ */
+function searchWithQuery(
+  fuse: Fuse<KnowledgeChunk>,
+  query: string,
+  limit: number
+): KnowledgeChunk[] {
+  const results = fuse.search(query, { limit });
+  return results.map((r: FuseResult<KnowledgeChunk>) => r.item);
+}
+
+/**
+ * Create a Fuse index optimized for keyword-based search (higher threshold).
+ */
+function createKeywordFuseIndex(chunks: KnowledgeChunk[]): Fuse<KnowledgeChunk> {
+  return createFuseIndex(chunks, 0.5);
 }
 
 export function retrieve(
@@ -86,11 +139,36 @@ export function retrieve(
     chunks = [...tagChunks, ...otherChunks];
   }
 
-  // Create Fuse index and search
   const fuse = createFuseIndex(chunks);
-  const results = fuse.search(query, { limit: options.limit || 8 });
+  const keywordFuse = createKeywordFuseIndex(chunks);
+  const limit = options.limit || 8;
 
-  const matchedChunks = results.map((r: FuseResult<KnowledgeChunk>) => r.item);
+  // Strategy: try full query first, then fall back to keyword-based search.
+  // For Chinese natural-language queries, the full query often contains too many
+  // stop words that prevent Fuse.js from finding any matches.
+  let matchedChunks = searchWithQuery(fuse, query, limit);
+
+  if (matchedChunks.length === 0) {
+    const keywords = extractKeywords(query);
+    if (keywords.length > 0) {
+      const seenIds = new Set<string>();
+      const keywordResults: KnowledgeChunk[] = [];
+      const keywordLimit = Math.ceil(limit / Math.max(keywords.length, 1));
+
+      for (const kw of keywords) {
+        const results = searchWithQuery(keywordFuse, kw, keywordLimit);
+        for (const chunk of results) {
+          if (!seenIds.has(chunk.id)) {
+            seenIds.add(chunk.id);
+            keywordResults.push(chunk);
+          }
+        }
+        if (keywordResults.length >= limit) break;
+      }
+
+      matchedChunks = keywordResults;
+    }
+  }
 
   // Generate source references
   const sources: SourceReference[] = matchedChunks.map((chunk: KnowledgeChunk) => ({

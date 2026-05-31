@@ -20,12 +20,11 @@ export default function AboutPage() {
       <section className="mb-12">
         <h2 className="text-xl font-semibold mb-4">个人简介</h2>
         <div className="prose-custom max-w-none">
-          <p className="text-[var(--muted)] leading-relaxed">
-            {profile.bio}
-          </p>
-          <p className="text-[var(--muted)] leading-relaxed mt-4">
-            {profile.bio2}
-          </p>
+          {profile.bio.split("\n\n").map((para, i) => (
+            <p key={i} className="text-[var(--muted)] leading-relaxed mb-4">
+              {para}
+            </p>
+          ))}
         </div>
       </section>
 

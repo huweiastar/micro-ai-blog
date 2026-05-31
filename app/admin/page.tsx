@@ -7,6 +7,7 @@ import {
   Camera, Check, Save, Plus, Trash2,
   Image as ImageIcon, X, LogOut, Pencil, Edit3,
 } from "lucide-react";
+import { BioEditor } from "../../components/BioEditor";
 
 type CategoryConfig = {
   name: string;
@@ -58,7 +59,6 @@ export default function AdminPage() {
   const [avatarPreview, setAvatarPreview] = useState("");
   const [aboutName, setAboutName] = useState("");
   const [aboutBio, setAboutBio] = useState("");
-  const [aboutBio2, setAboutBio2] = useState("");
   const [aboutEmail, setAboutEmail] = useState("");
   const [aboutGithub, setAboutGithub] = useState("");
   const [aboutSkills, setAboutSkills] = useState<SkillGroup[]>([]);
@@ -85,8 +85,9 @@ export default function AdminPage() {
       .then((res) => res.json())
       .then((data) => {
         setAboutName(data.name || "");
-        setAboutBio(data.bio || "");
-        setAboutBio2(data.bio2 || "");
+        // Merge bio and bio2 into a single field (separated by blank line)
+        const combined = [data.bio, data.bio2].filter(Boolean).join("\n\n");
+        setAboutBio(combined || "");
         setAboutEmail(data.email || "");
         setAboutGithub(data.github || "");
         setAboutSkills(data.skills || []);
@@ -166,7 +167,6 @@ export default function AdminPage() {
       body: JSON.stringify({
         name: aboutName,
         bio: aboutBio,
-        bio2: aboutBio2,
         email: aboutEmail,
         github: aboutGithub,
         skills: aboutSkills,
@@ -363,26 +363,11 @@ export default function AdminPage() {
           {/* Bio */}
           <div className="glass rounded-xl p-6">
             <h2 className="text-lg font-semibold mb-4">个人简介</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm text-[var(--muted)] mb-1">第一段</label>
-                <textarea
-                  value={aboutBio}
-                  onChange={(e) => setAboutBio(e.target.value)}
-                  rows={4}
-                  className="w-full px-4 py-2.5 rounded-lg border border-[var(--card-border)] bg-[var(--card)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50 resize-none"
-                />
-              </div>
-              <div>
-                <label className="block text-sm text-[var(--muted)] mb-1">第二段</label>
-                <textarea
-                  value={aboutBio2}
-                  onChange={(e) => setAboutBio2(e.target.value)}
-                  rows={4}
-                  className="w-full px-4 py-2.5 rounded-lg border border-[var(--card-border)] bg-[var(--card)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50 resize-none"
-                />
-              </div>
-            </div>
+            <BioEditor
+              label="简介内容（支持 Markdown）"
+              value={aboutBio}
+              onChange={setAboutBio}
+            />
           </div>
 
           {/* Skills */}

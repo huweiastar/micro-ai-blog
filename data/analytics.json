@@ -1,18 +1,82 @@
 {
-  "pv": 147,
+  "pv": 182,
   "uv": 1,
   "visitorIds": [
     "v_mpt44ux6_uc1ysi"
   ],
-  "updatedAt": "2026-05-31T09:23:48.017Z",
+  "updatedAt": "2026-05-31T12:41:03.999Z",
   "paths": {
     "/": {
-      "pv": 7,
+      "pv": 28,
       "uv": 1,
       "visitorIds": [
         "v_mpt44ux6_uc1ysi"
       ],
-      "updatedAt": "2026-05-31T09:23:48.017Z"
+      "updatedAt": "2026-05-31T12:41:03.999Z"
+    },
+    "/blog": {
+      "pv": 1,
+      "uv": 1,
+      "visitorIds": [
+        "v_mpt44ux6_uc1ysi"
+      ],
+      "updatedAt": "2026-05-31T09:40:29.834Z"
+    },
+    "/categories": {
+      "pv": 1,
+      "uv": 1,
+      "visitorIds": [
+        "v_mpt44ux6_uc1ysi"
+      ],
+      "updatedAt": "2026-05-31T09:40:31.046Z"
+    },
+    "/projects": {
+      "pv": 1,
+      "uv": 1,
+      "visitorIds": [
+        "v_mpt44ux6_uc1ysi"
+      ],
+      "updatedAt": "2026-05-31T09:40:32.197Z"
+    },
+    "/footprint": {
+      "pv": 1,
+      "uv": 1,
+      "visitorIds": [
+        "v_mpt44ux6_uc1ysi"
+      ],
+      "updatedAt": "2026-05-31T09:40:33.639Z"
+    },
+    "/about": {
+      "pv": 1,
+      "uv": 1,
+      "visitorIds": [
+        "v_mpt44ux6_uc1ysi"
+      ],
+      "updatedAt": "2026-05-31T09:40:34.389Z"
+    },
+    "/admin": {
+      "pv": 6,
+      "uv": 1,
+      "visitorIds": [
+        "v_mpt44ux6_uc1ysi"
+      ],
+      "updatedAt": "2026-05-31T12:41:00.229Z"
+    },
+    "/admin/project": {
+      "pv": 1,
+      "uv": 1,
+      "visitorIds": [
+        "v_mpt44ux6_uc1ysi"
+      ],
+      "updatedAt": "2026-05-31T09:58:01.191Z"
+    },
+    "/admin/write": {
+      "pv": 2,
+      "uv": 1,
+      "visitorIds": [
+        "v_mpt44ux6_uc1ysi"
+      ],
+      "updatedAt": "2026-05-31T09:59:26.353Z"
     }
   }
 }
