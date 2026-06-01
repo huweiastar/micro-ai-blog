@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { createHash, createHmac, timingSafeEqual } from "crypto";
 
 const SESSION_MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7 days in ms
 
@@ -17,28 +18,6 @@ const WRITE_API_PATHS = [
 
 const READ_ONLY_METHODS = ["GET", "HEAD", "OPTIONS"];
 
-async function sha256Hex(input: string): Promise<string> {
-  const bytes = new TextEncoder().encode(input);
-  const hash = await crypto.subtle.digest("SHA-256", bytes);
-  return Array.from(new Uint8Array(hash))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-}
-
-async function hmacSha256Hex(secret: string, message: string): Promise<string> {
-  const key = await crypto.subtle.importKey(
-    "raw",
-    new TextEncoder().encode(secret),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"],
-  );
-  const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(message));
-  return Array.from(new Uint8Array(sig))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-}
-
 async function verifyToken(token: string): Promise<boolean> {
   const password = process.env.ADMIN_PASSWORD;
   if (!password) return false;
@@ -47,8 +26,8 @@ async function verifyToken(token: string): Promise<boolean> {
   if (parts.length !== 3) return false;
 
   const [payload, timestamp, signature] = parts;
-  const secret = await sha256Hex(password);
-  const expectedSignature = await hmacSha256Hex(secret, `${payload}.${timestamp}`);
+  const secret = createHash("sha256").update(password).digest("hex");
+  const expectedSignature = createHmac("sha256", secret).update(`${payload}.${timestamp}`).digest("hex");
 
   if (signature.length !== expectedSignature.length) return false;
   if (signature !== expectedSignature) return false;
