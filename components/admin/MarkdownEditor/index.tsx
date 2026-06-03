@@ -83,28 +83,29 @@ export function MarkdownEditor({
         onChange={handleFile}
       />
 
-      {showPreview ? (
+      {showPreview && (
         <Preview
           markdown={value}
           render={renderPreview}
           className={`flex-1 min-h-[400px] border border-[var(--card-border)] rounded-lg ${isFullscreen ? "overflow-auto" : ""}`}
         />
-      ) : (
-        <textarea
-          ref={textareaRef}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          className={`w-full px-4 py-3 rounded-lg border border-[var(--card-border)] bg-[var(--card)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50 resize-none text-sm leading-relaxed font-mono ${isFullscreen ? "flex-1 min-h-0" : "min-h-[400px]"}`}
+      )}
+      <textarea
+        ref={textareaRef}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className={`w-full px-4 py-3 rounded-lg border border-[var(--card-border)] bg-[var(--card)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50 resize-none text-sm leading-relaxed font-mono ${isFullscreen ? "flex-1 min-h-0" : "min-h-[400px]"} ${showPreview ? "hidden" : ""}`}
+      />
+
+      {pendingImageUrl !== null && (
+        <ImageDialog
+          open={true}
+          primaryUrl={pendingImageUrl}
+          onClose={() => setPendingImageUrl(null)}
+          onConfirm={(md) => insert(md)}
         />
       )}
-
-      <ImageDialog
-        open={pendingImageUrl !== null}
-        primaryUrl={pendingImageUrl ?? ""}
-        onClose={() => setPendingImageUrl(null)}
-        onConfirm={(md) => insert(md)}
-      />
     </div>
   );
 }
