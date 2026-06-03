@@ -42,7 +42,9 @@ export function TableDialog({ open, onClose, onConfirm }: TableDialogProps) {
       <div className="flex gap-2">
         <button
           onClick={() => {
-            onConfirm(rows, cols);
+            const safeRows = Number.isFinite(rows) && rows >= 2 ? rows : 2;
+            const safeCols = Number.isFinite(cols) && cols >= 2 ? cols : 2;
+            onConfirm(safeRows, safeCols);
             onClose();
           }}
           className="flex-1 text-xs px-3 py-1.5 rounded bg-[var(--primary)] text-white"

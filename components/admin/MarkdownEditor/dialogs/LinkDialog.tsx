@@ -41,10 +41,11 @@ export function LinkDialog({ open, onClose, onConfirm }: LinkDialogProps) {
       <div className="flex gap-2">
         <button
           onClick={() => {
-            onConfirm(text || url || "链接", url || "");
+            onConfirm(text || url, url);
             onClose();
           }}
-          className="flex-1 text-xs px-3 py-1.5 rounded bg-[var(--primary)] text-white"
+          disabled={!url.trim()}
+          className="flex-1 text-xs px-3 py-1.5 rounded bg-[var(--primary)] text-white disabled:opacity-50 disabled:cursor-not-allowed"
         >
           插入
         </button>

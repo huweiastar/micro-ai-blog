@@ -2,6 +2,18 @@
 
 import { useState } from "react";
 
+const escapeHtmlAttr = (s: string): string =>
+  s.replace(/&/g, "&amp;")
+   .replace(/"/g, "&quot;")
+   .replace(/'/g, "&#39;")
+   .replace(/</g, "&lt;")
+   .replace(/>/g, "&gt;");
+
+const escapeHtmlText = (s: string): string =>
+  s.replace(/&/g, "&amp;")
+   .replace(/</g, "&lt;")
+   .replace(/>/g, "&gt;");
+
 type ImageSize = "small" | "medium" | "full" | "custom";
 type ImageLayout = "single" | "double";
 
@@ -31,13 +43,13 @@ export function ImageDialog({ open, onClose, primaryUrl, onConfirm }: ImageDialo
 
   const handleInsert = () => {
     const sa = SIZE_STYLE[size](customWidth);
-    const cap = alt || "在此输入图片描述...";
-    const altText = alt || "图片";
+    const cap = escapeHtmlText(alt || "在此输入图片描述...");
+    const altText = escapeHtmlAttr(alt || "图片");
     let md = "";
     if (layout === "double" && secondUrl) {
-      md = `\n<div class="flex gap-4">\n<figure class="image-block flex-1"><img src="${primaryUrl}" alt="图片1" ${sa} /><figcaption class="image-caption">${cap}</figcaption></figure>\n<figure class="image-block flex-1"><img src="${secondUrl}" alt="${altText}" ${sa} /><figcaption class="image-caption">${cap}</figcaption></figure>\n</div>\n`;
+      md = `\n<div class="flex gap-4">\n<figure class="image-block flex-1"><img src="${escapeHtmlAttr(primaryUrl)}" alt="图片1" ${sa} /><figcaption class="image-caption">${cap}</figcaption></figure>\n<figure class="image-block flex-1"><img src="${escapeHtmlAttr(secondUrl)}" alt="${altText}" ${sa} /><figcaption class="image-caption">${cap}</figcaption></figure>\n</div>\n`;
     } else {
-      md = `\n<figure class="image-block">\n  <img src="${primaryUrl}" alt="${altText}" ${sa} />\n  <figcaption class="image-caption">${cap}</figcaption>\n</figure>\n`;
+      md = `\n<figure class="image-block">\n  <img src="${escapeHtmlAttr(primaryUrl)}" alt="${altText}" ${sa} />\n  <figcaption class="image-caption">${cap}</figcaption>\n</figure>\n`;
     }
     onConfirm(md);
     onClose();
@@ -121,7 +133,8 @@ export function ImageDialog({ open, onClose, primaryUrl, onConfirm }: ImageDialo
       <div className="flex gap-2">
         <button
           onClick={handleInsert}
-          className="flex-1 text-xs px-3 py-1.5 rounded bg-[var(--primary)] text-white"
+          disabled={layout === "double" && !secondUrl.trim()}
+          className="flex-1 text-xs px-3 py-1.5 rounded bg-[var(--primary)] text-white disabled:opacity-50 disabled:cursor-not-allowed"
         >
           插入
         </button>
