@@ -17,14 +17,14 @@
 
 - 统一后台 Shell：左侧边栏导航 + 顶栏面包屑
 - 文章 / 专栏 / 项目 三类内容统一为「同页 split：左列表 + 右编辑器」模式
-- 富文本编辑器抽成共享组件 `<RichTextEditor>`，文章页与项目页复用
+- 富文本编辑器抽成共享组件 `<MarkdownEditor>`，文章页与项目页复用
 - 删除 `/admin/write` 独立页，新建走 `/admin/articles?new=1`
 - 增量能力：草稿自动保存到 localStorage（防误刷新 / 防崩溃）
 - 视觉风格沿用现有 `var(--card)` `var(--primary)` 与 `glass` 类，不引新色板
 
 ## 非目标（YAGNI）
 
-- 引入 Tiptap / ProseMirror（保留 contentEditable + execCommand，零内容迁移）
+- 引入 Tiptap / ProseMirror / contentEditable WYSIWYG（保留 textarea + Markdown 字符串模型，零内容迁移）
 - 全局 Cmd+K 搜索
 - 文章批量操作、标签管理面板
 - 文章 slug 重命名（涉及文件名重写 + 站内重定向）
@@ -76,8 +76,8 @@ components/admin/
   SplitWorkspace.tsx               列表/编辑器 split 容器
   ai-write-modal.tsx               (现有) AI 写作
   feishu-import-modal.tsx          (新抽) 飞书导入
-  RichTextEditor/
-    index.tsx                      <RichTextEditor /> 主组件
+  MarkdownEditor/
+    index.tsx                      <MarkdownEditor /> 主组件
     Toolbar.tsx                    工具栏
     dialogs/
       HeadingDialog.tsx
@@ -126,46 +126,54 @@ components/admin/
 5. **Login 页豁免**：`layout.tsx` 中 `if (pathname === '/admin/login') return <>{children}</>`（layout 必须是 client component 以使用 `usePathname`）。
 6. **风格**：沿用现有 `glass`、`var(--card)`、`var(--card-border)`、`var(--primary)` CSS 变量，不引新色板。
 
-## §2 — RichTextEditor 共享组件
+## §2 — MarkdownEditor 共享组件
 
 把现有三处重复的 ~2000 行编辑器代码合并为一个组件。
+
+**关键事实**: 本仓库的所有文章用 Markdown 字符串存盘 (`.md` 文件)，admin 后台编辑器是 `<textarea>` + `insertMarkdown(before, after)` + `renderPreview` 模式，不是 contentEditable WYSIWYG。新组件保留这一模型。
 
 ### Props 设计
 
 ```ts
-interface RichTextEditorProps {
-  value: string;                                // 受控 HTML 字符串
-  onChange: (html: string) => void;
+interface MarkdownEditorProps {
+  value: string;                                // 受控 Markdown 字符串
+  onChange: (markdown: string) => void;
   placeholder?: string;
   toolbar?: {
-    text?: boolean;       // 粗/斜/下划线/删除/上下标/高亮 默认 true
-    block?: boolean;      // 标题/列表/引用/分割线/表格        默认 true
-    media?: boolean;      // 图片/链接/代码块                  默认 true
-    typography?: boolean; // 字体/字号/字色/行高/段距          默认 true
+    text?: boolean;       // 粗/斜/下划线/删除/上下标/高亮/行内代码 默认 true
+    block?: boolean;      // 标题/列表/引用/分割线/表格              默认 true
+    media?: boolean;      // 图片/链接/代码块                        默认 true
+    typography?: boolean; // 字体/字号/字色/行高/段距 (插入 inline HTML span) 默认 true
   };
   fullscreen?: boolean;          // 默认 true
+  preview?: boolean;             // 是否显示「预览」按钮，默认 true
+  renderPreview?: (md: string) => { __html: string }; // 父级提供的渲染器；缺省内置一个
   className?: string;
   uploadEndpoint?: string;       // 默认 /api/upload
+  uploadMeta?: { type?: string; category?: string; articleTitle?: string };
   /** 传值则启用草稿自动保存。命名规则：
    *  draft:articles:<slug|new>
    *  draft:projects:<slug|new>
+   *  draft:categories:<name|new>
    */
   draftKey?: string;
 }
 ```
 
+> 命名：组件名为 `<MarkdownEditor>`（替代旧 spec 的 `<MarkdownEditor>`），更准确反映其工作模型。下文所有路径与文件名相应改为 `components/admin/MarkdownEditor/`。
+
 ### 关键决策
 
-1. **受控**：父组件持有 HTML，编辑器只渲染 `contentEditable` + 上抛变更。
-2. **不引 Tiptap**：现有大量文章用 contentEditable 产物，迁移代价大且非本次目标；`document.execCommand` 仍可用。
-3. **能力对齐**：现有三处编辑器的工具栏功能（高亮、字号、字色、行高、段距、上下标、表格、单/双图、代码块语言、撤销/重做、全屏）逐项保留。
+1. **受控**：父组件持有 Markdown 字符串，编辑器只渲染 `<textarea>` + 上抛 `value`。
+2. **不引 Tiptap / contentEditable**：现有大量文章是 markdown 文本，迁移代价大且非本次目标；`insertMarkdown(before, after, replacement?)` 在光标/选区位置插入字符串。
+3. **能力对齐**：现有三处编辑器的工具栏功能（粗/斜/下划线/删除线/上下标/高亮/行内代码 → markdown 标记；标题 → `# /## /...`；列表 → `- /1. `；引用 → `> `；分割线 → `\n---\n`；表格 → `| ... |\n`；图片 → `![](url)` 或 `<figure class="image-block">` HTML；代码块 → ` ```lang\n\n``` `；字体/字号/字色/行高/段距 → 嵌入 `<span style="...">` 内联 HTML）逐项保留。
 4. **草稿自动保存**（`useDraftAutosave`）：
-   - 监听 `value` 变化，debounce 1.5s 写入 `localStorage[draftKey] = JSON.stringify({ html, updatedAt: Date.now() })`
+   - 监听 `value` 变化，debounce 1.5s 写入 `localStorage[draftKey] = JSON.stringify({ markdown, updatedAt: Date.now() })`
    - 编辑器 mount 时若发现本地草稿且 `updatedAt > openTime - 30s` 不弹（避免刚保存又弹）；其余情况显示 banner："**检测到未保存的草稿（X 分钟前）**　[恢复] [丢弃]"
-   - 父组件保存成功后调用 `onSavedSuccessfully()` 清除 `localStorage[draftKey]`
+   - 父组件保存成功后调用 `localStorage.removeItem(draftKey)` 清除
    - 草稿丢失阈值：7 天，过期自动清理
-5. **AI 写作 / 飞书导入**：保留为独立组件，由父页面调用，通过 `setValue(html)` 把内容塞回编辑器，与编辑器解耦。
-6. **预览**：编辑器**不内置**预览。父页面如要 split 预览，自己渲染右侧 preview pane。
+5. **AI 写作 / 飞书导入**：保留为独立组件，由父页面调用，通过 `onChange(markdown)` 把内容塞回编辑器，与编辑器解耦。
+6. **预览**：编辑器内置「预览」按钮（沿用现有体验），切到预览态时把 `value` 喂给 `renderPreview()`（父级注入或缺省内置）渲染到右侧/全屏。父级可关闭 `preview={false}` 隐藏按钮。
 
 ## §3 — SplitWorkspace 容器
 
@@ -178,7 +186,7 @@ interface RichTextEditorProps {
 │ ──────────────── │ ─────────────────────────────────────  │
 │ 项目 A  [草稿]     │                                        │
 │ 项目 B  [已发布] ←  │   表单字段                              │
-│ 项目 C            │   <RichTextEditor>                     │
+│ 项目 C            │   <MarkdownEditor>                     │
 └──────────────────┴───────────────────────────────────────┘
    ~320px 固定          余量自适应
 ```
@@ -209,7 +217,7 @@ interface SplitWorkspaceProps<T> {
 
 ### key 强制 unmount
 
-切换 `selectedId` 时，父页面给 RichTextEditor 传 `key={selectedId}` 强制 unmount，避免上一篇内容残留。
+切换 `selectedId` 时，父页面给 MarkdownEditor 传 `key={selectedId}` 强制 unmount，避免上一篇内容残留。
 
 ## §4 — 三页字段定义
 
@@ -227,7 +235,7 @@ interface SplitWorkspaceProps<T> {
 | 分类 | select | 来自 categories.yaml |
 | 标签 | text | 逗号分隔 |
 | 草稿 | checkbox | 默认勾上 |
-| 正文 | RichTextEditor | `draftKey: draft:articles:<slug|new>` |
+| 正文 | MarkdownEditor | `draftKey: draft:articles:<slug|new>` |
 
 **操作**：保存（POST `/api/publish` 新建 / PUT `/api/posts` 更新）/ 预览（弹层）/ 删除（confirm 后 DELETE `/api/posts`）/ AI 写作 / 飞书导入
 
@@ -244,7 +252,7 @@ interface SplitWorkspaceProps<T> {
 | 描述 | textarea | 选填（短描述，列表/卡片用） |
 | 背景预设 | select | gradient-1 ~ gradient-N |
 | 背景透明度 | number | 0-100 |
-| 详细描述 | RichTextEditor | **新增字段** `description_long`（HTML），渲染在 `/categories/<name>` 详情页 banner |
+| 详细描述 | MarkdownEditor | **新增字段** `description_long`（Markdown 字符串），渲染在 `/categories/<name>` 详情页 banner |
 
 **API**：`/api/categories` 已有；新增可选字段 `description_long`，旧数据缺失时容错读为空字符串。
 
@@ -252,15 +260,15 @@ interface SplitWorkspaceProps<T> {
 
 ### `/admin/projects`
 
-完全沿用现有 `/admin/project` 字段：name / desc / cover / techStack / highlights / githubUrl / demoUrl / content；正文用 RichTextEditor，`draftKey: draft:projects:<slug|new>`。
+完全沿用现有 `/admin/project` 字段：name / desc / cover / techStack / highlights / githubUrl / demoUrl / content；正文用 MarkdownEditor，`draftKey: draft:projects:<slug|new>`。
 
 ## §5 — 迁移步骤
 
 每步独立可 build / 可运行。
 
-### Step 1：抽取 RichTextEditor
+### Step 1：抽取 MarkdownEditor
 
-- 物理剪切 `/admin/article/page.tsx` 的编辑器代码到 `components/admin/RichTextEditor/`
+- 物理剪切 `/admin/article/page.tsx` 的编辑器代码到 `components/admin/MarkdownEditor/`
 - 让 `/admin/article/page.tsx` 改用新组件，验证可运行
 - 同步 `/admin/project/page.tsx` 替换为新组件
 - 暂保留 `/admin/write/page.tsx`（步骤 6 删除）
@@ -289,7 +297,7 @@ interface SplitWorkspaceProps<T> {
 
 ### Step 5：草稿自动保存
 
-- 在 RichTextEditor 实现 `useDraftAutosave`（debounce 1.5s + 恢复 banner + 保存后清除）
+- 在 MarkdownEditor 实现 `useDraftAutosave`（debounce 1.5s + 恢复 banner + 保存后清除）
 - 文章页 / 项目页传入对应 `draftKey`
 
 ### Step 6：清理 + 验收
@@ -309,10 +317,10 @@ interface SplitWorkspaceProps<T> {
 
 | 风险 | 概率 | 缓解 |
 |---|---|---|
-| RichTextEditor 抽取过程中行为微差异（contentEditable 状态保持、selection range 丢失） | 中 | 一次只迁一处页面，迁完逐项过工具栏，再迁第二处 |
+| MarkdownEditor 抽取过程中行为微差异（contentEditable 状态保持、selection range 丢失） | 中 | 一次只迁一处页面，迁完逐项过工具栏，再迁第二处 |
 | 草稿 banner 误触发（updatedAt 时间戳混乱） | 低 | 草稿存 `{ html, updatedAt }`，仅当 `updatedAt > openTime - 30s` 不弹；banner 提供"丢弃" |
-| URL `?id=` 切换时编辑器内容残留上一篇 | 中 | 父给 RichTextEditor 传 `key={selectedId}` 强制 unmount |
-| categories.yaml 新字段被人手编辑后 HTML 转义错误 | 低 | 用 `js-yaml` 序列化（自动处理），新字段命名 `description_long` 明确语义 |
+| URL `?id=` 切换时编辑器内容残留上一篇 | 中 | 父给 MarkdownEditor 传 `key={selectedId}` 强制 unmount |
+| categories.yaml 新字段被人手编辑后 markdown 异常 | 低 | 用 `js-yaml` 序列化（自动处理多行/特殊字符），新字段命名 `description_long` 明确语义 |
 | 前台分类详情页未实现 banner 渲染时新功能形同虚设 | 中 | Step 4 同步改前台 `/categories/<name>` 页 |
 
 ## §8 — 验证清单（实施完成后必跑）

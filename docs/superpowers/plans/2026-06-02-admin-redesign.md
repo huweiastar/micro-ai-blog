@@ -2,11 +2,13 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Restructure `/admin/*` into a unified Shell with sidebar navigation, three list/editor split pages (articles, categories, projects), one shared `<RichTextEditor>` component, and localStorage draft autosave.
+**Goal:** Restructure `/admin/*` into a unified Shell with sidebar navigation, three list/editor split pages (articles, categories, projects), one shared `<MarkdownEditor>` component, and localStorage draft autosave.
 
-**Architecture:** App-router layout-based shell. Three split pages share a `<SplitWorkspace>` container. Editor extracted from 3 duplicated implementations into `components/admin/RichTextEditor/`. Categories gets a new `description_long` HTML field rendered on the public detail page. Migration is staged in 6 sequential steps; each leaves the app in a runnable state.
+**Architecture:** App-router layout-based shell. Three split pages share a `<SplitWorkspace>` container. Editor extracted from 3 duplicated implementations into `components/admin/MarkdownEditor/`. Categories gets a new `description_long` Markdown field rendered on the public detail page. Migration is staged in 6 sequential steps; each leaves the app in a runnable state.
 
-**Tech Stack:** Next.js 14 App Router · React 18 · TypeScript · Tailwind · contentEditable + execCommand · localStorage · js-yaml · gray-matter
+**Tech Stack:** Next.js 14 App Router · React 18 · TypeScript · Tailwind · `<textarea>` + Markdown insertion · localStorage · js-yaml · gray-matter
+
+**Editor model:** This codebase stores all articles as `.md` files. Existing admin editors are `<textarea value=...>` + `insertMarkdown(before, after)` helpers, NOT contentEditable / execCommand WYSIWYG. The shared component preserves that model — it's a textarea wrapper with toolbar buttons that mutate the markdown string at the cursor/selection.
 
 **Spec:** [docs/superpowers/specs/2026-06-02-admin-redesign-design.md](../specs/2026-06-02-admin-redesign-design.md)
 
@@ -20,19 +22,19 @@
 
 | Path | Action | Responsibility |
 |---|---|---|
-| `components/admin/RichTextEditor/index.tsx` | Create | Main controlled editor |
-| `components/admin/RichTextEditor/Toolbar.tsx` | Create | Toolbar buttons |
-| `components/admin/RichTextEditor/dialogs/HeadingDialog.tsx` | Create | Heading level picker |
-| `components/admin/RichTextEditor/dialogs/TableDialog.tsx` | Create | Rows/cols picker |
-| `components/admin/RichTextEditor/dialogs/FontDialog.tsx` | Create | Font/size/color/spacing |
-| `components/admin/RichTextEditor/dialogs/ImageDialog.tsx` | Create | Image insert |
-| `components/admin/RichTextEditor/dialogs/CodeBlockDialog.tsx` | Create | Code-block lang picker |
-| `components/admin/RichTextEditor/dialogs/LinkDialog.tsx` | Create | Link URL |
-| `components/admin/RichTextEditor/hooks/useEditorCommands.ts` | Create | exec/applyInlineStyle/wrapBlock |
-| `components/admin/RichTextEditor/hooks/useFullscreen.ts` | Create | Fullscreen sync |
-| `components/admin/RichTextEditor/hooks/useImageUpload.ts` | Create | POST /api/upload |
-| `components/admin/RichTextEditor/hooks/useDraftAutosave.ts` | Create | localStorage debounce + restore |
-| `components/admin/RichTextEditor/utils.ts` | Create | escapeHtml/serialize helpers |
+| `components/admin/MarkdownEditor/index.tsx` | Create | Main controlled editor |
+| `components/admin/MarkdownEditor/Toolbar.tsx` | Create | Toolbar buttons |
+| `components/admin/MarkdownEditor/dialogs/HeadingDialog.tsx` | Create | Heading level picker |
+| `components/admin/MarkdownEditor/dialogs/TableDialog.tsx` | Create | Rows/cols picker |
+| `components/admin/MarkdownEditor/dialogs/FontDialog.tsx` | Create | Font/size/color/spacing |
+| `components/admin/MarkdownEditor/dialogs/ImageDialog.tsx` | Create | Image insert |
+| `components/admin/MarkdownEditor/dialogs/CodeBlockDialog.tsx` | Create | Code-block lang picker |
+| `components/admin/MarkdownEditor/dialogs/LinkDialog.tsx` | Create | Link URL |
+| `components/admin/MarkdownEditor/hooks/useMarkdownInsert.ts` | Create | insertAtCursor/wrapSelection helpers (textarea state) |
+| `components/admin/MarkdownEditor/hooks/useFullscreen.ts` | Create | Fullscreen sync |
+| `components/admin/MarkdownEditor/hooks/useImageUpload.ts` | Create | POST /api/upload |
+| `components/admin/MarkdownEditor/hooks/useDraftAutosave.ts` | Create | localStorage debounce + restore |
+| `components/admin/MarkdownEditor/Preview.tsx` | Create | Default markdown→HTML preview pane |
 | `components/admin/AdminShell.tsx` | Create | Shell wrapper |
 | `components/admin/Sidebar.tsx` | Create | Left navigation |
 | `components/admin/NewMenu.tsx` | Create | "+ 新建" dropdown |
@@ -58,7 +60,7 @@
 
 ## Phase Index
 
-- [Phase 1: RichTextEditor Extraction](#phase-1) — Tasks 1-6
+- [Phase 1: MarkdownEditor Extraction](#phase-1) — Tasks 1-6
 - [Phase 2: Admin Shell Skeleton](#phase-2) — Tasks 7-9
 - [Phase 3: Route Restructure](#phase-3) — Tasks 10-13
 - [Phase 4: Articles Split Page](#phase-4) — Task 14
@@ -70,63 +72,65 @@
 ---
 
 <a id="phase-1"></a>
-## Phase 1 — RichTextEditor Extraction
+## Phase 1 — MarkdownEditor Extraction
 
-The current 3 admin pages each carry an identical contentEditable editor. Extract verbatim (no behavior change) into one shared component, then the new pages can simply use it.
+The current 3 admin pages each carry an identical `<textarea>`-based markdown editor (~600-1100 lines per page) with `insertMarkdown(before, after)` helpers, a toolbar of markdown-syntax buttons, popover dialogs (heading/table/code-block/font/image/link), preview toggle (markdown→HTML), and fullscreen support. Articles save to `.md` files. Extract the duplicated parts into one shared component, then the new pages can simply use it.
 
-### Task 1: Scaffold the RichTextEditor module shell
+**Important:** Do NOT use `document.execCommand` or `contentEditable`. The editor is a `<textarea>` whose `value` is a Markdown string. Toolbar buttons mutate the string at the textarea's `selectionStart`/`selectionEnd`.
+
+### Task 1: Scaffold the MarkdownEditor module shell
 
 **Files:**
-- Create: `components/admin/RichTextEditor/index.tsx`
-- Create: `components/admin/RichTextEditor/utils.ts`
+- Create: `components/admin/MarkdownEditor/index.tsx`
+- Create: `components/admin/MarkdownEditor/utils.ts`
 
-- [ ] **Step 1: Create `utils.ts` with helpers extracted from current article page**
+- [ ] **Step 1: Create `utils.ts`**
 
 ```ts
-// components/admin/RichTextEditor/utils.ts
-export function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
+// components/admin/MarkdownEditor/utils.ts
+
+/**
+ * Insert/wrap markdown around the textarea's current selection.
+ * Returns the new value AND the new selection bounds, so callers can
+ * restore focus + selection after a controlled re-render.
+ */
+export interface InsertResult {
+  value: string;
+  selectionStart: number;
+  selectionEnd: number;
 }
 
-/** Replace contentEditable selection with the given HTML, falling back to append. */
-export function insertHtmlAtCursor(html: string): void {
-  const sel = window.getSelection();
-  if (!sel || sel.rangeCount === 0) {
-    document.execCommand("insertHTML", false, html);
-    return;
-  }
-  const range = sel.getRangeAt(0);
-  range.deleteContents();
-  const tpl = document.createElement("template");
-  tpl.innerHTML = html;
-  const frag = tpl.content;
-  const lastNode = frag.lastChild;
-  range.insertNode(frag);
-  if (lastNode) {
-    range.setStartAfter(lastNode);
-    range.setEndAfter(lastNode);
-    sel.removeAllRanges();
-    sel.addRange(range);
-  }
+export function applyMarkdownInsert(
+  current: string,
+  selectionStart: number,
+  selectionEnd: number,
+  before: string,
+  after: string = "",
+  /** If selection is empty, insert this placeholder text between before/after. */
+  placeholder: string = "",
+): InsertResult {
+  const selected = current.slice(selectionStart, selectionEnd);
+  const middle = selected || placeholder;
+  const inserted = before + middle + after;
+  const value = current.slice(0, selectionStart) + inserted + current.slice(selectionEnd);
+  // Place caret/selection over the middle (or just after `before` if empty)
+  const newStart = selectionStart + before.length;
+  const newEnd = newStart + middle.length;
+  return { value, selectionStart: newStart, selectionEnd: newEnd };
 }
 ```
 
-- [ ] **Step 2: Create skeleton `index.tsx` with Props + minimal contentEditable**
+- [ ] **Step 2: Create skeleton `index.tsx` with Props + minimal textarea**
 
 ```tsx
-// components/admin/RichTextEditor/index.tsx
+// components/admin/MarkdownEditor/index.tsx
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 
-export interface RichTextEditorProps {
+export interface MarkdownEditorProps {
   value: string;
-  onChange: (html: string) => void;
+  onChange: (markdown: string) => void;
   placeholder?: string;
   toolbar?: {
     text?: boolean;
@@ -135,166 +139,143 @@ export interface RichTextEditorProps {
     typography?: boolean;
   };
   fullscreen?: boolean;
+  preview?: boolean;
+  renderPreview?: (md: string) => { __html: string };
   className?: string;
   uploadEndpoint?: string;
+  uploadMeta?: { type?: string; category?: string; articleTitle?: string };
   draftKey?: string;
 }
 
-export function RichTextEditor({
+export function MarkdownEditor({
   value,
   onChange,
   placeholder,
   className,
-}: RichTextEditorProps) {
-  const ref = useRef<HTMLDivElement>(null);
-
-  // Sync external value changes only when DOM differs (avoid caret jump)
-  useEffect(() => {
-    if (ref.current && ref.current.innerHTML !== value) {
-      ref.current.innerHTML = value;
-    }
-  }, [value]);
+}: MarkdownEditorProps) {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   return (
     <div className={className}>
-      <div
-        ref={ref}
-        contentEditable
-        suppressContentEditableWarning
-        data-placeholder={placeholder}
-        onInput={(e) => onChange((e.target as HTMLDivElement).innerHTML)}
-        className="min-h-[400px] p-4 rounded-lg border border-[var(--card-border)] bg-[var(--card)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50 prose prose-invert max-w-none"
+      <textarea
+        ref={textareaRef}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full min-h-[400px] px-4 py-3 rounded-lg border border-[var(--card-border)] bg-[var(--card)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50 resize-none text-sm leading-relaxed font-mono"
       />
     </div>
   );
 }
 ```
 
-- [ ] **Step 3: Verify type-check**
+- [ ] **Step 3: Type-check**
 
 Run: `npm run type-check`
-Expected: only the existing `app/admin/article/page.tsx(430,10)` error (unrelated).
+Expected: only the existing `app/admin/article/page.tsx(430,10)` error.
 
 - [ ] **Step 4: Commit**
 
 ```bash
-git add components/admin/RichTextEditor/
-git commit -m "feat(admin): scaffold RichTextEditor shell
+git add components/admin/MarkdownEditor/
+git commit -m "feat(admin): scaffold MarkdownEditor shell
 
 Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ```
 
 ---
 
-### Task 2: Extract editor command hooks
+### Task 2: Extract markdown-insertion + fullscreen + upload hooks
 
 **Files:**
-- Create: `components/admin/RichTextEditor/hooks/useEditorCommands.ts`
-- Create: `components/admin/RichTextEditor/hooks/useFullscreen.ts`
-- Create: `components/admin/RichTextEditor/hooks/useImageUpload.ts`
+- Create: `components/admin/MarkdownEditor/hooks/useMarkdownInsert.ts`
+- Create: `components/admin/MarkdownEditor/hooks/useFullscreen.ts`
+- Create: `components/admin/MarkdownEditor/hooks/useImageUpload.ts`
 
-- [ ] **Step 1: Read source to find current command implementations**
+- [ ] **Step 1: Create `useMarkdownInsert.ts`**
 
-Open [app/admin/article/page.tsx](../../../app/admin/article/page.tsx) and identify these helpers (search by name):
-- `exec(command, value?)` - wraps `document.execCommand`
-- `applyInlineStyle(prop, value)` - applies inline CSS style to selection
-- `wrapInlineSelection(tag)` / `surroundSelection(node)` - wraps current selection
-- `insertCodeBlock(lang)` / `insertTable(rows, cols)`
-- `toggleFullscreen()` - uses `requestFullscreen()`
-- `uploadImage(file)` - posts to `/api/upload`
-
-- [ ] **Step 2: Create `useEditorCommands.ts` mirroring those exact behaviors**
+This hook owns the textarea ref and exposes the `insertMarkdown` API that mirrors what existing pages do today. Importantly, it must restore selection after the controlled update, so the user can continue typing.
 
 ```ts
-// components/admin/RichTextEditor/hooks/useEditorCommands.ts
+// components/admin/MarkdownEditor/hooks/useMarkdownInsert.ts
 "use client";
 
 import { RefObject, useCallback } from "react";
-import { insertHtmlAtCursor, escapeHtml } from "../utils";
+import { applyMarkdownInsert } from "../utils";
 
-export function useEditorCommands(
-  editorRef: RefObject<HTMLDivElement>,
-  onChange: (html: string) => void,
+export function useMarkdownInsert(
+  textareaRef: RefObject<HTMLTextAreaElement>,
+  value: string,
+  onChange: (next: string) => void,
 ) {
-  const sync = useCallback(() => {
-    if (editorRef.current) onChange(editorRef.current.innerHTML);
-  }, [editorRef, onChange]);
-
-  const exec = useCallback(
-    (command: string, value?: string) => {
-      editorRef.current?.focus();
-      document.execCommand(command, false, value);
-      sync();
-    },
-    [editorRef, sync],
-  );
-
-  const applyInlineStyle = useCallback(
-    (prop: string, val: string, mode: "selection" | "global" = "selection") => {
-      const root = editorRef.current;
-      if (!root) return;
-      root.focus();
-      if (mode === "global") {
-        (root.style as unknown as Record<string, string>)[prop] = val;
-        sync();
+  /** Wrap current selection with `before`/`after`. If no selection, insert `placeholder` between them. */
+  const wrap = useCallback(
+    (before: string, after: string = "", placeholder: string = "") => {
+      const ta = textareaRef.current;
+      if (!ta) {
+        // Fallback: append at end
+        onChange(value + before + placeholder + after);
         return;
       }
-      const sel = window.getSelection();
-      if (!sel || sel.isCollapsed) return;
-      const range = sel.getRangeAt(0);
-      const span = document.createElement("span");
-      (span.style as unknown as Record<string, string>)[prop] = val;
-      try {
-        span.appendChild(range.extractContents());
-        range.insertNode(span);
-        sel.removeAllRanges();
-        const newRange = document.createRange();
-        newRange.selectNodeContents(span);
-        sel.addRange(newRange);
-      } catch {
-        /* noop */
-      }
-      sync();
+      const start = ta.selectionStart;
+      const end = ta.selectionEnd;
+      const r = applyMarkdownInsert(value, start, end, before, after, placeholder);
+      onChange(r.value);
+      // Wait one frame so React commits the new value, then restore selection
+      requestAnimationFrame(() => {
+        ta.focus();
+        ta.setSelectionRange(r.selectionStart, r.selectionEnd);
+      });
     },
-    [editorRef, sync],
+    [textareaRef, value, onChange],
   );
 
-  const insertHtml = useCallback(
-    (html: string) => {
-      editorRef.current?.focus();
-      insertHtmlAtCursor(html);
-      sync();
-    },
-    [editorRef, sync],
+  /** Insert raw text at the cursor (no wrapping). */
+  const insert = useCallback(
+    (text: string) => wrap(text, "", ""),
+    [wrap],
   );
 
-  const insertCodeBlock = useCallback(
-    (lang: string) => {
-      const html = `<pre data-lang="${escapeHtml(lang)}"><code class="language-${escapeHtml(lang)}"></code></pre><p><br/></p>`;
-      insertHtml(html);
-    },
-    [insertHtml],
-  );
-
+  /** Insert a markdown table with N rows × M cols. */
   const insertTable = useCallback(
     (rows: number, cols: number) => {
-      const cells = (count: number, tag: "th" | "td") =>
-        Array.from({ length: count }, () => `<${tag}>&nbsp;</${tag}>`).join("");
-      const head = `<thead><tr>${cells(cols, "th")}</tr></thead>`;
-      const body = `<tbody>${Array.from({ length: rows - 1 }, () => `<tr>${cells(cols, "td")}</tr>`).join("")}</tbody>`;
-      insertHtml(`<table class="border-collapse">${head}${body}</table><p><br/></p>`);
+      const safeRows = Math.max(2, rows);
+      const safeCols = Math.max(2, cols);
+      const headerRow = `| ${Array.from({ length: safeCols }, () => "列名").join(" | ")} |`;
+      const sepRow = `| ${Array.from({ length: safeCols }, () => "---").join(" | ")} |`;
+      const bodyRows = Array.from(
+        { length: safeRows - 1 },
+        () => `| ${Array.from({ length: safeCols }, () => "内容").join(" | ")} |`,
+      ).join("\n");
+      insert(`\n${headerRow}\n${sepRow}\n${bodyRows}\n`);
     },
-    [insertHtml],
+    [insert],
   );
 
-  return { exec, applyInlineStyle, insertHtml, insertCodeBlock, insertTable, sync };
+  /** Insert a fenced code block of the given language. */
+  const insertCodeBlock = useCallback(
+    (lang: string) => {
+      insert("\n```" + lang + "\n\n```\n");
+    },
+    [insert],
+  );
+
+  /** Insert a heading prefix on the current line (e.g. "## "). */
+  const insertHeading = useCallback(
+    (level: 1 | 2 | 3 | 4 | 5 | 6) => {
+      wrap("#".repeat(level) + " ", "", "标题");
+    },
+    [wrap],
+  );
+
+  return { wrap, insert, insertTable, insertCodeBlock, insertHeading };
 }
 ```
 
-- [ ] **Step 3: Create `useFullscreen.ts`**
+- [ ] **Step 2: Create `useFullscreen.ts`**
 
 ```ts
-// components/admin/RichTextEditor/hooks/useFullscreen.ts
+// components/admin/MarkdownEditor/hooks/useFullscreen.ts
 "use client";
 
 import { RefObject, useCallback, useEffect, useState } from "react";
@@ -307,11 +288,9 @@ export function useFullscreen(targetRef: RefObject<HTMLElement>) {
     if (!el) return;
     if (document.fullscreenElement) {
       await document.exitFullscreen();
-      setIsFullscreen(false);
     } else {
       try {
         await el.requestFullscreen();
-        setIsFullscreen(true);
       } catch {
         /* user gesture required, ignore */
       }
@@ -328,10 +307,10 @@ export function useFullscreen(targetRef: RefObject<HTMLElement>) {
 }
 ```
 
-- [ ] **Step 4: Create `useImageUpload.ts`**
+- [ ] **Step 3: Create `useImageUpload.ts`**
 
 ```ts
-// components/admin/RichTextEditor/hooks/useImageUpload.ts
+// components/admin/MarkdownEditor/hooks/useImageUpload.ts
 "use client";
 
 import { useCallback, useState } from "react";
@@ -356,8 +335,12 @@ export function useImageUpload(endpoint: string = "/api/upload") {
         if (meta.category) fd.append("category", meta.category);
         if (meta.articleTitle) fd.append("articleTitle", meta.articleTitle);
         const res = await fetch(endpoint, { method: "POST", body: fd });
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
         if (data.success && data.url) return { url: data.url };
+        if (data.error) console.warn("[image upload] server error:", data.error);
+        return null;
+      } catch (err) {
+        console.warn("[image upload] failed:", err);
         return null;
       } finally {
         setUploading(false);
@@ -370,16 +353,19 @@ export function useImageUpload(endpoint: string = "/api/upload") {
 }
 ```
 
-- [ ] **Step 5: Type-check**
-
-Run: `npm run type-check`
-Expected: only existing pre-existing error.
-
-- [ ] **Step 6: Commit**
+- [ ] **Step 4: Type-check**
 
 ```bash
-git add components/admin/RichTextEditor/hooks/
-git commit -m "feat(admin): extract editor command hooks
+npm run type-check
+```
+
+Expected: only pre-existing error.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add components/admin/MarkdownEditor/hooks/
+git commit -m "feat(admin): extract markdown insert + fullscreen + upload hooks
 
 Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ```
@@ -388,84 +374,594 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 
 ### Task 3: Extract dialog components
 
+The existing pages have inline popover dialogs. Pull them into self-contained components keyed off an `open: boolean` prop and an `onConfirm(...)` callback. Behavior must match what's currently in `app/admin/article/page.tsx` (around lines 503-511).
+
 **Files:**
-- Create: `components/admin/RichTextEditor/dialogs/HeadingDialog.tsx`
-- Create: `components/admin/RichTextEditor/dialogs/TableDialog.tsx`
-- Create: `components/admin/RichTextEditor/dialogs/FontDialog.tsx`
-- Create: `components/admin/RichTextEditor/dialogs/ImageDialog.tsx`
-- Create: `components/admin/RichTextEditor/dialogs/CodeBlockDialog.tsx`
-- Create: `components/admin/RichTextEditor/dialogs/LinkDialog.tsx`
+- Create: `components/admin/MarkdownEditor/dialogs/HeadingDialog.tsx`
+- Create: `components/admin/MarkdownEditor/dialogs/TableDialog.tsx`
+- Create: `components/admin/MarkdownEditor/dialogs/CodeBlockDialog.tsx`
+- Create: `components/admin/MarkdownEditor/dialogs/LinkDialog.tsx`
+- Create: `components/admin/MarkdownEditor/dialogs/ImageDialog.tsx`
+- Create: `components/admin/MarkdownEditor/dialogs/FontDialog.tsx`
 
-For this task, copy each dialog **verbatim from the source page** (`app/admin/article/page.tsx`) into the corresponding new file with minimal changes:
-- Move JSX and local state into a self-contained component
-- Add `interface Props` for `open`, `onClose`, and the success callback (`onConfirm` taking the values it currently sets)
-- Keep all Tailwind classes identical
+Each dialog is a popover that:
+1. Returns `null` when `open` is false.
+2. Renders a small absolutely-positioned panel (caller decides where to mount it; positioning is the dialog's container concern, not the dialog's).
+3. Closes on `onClose` (clicking outside / pressing the cancel button).
+4. Calls `onConfirm(...)` with the data the toolbar needs to perform a markdown insertion.
 
-The source has these blocks (search anchors):
-- Heading dialog: `showHeadingDialog && (` (around line 360 of article page)
-- Table dialog: `showTableDialog && (`
-- Font/size/color/line-height/spacing: `showFontFamilyDialog`, `showFontSizeDialog`, `showFontColorDialog`, `showLineHeightDialog`, `showParagraphSpacingDialog` — these should each become a sub-dialog inside `FontDialog.tsx` accepting a `mode` prop (`"family" | "size" | "color" | "lineHeight" | "spacing"`) so all 5 share the markup.
-- Image dialog: `showImageDialog && (`
-- Code block lang: `showCodeBlockLang && (`
-- Link: search for the existing `prompt("URL")` if present and convert to a real dialog
+The dialogs do NOT import from any hook — they are pure UI. The Toolbar wires the `onConfirm` callback to `useMarkdownInsert` actions.
 
-- [ ] **Step 1: Create each dialog file with the boilerplate below as the template**
-
-Template (use for HeadingDialog as starting reference):
+- [ ] **Step 1: HeadingDialog**
 
 ```tsx
-// components/admin/RichTextEditor/dialogs/HeadingDialog.tsx
+// components/admin/MarkdownEditor/dialogs/HeadingDialog.tsx
 "use client";
 
 interface HeadingDialogProps {
   open: boolean;
   onClose: () => void;
+  /** level 1-6 */
   onConfirm: (level: 1 | 2 | 3 | 4 | 5 | 6) => void;
 }
 
 export function HeadingDialog({ open, onClose, onConfirm }: HeadingDialogProps) {
   if (!open) return null;
+  const levels: Array<{ level: 1 | 2 | 3 | 4 | 5 | 6; label: string; prefix: string }> = [
+    { level: 1, label: "一级标题", prefix: "# " },
+    { level: 2, label: "二级标题", prefix: "## " },
+    { level: 3, label: "三级标题", prefix: "### " },
+    { level: 4, label: "四级标题", prefix: "#### " },
+    { level: 5, label: "五级标题", prefix: "##### " },
+    { level: 6, label: "六级标题", prefix: "###### " },
+  ];
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
-      <div
-        className="w-80 rounded-xl border border-[var(--card-border)] bg-[var(--card)] p-6"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h3 className="text-lg font-semibold mb-4">选择标题级别</h3>
-        <div className="grid grid-cols-3 gap-2">
-          {([1, 2, 3, 4, 5, 6] as const).map((n) => (
-            <button
-              key={n}
-              onClick={() => {
-                onConfirm(n);
-                onClose();
-              }}
-              className="px-3 py-2 rounded-lg border border-[var(--card-border)] hover:border-[var(--primary)]/50 hover:text-[var(--primary)]"
-            >
-              H{n}
-            </button>
-          ))}
+    <div
+      className="absolute z-40 top-full left-0 mt-1 p-2 rounded-lg border border-[var(--card-border)] bg-[var(--card)] shadow-xl w-48"
+      onMouseLeave={onClose}
+    >
+      <p className="text-xs text-[var(--muted)] mb-2 px-2">选择标题级别</p>
+      {levels.map((h) => (
+        <button
+          key={h.level}
+          onClick={() => {
+            onConfirm(h.level);
+            onClose();
+          }}
+          className="w-full text-left text-sm px-3 py-2 rounded text-[var(--muted)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10 transition-colors flex items-center justify-between"
+        >
+          <span>{h.label}</span>
+          <span className="text-xs font-mono opacity-50">{h.prefix}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+```
+
+- [ ] **Step 2: TableDialog**
+
+```tsx
+// components/admin/MarkdownEditor/dialogs/TableDialog.tsx
+"use client";
+
+import { useState } from "react";
+
+interface TableDialogProps {
+  open: boolean;
+  onClose: () => void;
+  onConfirm: (rows: number, cols: number) => void;
+}
+
+export function TableDialog({ open, onClose, onConfirm }: TableDialogProps) {
+  const [rows, setRows] = useState(3);
+  const [cols, setCols] = useState(3);
+  if (!open) return null;
+  return (
+    <div className="absolute z-40 top-full left-0 mt-1 p-4 rounded-lg border border-[var(--card-border)] bg-[var(--card)] shadow-xl w-56">
+      <p className="text-sm text-[var(--foreground)] mb-3">插入表格</p>
+      <div className="grid grid-cols-2 gap-3 mb-3">
+        <div>
+          <label className="text-xs text-[var(--muted)]">行数</label>
+          <input
+            type="number"
+            min={2}
+            max={10}
+            value={rows}
+            onChange={(e) => setRows(Number(e.target.value))}
+            className="w-full px-2 py-1 rounded border border-[var(--card-border)] bg-[var(--card)] text-sm text-[var(--foreground)]"
+          />
         </div>
+        <div>
+          <label className="text-xs text-[var(--muted)]">列数</label>
+          <input
+            type="number"
+            min={2}
+            max={6}
+            value={cols}
+            onChange={(e) => setCols(Number(e.target.value))}
+            className="w-full px-2 py-1 rounded border border-[var(--card-border)] bg-[var(--card)] text-sm text-[var(--foreground)]"
+          />
+        </div>
+      </div>
+      <div className="flex gap-2">
+        <button
+          onClick={() => {
+            onConfirm(rows, cols);
+            onClose();
+          }}
+          className="flex-1 text-xs px-3 py-1.5 rounded bg-[var(--primary)] text-white"
+        >
+          插入
+        </button>
+        <button
+          onClick={onClose}
+          className="flex-1 text-xs px-3 py-1.5 rounded border border-[var(--card-border)] text-[var(--muted)]"
+        >
+          取消
+        </button>
       </div>
     </div>
   );
 }
 ```
 
-- [ ] **Step 2: Repeat for TableDialog (rows/cols sliders), CodeBlockDialog (lang select), LinkDialog (url+text inputs), ImageDialog (size/layout/url), FontDialog (mode-driven)**
+- [ ] **Step 3: CodeBlockDialog**
 
-Use existing JSX from source pages as the source of truth. Do NOT change behavior. Each dialog's `onConfirm` returns the data needed to call the corresponding hook (e.g., `useEditorCommands().insertTable(rows, cols)`).
+```tsx
+// components/admin/MarkdownEditor/dialogs/CodeBlockDialog.tsx
+"use client";
 
-- [ ] **Step 3: Type-check**
+interface CodeBlockDialogProps {
+  open: boolean;
+  onClose: () => void;
+  onConfirm: (lang: string) => void;
+}
 
-Run: `npm run type-check`
-Expected: only pre-existing error.
+const LANGS = [
+  "javascript", "typescript", "python", "java",
+  "sql", "shell", "bash", "yaml",
+  "markdown", "css", "html", "go",
+  "rust", "swift", "json", "dockerfile",
+];
 
-- [ ] **Step 4: Commit**
+export function CodeBlockDialog({ open, onClose, onConfirm }: CodeBlockDialogProps) {
+  if (!open) return null;
+  return (
+    <div
+      className="absolute z-40 top-full left-0 mt-1 p-2 rounded-lg border border-[var(--card-border)] bg-[var(--card)] shadow-xl grid grid-cols-4 gap-1 w-72"
+      onMouseLeave={onClose}
+    >
+      {LANGS.map((lang) => (
+        <button
+          key={lang}
+          onClick={() => {
+            onConfirm(lang);
+            onClose();
+          }}
+          className="text-xs px-2 py-1.5 rounded text-[var(--muted)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10 transition-colors text-left"
+        >
+          {lang}
+        </button>
+      ))}
+    </div>
+  );
+}
+```
+
+- [ ] **Step 4: LinkDialog**
+
+```tsx
+// components/admin/MarkdownEditor/dialogs/LinkDialog.tsx
+"use client";
+
+import { useState } from "react";
+
+interface LinkDialogProps {
+  open: boolean;
+  onClose: () => void;
+  /** Returns the markdown to insert. */
+  onConfirm: (text: string, url: string) => void;
+}
+
+export function LinkDialog({ open, onClose, onConfirm }: LinkDialogProps) {
+  const [text, setText] = useState("");
+  const [url, setUrl] = useState("");
+  if (!open) return null;
+  return (
+    <div className="absolute z-40 top-full left-0 mt-1 p-4 rounded-lg border border-[var(--card-border)] bg-[var(--card)] shadow-xl w-72">
+      <p className="text-sm text-[var(--foreground)] mb-3">插入链接</p>
+      <div className="space-y-2 mb-3">
+        <div>
+          <label className="text-xs text-[var(--muted)]">显示文字</label>
+          <input
+            type="text"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="链接显示的文字"
+            className="w-full px-2 py-1 rounded border border-[var(--card-border)] bg-[var(--card)] text-sm text-[var(--foreground)]"
+          />
+        </div>
+        <div>
+          <label className="text-xs text-[var(--muted)]">URL</label>
+          <input
+            type="text"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            placeholder="https://"
+            className="w-full px-2 py-1 rounded border border-[var(--card-border)] bg-[var(--card)] text-sm text-[var(--foreground)]"
+          />
+        </div>
+      </div>
+      <div className="flex gap-2">
+        <button
+          onClick={() => {
+            onConfirm(text || url || "链接", url || "");
+            onClose();
+          }}
+          className="flex-1 text-xs px-3 py-1.5 rounded bg-[var(--primary)] text-white"
+        >
+          插入
+        </button>
+        <button
+          onClick={onClose}
+          className="flex-1 text-xs px-3 py-1.5 rounded border border-[var(--card-border)] text-[var(--muted)]"
+        >
+          取消
+        </button>
+      </div>
+    </div>
+  );
+}
+```
+
+- [ ] **Step 5: ImageDialog**
+
+The existing image dialog supports size (small/medium/full/custom width) and layout (single/double image). Faithfully port these. The dialog calls `onConfirm(markdownString)` once the user clicks 插入. Caller is responsible for the upload step before opening this dialog.
+
+```tsx
+// components/admin/MarkdownEditor/dialogs/ImageDialog.tsx
+"use client";
+
+import { useState } from "react";
+
+type ImageSize = "small" | "medium" | "full" | "custom";
+type ImageLayout = "single" | "double";
+
+interface ImageDialogProps {
+  open: boolean;
+  onClose: () => void;
+  /** First-image URL (or only URL for single layout). */
+  primaryUrl: string;
+  /** Returns the markdown/HTML to insert at the cursor. */
+  onConfirm: (markdown: string) => void;
+}
+
+const SIZE_STYLE: Record<ImageSize, (custom?: number) => string> = {
+  small: () => `width="33%"`,
+  medium: () => `width="66%"`,
+  full: () => `width="100%"`,
+  custom: (w = 400) => `width="${w}px"`,
+};
+
+export function ImageDialog({ open, onClose, primaryUrl, onConfirm }: ImageDialogProps) {
+  const [alt, setAlt] = useState("");
+  const [size, setSize] = useState<ImageSize>("full");
+  const [customWidth, setCustomWidth] = useState(400);
+  const [layout, setLayout] = useState<ImageLayout>("single");
+  const [secondUrl, setSecondUrl] = useState("");
+  if (!open) return null;
+
+  const handleInsert = () => {
+    const sa = SIZE_STYLE[size](customWidth);
+    const cap = alt || "在此输入图片描述...";
+    const altText = alt || "图片";
+    let md = "";
+    if (layout === "double" && secondUrl) {
+      md = `\n<div class="flex gap-4">\n<figure class="image-block flex-1"><img src="${primaryUrl}" alt="图片1" ${sa} /><figcaption class="image-caption">${cap}</figcaption></figure>\n<figure class="image-block flex-1"><img src="${secondUrl}" alt="${altText}" ${sa} /><figcaption class="image-caption">${cap}</figcaption></figure>\n</div>\n`;
+    } else {
+      md = `\n<figure class="image-block">\n  <img src="${primaryUrl}" alt="${altText}" ${sa} />\n  <figcaption class="image-caption">${cap}</figcaption>\n</figure>\n`;
+    }
+    onConfirm(md);
+    onClose();
+  };
+
+  return (
+    <div className="absolute z-40 top-full left-0 mt-1 p-4 rounded-lg border border-[var(--card-border)] bg-[var(--card)] shadow-xl w-80">
+      <p className="text-sm font-medium text-[var(--foreground)] mb-3">图片设置</p>
+      <div className="mb-3">
+        <label className="text-xs text-[var(--muted)] block mb-1">图片描述</label>
+        <input
+          type="text"
+          value={alt}
+          onChange={(e) => setAlt(e.target.value)}
+          placeholder="图片描述..."
+          className="w-full px-2 py-1.5 rounded border border-[var(--card-border)] bg-[var(--card)] text-sm text-[var(--foreground)]"
+        />
+      </div>
+      <div className="mb-3">
+        <label className="text-xs text-[var(--muted)] block mb-1">图片大小</label>
+        <div className="grid grid-cols-4 gap-1.5 mb-2">
+          {([
+            { key: "small", label: "小", sub: "33%" },
+            { key: "medium", label: "中", sub: "66%" },
+            { key: "full", label: "大", sub: "100%" },
+            { key: "custom", label: "自定义", sub: "" },
+          ] as const).map((s) => (
+            <button
+              key={s.key}
+              onClick={() => setSize(s.key)}
+              className={`text-xs px-2 py-1.5 rounded transition-colors text-center ${size === s.key ? "bg-[var(--primary)] text-white" : "text-[var(--muted)] hover:bg-[var(--primary)]/10"}`}
+            >
+              {s.label}
+              {s.sub && <span className="block text-[10px] opacity-60">{s.sub}</span>}
+            </button>
+          ))}
+        </div>
+        {size === "custom" && (
+          <div className="flex items-center gap-2">
+            <input
+              type="number"
+              min={50}
+              max={2000}
+              value={customWidth}
+              onChange={(e) => setCustomWidth(Number(e.target.value))}
+              className="w-20 px-2 py-1 rounded border border-[var(--card-border)] bg-[var(--card)] text-sm text-[var(--foreground)]"
+            />
+            <span className="text-xs text-[var(--muted)]">px</span>
+          </div>
+        )}
+      </div>
+      <div className="mb-4">
+        <label className="text-xs text-[var(--muted)] block mb-1">排版</label>
+        <div className="grid grid-cols-2 gap-1.5">
+          {([
+            { key: "single", label: "单图" },
+            { key: "double", label: "双栏并排" },
+          ] as const).map((l) => (
+            <button
+              key={l.key}
+              onClick={() => setLayout(l.key)}
+              className={`text-xs px-2 py-2 rounded transition-colors text-center ${layout === l.key ? "bg-[var(--primary)] text-white" : "text-[var(--muted)] hover:bg-[var(--primary)]/10"}`}
+            >
+              {l.label}
+            </button>
+          ))}
+        </div>
+        {layout === "double" && (
+          <div className="mt-2">
+            <label className="text-xs text-[var(--muted)] block mb-1">第二张图片 URL</label>
+            <input
+              type="text"
+              value={secondUrl}
+              onChange={(e) => setSecondUrl(e.target.value)}
+              placeholder="https://..."
+              className="w-full px-2 py-1.5 rounded border border-[var(--card-border)] bg-[var(--card)] text-sm text-[var(--foreground)]"
+            />
+          </div>
+        )}
+      </div>
+      <div className="flex gap-2">
+        <button
+          onClick={handleInsert}
+          className="flex-1 text-xs px-3 py-1.5 rounded bg-[var(--primary)] text-white"
+        >
+          插入
+        </button>
+        <button
+          onClick={onClose}
+          className="flex-1 text-xs px-3 py-1.5 rounded border border-[var(--card-border)] text-[var(--muted)]"
+        >
+          取消
+        </button>
+      </div>
+    </div>
+  );
+}
+```
+
+- [ ] **Step 6: FontDialog (multi-mode: family / size / color / lineHeight / spacing)**
+
+Existing font popovers each insert a `<span style="...">` snippet (or set a "global style" — we drop the global mode to simplify; YAGNI and rarely used). Single component, mode-driven.
+
+```tsx
+// components/admin/MarkdownEditor/dialogs/FontDialog.tsx
+"use client";
+
+import { useState } from "react";
+
+type FontMode = "family" | "size" | "color" | "lineHeight" | "spacing";
+
+interface FontDialogProps {
+  /** null = closed; otherwise open in this mode */
+  mode: FontMode | null;
+  onClose: () => void;
+  /** Insert a wrapping `<span style="...">…</span>` snippet around the selection. */
+  onConfirm: (openTag: string, closeTag: string) => void;
+}
+
+const FONTS = ["Arial", "Georgia", "Times New Roman", "Courier New", "Verdana", "PingFang SC", "Microsoft YaHei"];
+const SIZES = [12, 14, 16, 18, 20, 24, 28, 32, 36];
+const LINE_HEIGHTS = [1, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6];
+const SPACINGS = [4, 8, 12, 16, 20, 24, 32, 40, 48];
+const COLORS = ["#1e293b", "#ef4444", "#f97316", "#eab308", "#22c55e", "#3b82f6", "#6366f1", "#8b5cf6", "#ec4899", "#6b7280", "#94a3b8", "#000000"];
+
+export function FontDialog({ mode, onClose, onConfirm }: FontDialogProps) {
+  const [color, setColor] = useState("#6366f1");
+  const [customSize, setCustomSize] = useState(16);
+  const [customLineHeight, setCustomLineHeight] = useState(1.8);
+  const [customSpacing, setCustomSpacing] = useState(8);
+  if (mode === null) return null;
+
+  const wrap = (decl: string) => onConfirm(`<span style="${decl}">`, `</span>`);
+  const close = (decl: string) => {
+    wrap(decl);
+    onClose();
+  };
+
+  return (
+    <div
+      className="absolute z-40 top-full left-0 mt-1 p-3 rounded-lg border border-[var(--card-border)] bg-[var(--card)] shadow-xl w-72"
+      onMouseLeave={onClose}
+    >
+      {mode === "family" && (
+        <>
+          <p className="text-xs text-[var(--muted)] mb-2 px-1">选择字体</p>
+          <div className="grid grid-cols-2 gap-1.5">
+            {FONTS.map((f) => (
+              <button
+                key={f}
+                onClick={() => close(`font-family: '${f}'`)}
+                className="text-xs px-2 py-1.5 rounded text-[var(--muted)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10 transition-colors text-left truncate"
+                style={{ fontFamily: f }}
+              >
+                {f}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+
+      {mode === "size" && (
+        <>
+          <p className="text-xs text-[var(--muted)] mb-2 px-1">字体大小 (px)</p>
+          <div className="grid grid-cols-3 gap-1.5 mb-3">
+            {SIZES.map((s) => (
+              <button
+                key={s}
+                onClick={() => close(`font-size: ${s}px`)}
+                className="text-xs px-2 py-1.5 rounded text-[var(--muted)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10 transition-colors text-center"
+              >
+                {s}px
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="text-xs text-[var(--muted)]">自定义</label>
+            <input
+              type="number"
+              min={8}
+              max={72}
+              value={customSize}
+              onChange={(e) => setCustomSize(Number(e.target.value))}
+              className="w-16 px-2 py-1 rounded border border-[var(--card-border)] bg-[var(--card)] text-sm text-[var(--foreground)]"
+            />
+            <button onClick={() => close(`font-size: ${customSize}px`)} className="text-xs px-2 py-1 rounded bg-[var(--primary)] text-white">
+              应用
+            </button>
+          </div>
+        </>
+      )}
+
+      {mode === "color" && (
+        <>
+          <p className="text-xs text-[var(--muted)] mb-2 px-1">选择颜色</p>
+          <div className="grid grid-cols-6 gap-1.5 mb-2">
+            {COLORS.map((c) => (
+              <button
+                key={c}
+                onClick={() => close(`color: ${c}`)}
+                className="w-8 h-8 rounded-md border border-[var(--card-border)] hover:scale-110 transition-transform"
+                style={{ backgroundColor: c }}
+                title={c}
+              />
+            ))}
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="color"
+              value={color}
+              onChange={(e) => setColor(e.target.value)}
+              className="w-8 h-8 rounded cursor-pointer border-0"
+            />
+            <span className="text-xs text-[var(--muted)] font-mono">{color}</span>
+            <button onClick={() => close(`color: ${color}`)} className="text-xs px-2 py-1 rounded bg-[var(--primary)] text-white ml-auto">
+              应用
+            </button>
+          </div>
+        </>
+      )}
+
+      {mode === "lineHeight" && (
+        <>
+          <p className="text-xs text-[var(--muted)] mb-2 px-1">行间距</p>
+          <div className="grid grid-cols-3 gap-1.5 mb-3">
+            {LINE_HEIGHTS.map((v) => (
+              <button
+                key={v}
+                onClick={() => close(`line-height: ${v}`)}
+                className="text-xs px-2 py-1.5 rounded text-[var(--muted)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10 transition-colors text-center"
+              >
+                {v}
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="text-xs text-[var(--muted)]">自定义</label>
+            <input
+              type="number"
+              min={0.5}
+              max={4}
+              step={0.1}
+              value={customLineHeight}
+              onChange={(e) => setCustomLineHeight(Number(e.target.value))}
+              className="w-16 px-2 py-1 rounded border border-[var(--card-border)] bg-[var(--card)] text-sm text-[var(--foreground)]"
+            />
+            <button onClick={() => close(`line-height: ${customLineHeight}`)} className="text-xs px-2 py-1 rounded bg-[var(--primary)] text-white">
+              应用
+            </button>
+          </div>
+        </>
+      )}
+
+      {mode === "spacing" && (
+        <>
+          <p className="text-xs text-[var(--muted)] mb-2 px-1">段落间距 (px)</p>
+          <div className="grid grid-cols-3 gap-1.5 mb-3">
+            {SPACINGS.map((v) => (
+              <button
+                key={v}
+                onClick={() => close(`margin-bottom: ${v}px`)}
+                className="text-xs px-2 py-1.5 rounded text-[var(--muted)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10 transition-colors text-center"
+              >
+                {v}px
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="text-xs text-[var(--muted)]">自定义</label>
+            <input
+              type="number"
+              min={0}
+              max={100}
+              value={customSpacing}
+              onChange={(e) => setCustomSpacing(Number(e.target.value))}
+              className="w-16 px-2 py-1 rounded border border-[var(--card-border)] bg-[var(--card)] text-sm text-[var(--foreground)]"
+            />
+            <button onClick={() => close(`margin-bottom: ${customSpacing}px`)} className="text-xs px-2 py-1 rounded bg-[var(--primary)] text-white">
+              应用
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+```
+
+- [ ] **Step 7: Type-check + Lint**
 
 ```bash
-git add components/admin/RichTextEditor/dialogs/
-git commit -m "feat(admin): extract editor dialogs
+npm run type-check && npm run lint
+```
+
+Expected: only pre-existing error.
+
+- [ ] **Step 8: Commit**
+
+```bash
+git add components/admin/MarkdownEditor/dialogs/
+git commit -m "feat(admin): extract editor dialogs (heading/table/code/link/image/font)
 
 Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ```
@@ -475,40 +971,51 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ### Task 4: Build Toolbar
 
 **Files:**
-- Create: `components/admin/RichTextEditor/Toolbar.tsx`
+- Create: `components/admin/MarkdownEditor/Toolbar.tsx`
 
-- [ ] **Step 1: Create Toolbar with all current buttons grouped**
+The toolbar is a flat row of icon buttons. Each button either calls a `useMarkdownInsert` action directly (e.g. bold = `wrap("**", "**", "粗体文字")`) or opens one of the dialogs. The Toolbar accepts callbacks rather than the hooks themselves so it stays testable / portable.
 
-Reference source: the toolbar section in [app/admin/article/page.tsx](../../../app/admin/article/page.tsx) (search for `<Bold className="w-4 h-4" />`).
+- [ ] **Step 1: Create Toolbar**
 
 ```tsx
-// components/admin/RichTextEditor/Toolbar.tsx
+// components/admin/MarkdownEditor/Toolbar.tsx
 "use client";
 
 import { useState } from "react";
 import {
-  Bold, Italic, Underline, Strikethrough, Code, Heading, List, ListOrdered,
-  Quote, Link2, Image as ImageIcon, Code2, Table2, Minus, Type, Palette,
-  AlignVerticalJustifyCenter, Columns2, TextCursorInput, Highlighter,
-  Superscript, Subscript, Maximize2, Minimize2, Undo2, Redo2,
+  Bold, Italic, Underline, Strikethrough, Superscript, Subscript, Highlighter, Code,
+  Heading, List, ListOrdered, Quote, Minus, Table2,
+  Link2, Image as ImageIcon, Code2,
+  Type, TextCursorInput, Palette, AlignVerticalJustifyCenter, Columns2,
+  Maximize2, Minimize2,
 } from "lucide-react";
 
 import { HeadingDialog } from "./dialogs/HeadingDialog";
 import { TableDialog } from "./dialogs/TableDialog";
 import { CodeBlockDialog } from "./dialogs/CodeBlockDialog";
 import { LinkDialog } from "./dialogs/LinkDialog";
-import { ImageDialog } from "./dialogs/ImageDialog";
 import { FontDialog } from "./dialogs/FontDialog";
 
+type DialogKind = null | "heading" | "table" | "code" | "link" | "font-family" | "font-size" | "font-color" | "line-height" | "spacing";
+
 export interface ToolbarProps {
-  exec: (cmd: string, val?: string) => void;
-  applyInlineStyle: (prop: string, val: string, mode?: "selection" | "global") => void;
-  insertHtml: (html: string) => void;
-  insertCodeBlock: (lang: string) => void;
+  /** Wrap selection in (before, after) with optional placeholder when empty. */
+  wrap: (before: string, after: string, placeholder?: string) => void;
+  /** Insert a literal string at the cursor. */
+  insert: (text: string) => void;
+  /** Insert markdown table. */
   insertTable: (rows: number, cols: number) => void;
-  onUploadImage: () => void;     // delegates to file input click
+  /** Insert fenced code block. */
+  insertCodeBlock: (lang: string) => void;
+  /** Insert heading prefix on the current line. */
+  insertHeading: (level: 1 | 2 | 3 | 4 | 5 | 6) => void;
+  /** Trigger the file input for image upload. The Image dialog opens AFTER upload completes. */
+  onPickImage: () => void;
+  /** Open preview pane. */
+  onTogglePreview?: () => void;
+  previewActive?: boolean;
   isFullscreen: boolean;
-  toggleFullscreen: () => void;
+  onToggleFullscreen: () => void;
   toolbar?: {
     text?: boolean;
     block?: boolean;
@@ -524,150 +1031,199 @@ export function Toolbar(props: ToolbarProps) {
     media: props.toolbar?.media ?? true,
     typography: props.toolbar?.typography ?? true,
   };
-  const [openDialog, setOpenDialog] = useState<
-    null | "heading" | "table" | "code" | "link" | "image" | "font-family" | "font-size" | "font-color" | "line-height" | "spacing"
-  >(null);
+  const [dialog, setDialog] = useState<DialogKind>(null);
+  const fontMode = dialog === "font-family" ? "family"
+    : dialog === "font-size" ? "size"
+    : dialog === "font-color" ? "color"
+    : dialog === "line-height" ? "lineHeight"
+    : dialog === "spacing" ? "spacing"
+    : null;
 
-  const Btn = ({ onClick, title, children, active }: { onClick: () => void; title: string; children: React.ReactNode; active?: boolean }) => (
+  const Btn = ({ onClick, title, children }: { onClick: () => void; title: string; children: React.ReactNode }) => (
     <button
       type="button"
       onClick={onClick}
       title={title}
-      className={`p-1.5 rounded hover:bg-[var(--primary)]/10 hover:text-[var(--primary)] transition-colors ${active ? "bg-[var(--primary)]/10 text-[var(--primary)]" : "text-[var(--muted)]"}`}
+      className="p-1.5 rounded text-[var(--muted)] hover:bg-[var(--primary)]/10 hover:text-[var(--primary)] transition-colors"
     >
       {children}
     </button>
   );
-
   const Sep = () => <span className="w-px h-5 bg-[var(--card-border)] mx-1" />;
 
   return (
-    <>
-      <div className="flex items-center gap-1 flex-wrap p-2 rounded-lg border border-[var(--card-border)] bg-[var(--card)]/50 sticky top-0 z-10">
-        <Btn onClick={() => props.exec("undo")} title="撤销"><Undo2 className="w-4 h-4" /></Btn>
-        <Btn onClick={() => props.exec("redo")} title="重做"><Redo2 className="w-4 h-4" /></Btn>
-        <Sep />
+    <div className="relative">
+      <div className="flex items-center gap-0.5 flex-wrap p-1.5 rounded-lg border border-[var(--card-border)] bg-[var(--card)]/80 backdrop-blur sticky top-0 z-10">
         {t.text && (<>
-          <Btn onClick={() => props.exec("bold")} title="粗体"><Bold className="w-4 h-4" /></Btn>
-          <Btn onClick={() => props.exec("italic")} title="斜体"><Italic className="w-4 h-4" /></Btn>
-          <Btn onClick={() => props.exec("underline")} title="下划线"><Underline className="w-4 h-4" /></Btn>
-          <Btn onClick={() => props.exec("strikeThrough")} title="删除线"><Strikethrough className="w-4 h-4" /></Btn>
-          <Btn onClick={() => props.exec("superscript")} title="上标"><Superscript className="w-4 h-4" /></Btn>
-          <Btn onClick={() => props.exec("subscript")} title="下标"><Subscript className="w-4 h-4" /></Btn>
-          <Btn onClick={() => props.applyInlineStyle("backgroundColor", "#fef3c7")} title="高亮"><Highlighter className="w-4 h-4" /></Btn>
+          <Btn onClick={() => props.wrap("**", "**", "粗体文字")} title="加粗"><Bold className="w-3.5 h-3.5" /></Btn>
+          <Btn onClick={() => props.wrap("*", "*", "斜体文字")} title="斜体"><Italic className="w-3.5 h-3.5" /></Btn>
+          <Btn onClick={() => props.wrap("<u>", "</u>", "下划线")} title="下划线"><Underline className="w-3.5 h-3.5" /></Btn>
+          <Btn onClick={() => props.wrap("~~", "~~", "删除文字")} title="删除线"><Strikethrough className="w-3.5 h-3.5" /></Btn>
+          <Btn onClick={() => props.wrap("<sup>", "</sup>", "上标")} title="上标"><Superscript className="w-3.5 h-3.5" /></Btn>
+          <Btn onClick={() => props.wrap("<sub>", "</sub>", "下标")} title="下标"><Subscript className="w-3.5 h-3.5" /></Btn>
+          <Btn onClick={() => props.wrap("==", "==", "高亮")} title="高亮"><Highlighter className="w-3.5 h-3.5" /></Btn>
+          <Btn onClick={() => props.wrap("`", "`", "代码")} title="行内代码"><Code className="w-3.5 h-3.5" /></Btn>
           <Sep />
         </>)}
+
         {t.block && (<>
-          <Btn onClick={() => setOpenDialog("heading")} title="标题"><Heading className="w-4 h-4" /></Btn>
-          <Btn onClick={() => props.exec("insertUnorderedList")} title="无序列表"><List className="w-4 h-4" /></Btn>
-          <Btn onClick={() => props.exec("insertOrderedList")} title="有序列表"><ListOrdered className="w-4 h-4" /></Btn>
-          <Btn onClick={() => props.exec("formatBlock", "blockquote")} title="引用"><Quote className="w-4 h-4" /></Btn>
-          <Btn onClick={() => props.insertHtml("<hr/><p><br/></p>")} title="分割线"><Minus className="w-4 h-4" /></Btn>
-          <Btn onClick={() => setOpenDialog("table")} title="表格"><Table2 className="w-4 h-4" /></Btn>
+          <Btn onClick={() => setDialog(dialog === "heading" ? null : "heading")} title="标题"><Heading className="w-3.5 h-3.5" /></Btn>
+          <Btn onClick={() => props.insert("\n- ")} title="无序列表"><List className="w-3.5 h-3.5" /></Btn>
+          <Btn onClick={() => props.insert("\n1. ")} title="有序列表"><ListOrdered className="w-3.5 h-3.5" /></Btn>
+          <Btn onClick={() => props.insert("\n> ")} title="引用"><Quote className="w-3.5 h-3.5" /></Btn>
+          <Btn onClick={() => props.insert("\n---\n")} title="分隔线"><Minus className="w-3.5 h-3.5" /></Btn>
+          <Btn onClick={() => setDialog(dialog === "table" ? null : "table")} title="表格"><Table2 className="w-3.5 h-3.5" /></Btn>
           <Sep />
         </>)}
+
         {t.media && (<>
-          <Btn onClick={() => setOpenDialog("link")} title="链接"><Link2 className="w-4 h-4" /></Btn>
-          <Btn onClick={props.onUploadImage} title="图片"><ImageIcon className="w-4 h-4" /></Btn>
-          <Btn onClick={() => setOpenDialog("code")} title="代码块"><Code2 className="w-4 h-4" /></Btn>
-          <Btn onClick={() => props.exec("formatBlock", "code")} title="行内代码"><Code className="w-4 h-4" /></Btn>
+          <Btn onClick={() => setDialog(dialog === "link" ? null : "link")} title="链接"><Link2 className="w-3.5 h-3.5" /></Btn>
+          <Btn onClick={props.onPickImage} title="图片"><ImageIcon className="w-3.5 h-3.5" /></Btn>
+          <Btn onClick={() => setDialog(dialog === "code" ? null : "code")} title="代码块"><Code2 className="w-3.5 h-3.5" /></Btn>
           <Sep />
         </>)}
+
         {t.typography && (<>
-          <Btn onClick={() => setOpenDialog("font-family")} title="字体"><Type className="w-4 h-4" /></Btn>
-          <Btn onClick={() => setOpenDialog("font-size")} title="字号"><TextCursorInput className="w-4 h-4" /></Btn>
-          <Btn onClick={() => setOpenDialog("font-color")} title="字色"><Palette className="w-4 h-4" /></Btn>
-          <Btn onClick={() => setOpenDialog("line-height")} title="行高"><AlignVerticalJustifyCenter className="w-4 h-4" /></Btn>
-          <Btn onClick={() => setOpenDialog("spacing")} title="段距"><Columns2 className="w-4 h-4" /></Btn>
+          <Btn onClick={() => setDialog(dialog === "font-family" ? null : "font-family")} title="字体"><Type className="w-3.5 h-3.5" /></Btn>
+          <Btn onClick={() => setDialog(dialog === "font-size" ? null : "font-size")} title="字号"><TextCursorInput className="w-3.5 h-3.5" /></Btn>
+          <Btn onClick={() => setDialog(dialog === "font-color" ? null : "font-color")} title="字色"><Palette className="w-3.5 h-3.5" /></Btn>
+          <Btn onClick={() => setDialog(dialog === "line-height" ? null : "line-height")} title="行高"><AlignVerticalJustifyCenter className="w-3.5 h-3.5" /></Btn>
+          <Btn onClick={() => setDialog(dialog === "spacing" ? null : "spacing")} title="段距"><Columns2 className="w-3.5 h-3.5" /></Btn>
           <Sep />
         </>)}
-        <Btn onClick={props.toggleFullscreen} title={props.isFullscreen ? "退出全屏" : "全屏"}>
-          {props.isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+
+        <Btn onClick={props.onToggleFullscreen} title={props.isFullscreen ? "退出全屏" : "全屏"}>
+          {props.isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
         </Btn>
+
+        {props.onTogglePreview && (
+          <button
+            type="button"
+            onClick={props.onTogglePreview}
+            className={`ml-auto inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded transition-colors ${props.previewActive ? "bg-[var(--primary)]/10 text-[var(--primary)]" : "text-[var(--muted)] hover:text-[var(--primary)]"}`}
+          >
+            {props.previewActive ? "返回编辑" : "预览"}
+          </button>
+        )}
       </div>
 
       <HeadingDialog
-        open={openDialog === "heading"}
-        onClose={() => setOpenDialog(null)}
-        onConfirm={(n) => props.exec("formatBlock", `H${n}`)}
+        open={dialog === "heading"}
+        onClose={() => setDialog(null)}
+        onConfirm={(level) => props.insertHeading(level)}
       />
       <TableDialog
-        open={openDialog === "table"}
-        onClose={() => setOpenDialog(null)}
+        open={dialog === "table"}
+        onClose={() => setDialog(null)}
         onConfirm={(rows, cols) => props.insertTable(rows, cols)}
       />
       <CodeBlockDialog
-        open={openDialog === "code"}
-        onClose={() => setOpenDialog(null)}
+        open={dialog === "code"}
+        onClose={() => setDialog(null)}
         onConfirm={(lang) => props.insertCodeBlock(lang)}
       />
       <LinkDialog
-        open={openDialog === "link"}
-        onClose={() => setOpenDialog(null)}
-        onConfirm={(url, text) =>
-          props.insertHtml(
-            `<a href="${url.replace(/"/g, "&quot;")}" target="_blank" rel="noopener">${text || url}</a>`,
-          )
-        }
-      />
-      <ImageDialog
-        open={openDialog === "image"}
-        onClose={() => setOpenDialog(null)}
-        onConfirm={(html) => props.insertHtml(html)}
+        open={dialog === "link"}
+        onClose={() => setDialog(null)}
+        onConfirm={(text, url) => props.insert(`[${text}](${url})`)}
       />
       <FontDialog
-        mode={
-          openDialog === "font-family" ? "family"
-            : openDialog === "font-size" ? "size"
-            : openDialog === "font-color" ? "color"
-            : openDialog === "line-height" ? "lineHeight"
-            : openDialog === "spacing" ? "spacing"
-            : null
-        }
-        onClose={() => setOpenDialog(null)}
-        onConfirm={(prop, val, scope) => props.applyInlineStyle(prop, val, scope)}
+        mode={fontMode}
+        onClose={() => setDialog(null)}
+        onConfirm={(open, close) => props.wrap(open, close, "文字")}
       />
-    </>
+    </div>
   );
 }
 ```
 
-- [ ] **Step 2: Type-check**
+- [ ] **Step 2: Type-check + Lint**
 
-Run: `npm run type-check`
+```bash
+npm run type-check && npm run lint
+```
+
 Expected: only pre-existing error.
 
 - [ ] **Step 3: Commit**
 
 ```bash
-git add components/admin/RichTextEditor/Toolbar.tsx
-git commit -m "feat(admin): build editor toolbar
+git add components/admin/MarkdownEditor/Toolbar.tsx
+git commit -m "feat(admin): build markdown toolbar
 
 Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ```
 
 ---
 
-### Task 5: Wire RichTextEditor index.tsx to use hooks + toolbar
+### Task 5: Wire MarkdownEditor index.tsx + add Preview pane
 
 **Files:**
-- Modify: `components/admin/RichTextEditor/index.tsx`
+- Modify: `components/admin/MarkdownEditor/index.tsx`
+- Create: `components/admin/MarkdownEditor/Preview.tsx`
 
-- [ ] **Step 1: Replace skeleton with full implementation**
+- [ ] **Step 1: Default Preview component**
+
+The default preview uses the same renderer the existing pages use. Look at `app/admin/article/page.tsx`'s `renderPreview` function (around line 266). It builds an HTML string from the markdown. **Locate the existing `renderPreview` body and copy it into the Preview component.** It probably uses `marked` or a custom regex pipeline; either way, mirror it.
 
 ```tsx
-// components/admin/RichTextEditor/index.tsx
+// components/admin/MarkdownEditor/Preview.tsx
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useMemo } from "react";
+
+export interface PreviewProps {
+  markdown: string;
+  /** Optional renderer override; if not provided, uses the built-in. */
+  render?: (md: string) => { __html: string };
+  className?: string;
+}
+
+/**
+ * Default markdown→HTML renderer. Mirrors the renderPreview() in
+ * app/admin/article/page.tsx so existing articles look the same in preview.
+ *
+ * NOTE: Re-export the same logic; do NOT introduce a new markdown library.
+ * If the existing implementation uses `marked`, import it here too.
+ */
+function defaultRender(md: string): { __html: string } {
+  // Copy verbatim from app/admin/article/page.tsx renderPreview body.
+  // (See "Step 1 — find the source" above.)
+  return { __html: md }; // placeholder; replace with real impl in this step
+}
+
+export function Preview({ markdown, render, className }: PreviewProps) {
+  const html = useMemo(() => (render ?? defaultRender)(markdown), [markdown, render]);
+  return (
+    <div
+      className={`prose-custom prose prose-invert max-w-none px-4 py-3 ${className ?? ""}`}
+      dangerouslySetInnerHTML={html}
+    />
+  );
+}
+```
+
+**Important:** Before commit, replace the placeholder `defaultRender` with the actual logic from `app/admin/article/page.tsx`. Search for `const renderPreview = ` in that file. Copy its body. If the function depends on local state (image-size handling, etc.), those parts that don't apply to a generic preview can be omitted.
+
+- [ ] **Step 2: Wire main MarkdownEditor**
+
+Replace the skeleton `index.tsx` with:
+
+```tsx
+// components/admin/MarkdownEditor/index.tsx
+"use client";
+
+import { useRef, useState } from "react";
 import { Toolbar } from "./Toolbar";
-import { useEditorCommands } from "./hooks/useEditorCommands";
+import { Preview } from "./Preview";
+import { useMarkdownInsert } from "./hooks/useMarkdownInsert";
 import { useFullscreen } from "./hooks/useFullscreen";
 import { useImageUpload } from "./hooks/useImageUpload";
+import { ImageDialog } from "./dialogs/ImageDialog";
 
-export interface RichTextEditorProps {
+export interface MarkdownEditorProps {
   value: string;
-  onChange: (html: string) => void;
+  onChange: (markdown: string) => void;
   placeholder?: string;
   toolbar?: {
     text?: boolean;
@@ -676,151 +1232,194 @@ export interface RichTextEditorProps {
     typography?: boolean;
   };
   fullscreen?: boolean;
+  preview?: boolean;
+  renderPreview?: (md: string) => { __html: string };
   className?: string;
   uploadEndpoint?: string;
-  draftKey?: string; // honored in Task 19
   uploadMeta?: { type?: string; category?: string; articleTitle?: string };
+  draftKey?: string;
 }
 
-export function RichTextEditor({
+export function MarkdownEditor({
   value,
   onChange,
-  placeholder = "在此输入内容…",
+  placeholder = "在此输入 Markdown 内容...",
   toolbar,
   fullscreen = true,
+  preview = true,
+  renderPreview,
   className,
   uploadEndpoint,
   uploadMeta,
-}: RichTextEditorProps) {
+}: MarkdownEditorProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
-  const editorRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const { exec, applyInlineStyle, insertHtml, insertCodeBlock, insertTable } =
-    useEditorCommands(editorRef, onChange);
+  const [showPreview, setShowPreview] = useState(false);
+  const [pendingImageUrl, setPendingImageUrl] = useState<string | null>(null);
+
+  const { wrap, insert, insertTable, insertCodeBlock, insertHeading } =
+    useMarkdownInsert(textareaRef, value, onChange);
   const { isFullscreen, toggle } = useFullscreen(wrapRef);
   const { upload } = useImageUpload(uploadEndpoint);
-
-  useEffect(() => {
-    if (editorRef.current && editorRef.current.innerHTML !== value) {
-      editorRef.current.innerHTML = value;
-    }
-  }, [value]);
 
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
     const result = await upload(file, uploadMeta);
-    if (result?.url) {
-      insertHtml(`<p><img src="${result.url}" alt="" /></p>`);
-    }
+    if (result?.url) setPendingImageUrl(result.url);
   };
 
   return (
-    <div ref={wrapRef} className={`flex flex-col gap-2 ${isFullscreen ? "bg-[var(--background)] p-4" : ""} ${className ?? ""}`}>
+    <div ref={wrapRef} className={`flex flex-col gap-2 ${isFullscreen ? "h-screen bg-[var(--background)] p-4" : ""} ${className ?? ""}`}>
       <Toolbar
-        exec={exec}
-        applyInlineStyle={applyInlineStyle}
-        insertHtml={insertHtml}
-        insertCodeBlock={insertCodeBlock}
+        wrap={wrap}
+        insert={insert}
         insertTable={insertTable}
-        onUploadImage={() => fileRef.current?.click()}
+        insertCodeBlock={insertCodeBlock}
+        insertHeading={insertHeading}
+        onPickImage={() => fileRef.current?.click()}
         isFullscreen={isFullscreen}
-        toggleFullscreen={fullscreen ? toggle : () => {}}
+        onToggleFullscreen={fullscreen ? toggle : () => {}}
+        onTogglePreview={preview ? () => setShowPreview((v) => !v) : undefined}
+        previewActive={showPreview}
         toolbar={toolbar}
       />
-      <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
-      <div
-        ref={editorRef}
-        contentEditable
-        suppressContentEditableWarning
-        data-placeholder={placeholder}
-        onInput={(e) => onChange((e.target as HTMLDivElement).innerHTML)}
-        className={`min-h-[400px] p-4 rounded-lg border border-[var(--card-border)] bg-[var(--card)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50 prose prose-invert max-w-none ${isFullscreen ? "flex-1 overflow-auto min-h-0" : ""}`}
+
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleFile}
+      />
+
+      {showPreview ? (
+        <Preview
+          markdown={value}
+          render={renderPreview}
+          className={`flex-1 min-h-[400px] border border-[var(--card-border)] rounded-lg ${isFullscreen ? "overflow-auto" : ""}`}
+        />
+      ) : (
+        <textarea
+          ref={textareaRef}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          className={`w-full px-4 py-3 rounded-lg border border-[var(--card-border)] bg-[var(--card)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50 resize-none text-sm leading-relaxed font-mono ${isFullscreen ? "flex-1 min-h-0" : "min-h-[400px]"}`}
+        />
+      )}
+
+      <ImageDialog
+        open={pendingImageUrl !== null}
+        primaryUrl={pendingImageUrl ?? ""}
+        onClose={() => setPendingImageUrl(null)}
+        onConfirm={(md) => insert(md)}
       />
     </div>
   );
 }
 ```
 
-- [ ] **Step 2: Type-check**
-
-Run: `npm run type-check`
-Expected: only pre-existing error.
-
-- [ ] **Step 3: Commit**
+- [ ] **Step 3: Type-check + Lint**
 
 ```bash
-git add components/admin/RichTextEditor/index.tsx
-git commit -m "feat(admin): wire RichTextEditor with toolbar and hooks
+npm run type-check && npm run lint
+```
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add components/admin/MarkdownEditor/index.tsx components/admin/MarkdownEditor/Preview.tsx
+git commit -m "feat(admin): wire MarkdownEditor with toolbar, preview, and dialogs
 
 Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ```
 
 ---
 
-### Task 6: Adopt RichTextEditor in legacy `/admin/article` and `/admin/project`
+### Task 6: Adopt MarkdownEditor in legacy `/admin/article` and `/admin/project`
 
 **Files:**
 - Modify: `app/admin/article/page.tsx`
 - Modify: `app/admin/project/page.tsx`
 
-**Goal:** drop in the new component, delete duplicated toolbar/dialog code, keep behavior. Don't rename routes yet.
+Drop in `<MarkdownEditor>` for the textarea+toolbar+dialogs region. Don't rename routes yet — that's Task 10.
 
-- [ ] **Step 1: In `app/admin/article/page.tsx`, replace the existing inline toolbar+contentEditable+dialogs block with `<RichTextEditor>`**
+- [ ] **Step 1: In `app/admin/article/page.tsx`, find the editor block (around lines 486-526)**
 
-Find the JSX region containing `<div ref={editorRef} contentEditable …>` and the surrounding toolbar buttons + dialog markup. Replace it with:
+Replace the `<div ref={editorRef}>...</div>` block (toolbar + dialogs + `<textarea id="article-content">` + preview pane) with:
 
 ```tsx
-<RichTextEditor
+<MarkdownEditor
   value={articleContent}
   onChange={setArticleContent}
   uploadMeta={{ type: "blog", category: articleCategory || "未分类", articleTitle: articleTitle || "草稿" }}
+  renderPreview={renderPreview}
 />
 ```
 
-Add the import at top:
+Add the import:
 
 ```tsx
-import { RichTextEditor } from "../../../components/admin/RichTextEditor";
+import { MarkdownEditor } from "../../../components/admin/MarkdownEditor";
 ```
 
-Then remove now-unused imports/icons/state variables (`showCodeBlockLang`, `showTableDialog`, `showHeadingDialog`, `showFontFamilyDialog`, etc., `isFullscreen`, `toggleFullscreen`, all the dialog JSX).
+Then remove the now-dead state and helpers from this file:
+- `showCodeBlockLang`, `showTableDialog`, `showHeadingDialog`, `showFontFamilyDialog`, `showFontSizeDialog`, `showFontColorDialog`, `showLineHeightDialog`, `showParagraphSpacingDialog`, `showImageDialog`
+- `selectedFontColor`, `customFontSize`, `customLineHeight`, `customParagraphSpacing`, `globalStyleMode`, `customImageWidth`
+- `pendingImageUrl`, `pendingImageAlt`, `imageSize`, `imageLayout`, `doubleImageQueue`
+- `tableRows`, `tableCols`
+- `editorRef`, `isFullscreen`, `toggleFullscreen`
+- `insertMarkdown` (replaced by editor's internal hook)
+- `insertCodeBlock`, `insertTable`, `insertImageWithSettings`, `cancelImageInsert`, `getImageSizeStyle`
+- `insertFontStyle`, `setFontFamily`, `setFontColor`, `setGlobalStyle`, `applyStyle`
+- `mdToolbar` array
+- `uploadImage` handler — RichTextEditor manages this internally now
 
-- [ ] **Step 2: Repeat for `app/admin/project/page.tsx` with `setProjContent` instead of `setArticleContent`**
+Keep `renderPreview` (it's passed to the editor). Keep AI write modal and Feishu import logic.
+
+- [ ] **Step 2: Repeat for `app/admin/project/page.tsx`**
 
 ```tsx
-<RichTextEditor
+<MarkdownEditor
   value={projContent}
   onChange={setProjContent}
   uploadMeta={{ type: "project", articleTitle: projName || "项目" }}
+  renderPreview={renderPreview}
 />
 ```
 
+(`projContent` is the existing state name; `renderPreview` if defined locally — otherwise omit and let the editor use its default.)
+
 - [ ] **Step 3: Type-check + Lint**
 
-Run: `npm run type-check && npm run lint`
-Expected: pre-existing error only; no new errors.
+```bash
+npm run type-check && npm run lint
+```
+
+Pre-existing error only. Should also see significant line-count reduction in both pages.
 
 - [ ] **Step 4: Smoke test**
 
 ```bash
-# Stop existing dev server, restart
 lsof -ti:3000 | xargs kill -9 2>/dev/null; sleep 1
-rm -f /tmp/blog-dev.log; npm run dev > /tmp/blog-dev.log 2>&1 &
+rm -rf .next; rm -f /tmp/blog-dev.log
+npm run dev > /tmp/blog-dev.log 2>&1 &
 until grep -qE "Ready in|Error" /tmp/blog-dev.log; do sleep 0.5; done
-curl -s -o /dev/null -w "article: %{http_code}\n" -L http://localhost:3000/admin/article
-curl -s -o /dev/null -w "project: %{http_code}\n" -L http://localhost:3000/admin/project
+curl -s -o /dev/null -w "/admin/article: %{http_code}\n" -L http://localhost:3000/admin/article
+curl -s -o /dev/null -w "/admin/project: %{http_code}\n" -L http://localhost:3000/admin/project
 ```
 
-Manual: log in, visit `/admin/article`, edit one existing post, verify all toolbar buttons still work (bold/heading/table/image/code-block/font/fullscreen). Repeat on `/admin/project`.
+Manual: log in, visit `/admin/article`, edit one existing post, verify all toolbar buttons still produce the expected markdown (bold/italic/heading/list/quote/table/image/code-block/link/font dialogs/fullscreen/preview). Repeat on `/admin/project`.
 
 - [ ] **Step 5: Commit**
 
 ```bash
 git add app/admin/article/page.tsx app/admin/project/page.tsx
-git commit -m "refactor(admin): adopt shared RichTextEditor in article and project
+git commit -m "refactor(admin): adopt shared MarkdownEditor in article and project
 
 Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ```
@@ -1597,7 +2196,7 @@ The current `app/admin/articles/page.tsx` has `view: "list" | "editor"` toggle �
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SplitWorkspace } from "../../../components/admin/SplitWorkspace";
-import { RichTextEditor } from "../../../components/admin/RichTextEditor";
+import { MarkdownEditor } from "../../../components/admin/MarkdownEditor";
 import { AiWriteModal } from "../../../components/admin/ai-write-modal";
 // ... existing icons
 
@@ -1687,14 +2286,14 @@ export default function ArticlesPage() {
   );
 }
 
-// ArticleEditor: keep all the form fields + RichTextEditor, save/delete logic
+// ArticleEditor: keep all the form fields + MarkdownEditor, save/delete logic
 // Pull existing handler bodies verbatim. Pseudo-skeleton:
 function ArticleEditor({
   slug, isNew, onSaved, onDeleted,
 }: { slug: string | null; isNew: boolean; onSaved: (slug: string) => void; onDeleted: (slug: string) => void }) {
   // ... copy existing state + effects + handlers + JSX from old article page ...
   // The form JSX should NOT include any tab/header from the old `view === "editor"` shell —
-  // just title input, summary, category, tags, draft checkbox, RichTextEditor, action buttons.
+  // just title input, summary, category, tags, draft checkbox, MarkdownEditor, action buttons.
   return null; // placeholder — fill in with actual implementation
 }
 ```
@@ -1755,7 +2354,7 @@ Skeleton:
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SplitWorkspace } from "../../../components/admin/SplitWorkspace";
-import { RichTextEditor } from "../../../components/admin/RichTextEditor";
+import { MarkdownEditor } from "../../../components/admin/MarkdownEditor";
 
 type Project = {
   id: string;          // = slug
@@ -1830,7 +2429,7 @@ function ProjectEditor({ slug, isNew, onSaved, onDeleted }: {
   slug: string | null; isNew: boolean; onSaved: (s: string) => void; onDeleted: (s: string) => void;
 }) {
   // Copy state + handlers verbatim from the existing project page.
-  // JSX = form fields + <RichTextEditor value={projContent} onChange={setProjContent} ... />
+  // JSX = form fields + <MarkdownEditor value={projContent} onChange={setProjContent} ... />
   return null;
 }
 ```
@@ -1935,7 +2534,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 
 ---
 
-### Task 17: Refactor `/admin/categories` to SplitWorkspace + RichTextEditor for description_long
+### Task 17: Refactor `/admin/categories` to SplitWorkspace + MarkdownEditor for description_long
 
 **Files:**
 - Modify: `app/admin/categories/page.tsx`
@@ -1949,7 +2548,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SplitWorkspace } from "../../../components/admin/SplitWorkspace";
-import { RichTextEditor } from "../../../components/admin/RichTextEditor";
+import { MarkdownEditor } from "../../../components/admin/MarkdownEditor";
 import { Loader2, Trash2 } from "lucide-react";
 
 type Category = {
@@ -2143,7 +2742,7 @@ function CategoryEditor({
 
         <div>
           <label className="block text-sm text-[var(--muted)] mb-2">详细描述（用于专栏详情页）</label>
-          <RichTextEditor
+          <MarkdownEditor
             value={formLongDesc}
             onChange={setFormLongDesc}
             placeholder="描述这个专栏的内容定位、目标读者、阅读顺序等…"
@@ -2242,8 +2841,8 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ### Task 19: Implement `useDraftAutosave` and wire into article + project + category editors
 
 **Files:**
-- Create: `components/admin/RichTextEditor/hooks/useDraftAutosave.ts`
-- Modify: `components/admin/RichTextEditor/index.tsx`
+- Create: `components/admin/MarkdownEditor/hooks/useDraftAutosave.ts`
+- Modify: `components/admin/MarkdownEditor/index.tsx`
 - Modify: `app/admin/articles/page.tsx` (pass draftKey, call clear on save)
 - Modify: `app/admin/projects/page.tsx` (same)
 - Modify: `app/admin/categories/page.tsx` (same)
@@ -2251,7 +2850,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 - [ ] **Step 1: Create the hook**
 
 ```ts
-// components/admin/RichTextEditor/hooks/useDraftAutosave.ts
+// components/admin/MarkdownEditor/hooks/useDraftAutosave.ts
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
@@ -2341,9 +2940,9 @@ export function useDraftAutosave(
 }
 ```
 
-- [ ] **Step 2: Wire into RichTextEditor**
+- [ ] **Step 2: Wire into MarkdownEditor**
 
-Modify `components/admin/RichTextEditor/index.tsx` to use the hook + render the banner. Add at the top of imports:
+Modify `components/admin/MarkdownEditor/index.tsx` to use the hook + render the banner. Add at the top of imports:
 
 ```tsx
 import { useDraftAutosave } from "./hooks/useDraftAutosave";
@@ -2384,7 +2983,7 @@ In `app/admin/articles/page.tsx`, in `<ArticleEditor>`:
 const draftKey = `draft:articles:${slug ?? "new"}`;
 ```
 
-2. Pass to RichTextEditor: `<RichTextEditor draftKey={draftKey} ... />`
+2. Pass to MarkdownEditor: `<MarkdownEditor draftKey={draftKey} ... />`
 
 3. Inside the save handler, after a successful save, clear the local draft. Easiest is to expose a ref to the hook clear method — but a simpler self-contained pattern is to call `localStorage.removeItem(draftKey)` directly after success:
 
@@ -2399,7 +2998,7 @@ if (data.success) {
 
 ```tsx
 const draftKey = `draft:projects:${slug ?? "new"}`;
-// pass draftKey to <RichTextEditor>
+// pass draftKey to <MarkdownEditor>
 // after successful save: localStorage.removeItem(draftKey)
 ```
 
@@ -2407,7 +3006,7 @@ const draftKey = `draft:projects:${slug ?? "new"}`;
 
 ```tsx
 const draftKey = `draft:categories:${name ?? "new"}`;
-// pass draftKey to <RichTextEditor>
+// pass draftKey to <MarkdownEditor>
 // after successful save: localStorage.removeItem(draftKey)
 ```
 
@@ -2433,7 +3032,7 @@ npm run type-check && npm run lint
 - [ ] **Step 8: Commit**
 
 ```bash
-git add components/admin/RichTextEditor/hooks/useDraftAutosave.ts components/admin/RichTextEditor/index.tsx app/admin/articles/page.tsx app/admin/projects/page.tsx app/admin/categories/page.tsx
+git add components/admin/MarkdownEditor/hooks/useDraftAutosave.ts components/admin/MarkdownEditor/index.tsx app/admin/articles/page.tsx app/admin/projects/page.tsx app/admin/categories/page.tsx
 git commit -m "feat(admin): localStorage draft autosave with restore banner
 
 Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
@@ -2467,7 +3066,7 @@ npx next lint --fix
 grep -nE "showFontFamilyDialog|showFontSizeDialog|showFontColorDialog|showLineHeightDialog|showParagraphSpacingDialog|toggleFullscreen|customFontSize" app/admin/articles/page.tsx app/admin/projects/page.tsx
 ```
 
-If any matches: those are stale state vars from the pre-extraction era. Delete them along with their `useState` declarations. The dialogs/fullscreen all live inside `<RichTextEditor>` now.
+If any matches: those are stale state vars from the pre-extraction era. Delete them along with their `useState` declarations. The dialogs/fullscreen all live inside `<MarkdownEditor>` now.
 
 - [ ] **Step 3: Re-run type-check + lint**
 
@@ -2552,7 +3151,7 @@ Manual checklist (every box must check):
 - [ ] "+ 新建" dropdown works (新文章/新项目/新专栏)
 - [ ] `/admin/articles`: list visible · search filters · 草稿/已发布 filter · click row loads editor · save updates list · delete removes row · 写文章 button opens new editor · save creates new entry
 - [ ] `/admin/projects`: same flow
-- [ ] `/admin/categories`: same flow + RichTextEditor for description_long renders & saves
+- [ ] `/admin/categories`: same flow + MarkdownEditor for description_long renders & saves
 - [ ] `/categories/<name>` public page renders description_long banner if set
 - [ ] `/admin/about`, `/admin/theme`, `/admin/stats` load and (where applicable) save
 - [ ] Draft autosave banner appears after closing/reopening editor with unsaved content; "恢复" restores; "丢弃" clears localStorage
@@ -2580,7 +3179,7 @@ Don't push automatically. Tell the user the branch is ready and offer to push or
 
 **Spec coverage:**
 - §1 Admin Shell → Tasks 7–9
-- §2 RichTextEditor (props, hooks, draft) → Tasks 1–5, 19
+- §2 MarkdownEditor (props, hooks, draft) → Tasks 1–5, 19
 - §3 SplitWorkspace → Task 14 (created), 15/17 (reused)
 - §4 articles fields → Task 14
 - §4 categories fields incl. description_long → Tasks 16–18
@@ -2591,7 +3190,7 @@ Don't push automatically. Tell the user the branch is ready and offer to push or
 - §8 Verification checklist → Task 22
 
 **Type/name consistency check:**
-- `RichTextEditorProps` shape matches between Task 1 (skeleton) and Task 5 (final wiring): added `uploadMeta` prop in Task 5; that's the only addition and it's optional, so callers in Task 6 still compile.
+- `MarkdownEditorProps` shape matches between Task 1 (skeleton) and Task 5 (final wiring): added `uploadMeta` prop in Task 5; that's the only addition and it's optional, so callers in Task 6 still compile.
 - `SplitWorkspace<T extends { id: string }>` is consistent across Tasks 14, 15, 17. All three callers map their domain id (`slug`/`name`) into `id` field at fetch time.
 - Draft key naming: spec says `draft:articles:<slug|new>` / `draft:projects:<slug|new>`; plan adds `draft:categories:<name|new>` (consistent extension). Documented in spec §2 and used uniformly in Task 19.
 - API contract for `description_long`: declared optional in `lib/categories.ts` (Task 16), conditionally rendered in public page (Task 18) — old yaml files without the field continue to work.
