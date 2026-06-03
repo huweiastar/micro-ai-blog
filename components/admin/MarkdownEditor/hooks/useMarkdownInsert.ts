@@ -55,9 +55,10 @@ export function useMarkdownInsert(
   /** Insert a fenced code block of the given language. */
   const insertCodeBlock = useCallback(
     (lang: string) => {
-      insert("\n```" + lang + "\n\n```\n");
+      // Caret lands between the fences so the user can type immediately.
+      wrap("\n```" + lang + "\n", "\n```\n", "");
     },
-    [insert],
+    [wrap],
   );
 
   /** Insert a heading prefix on the current line (e.g. "## "). */
