@@ -17,6 +17,37 @@ import { FontDialog } from "./dialogs/FontDialog";
 
 type DialogKind = null | "heading" | "table" | "code" | "link" | "font-family" | "font-size" | "font-color" | "line-height" | "spacing";
 
+const ICON_CLS = "w-3.5 h-3.5";
+
+function Btn({
+  onClick,
+  title,
+  children,
+  ariaPressed,
+}: {
+  onClick: () => void;
+  title: string;
+  children: React.ReactNode;
+  ariaPressed?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={title}
+      aria-label={title}
+      aria-pressed={ariaPressed}
+      className="p-1.5 rounded text-[var(--muted)] hover:bg-[var(--primary)]/10 hover:text-[var(--primary)] transition-colors"
+    >
+      {children}
+    </button>
+  );
+}
+
+function Sep() {
+  return <span className="w-px h-5 bg-[var(--card-border)] mx-1" />;
+}
+
 export interface ToolbarProps {
   /** Wrap selection in (before, after) with optional placeholder when empty. */
   wrap: (before: string, after: string, placeholder?: string) => void;
@@ -51,6 +82,8 @@ export function Toolbar(props: ToolbarProps) {
     typography: props.toolbar?.typography ?? true,
   };
   const [dialog, setDialog] = useState<DialogKind>(null);
+  const toggle = (k: Exclude<DialogKind, null>) =>
+    setDialog((d) => (d === k ? null : k));
   const fontMode = dialog === "font-family" ? "family"
     : dialog === "font-size" ? "size"
     : dialog === "font-color" ? "color"
@@ -58,21 +91,9 @@ export function Toolbar(props: ToolbarProps) {
     : dialog === "spacing" ? "spacing"
     : null;
 
-  const Btn = ({ onClick, title, children }: { onClick: () => void; title: string; children: React.ReactNode }) => (
-    <button
-      type="button"
-      onClick={onClick}
-      title={title}
-      className="p-1.5 rounded text-[var(--muted)] hover:bg-[var(--primary)]/10 hover:text-[var(--primary)] transition-colors"
-    >
-      {children}
-    </button>
-  );
-  const Sep = () => <span className="w-px h-5 bg-[var(--card-border)] mx-1" />;
-
   return (
     <div className="relative">
-      <div className="flex items-center gap-0.5 flex-wrap p-1.5 rounded-lg border border-[var(--card-border)] bg-[var(--card)]/80 backdrop-blur sticky top-0 z-10">
+      <div role="toolbar" aria-label="编辑器工具栏" className="flex items-center gap-0.5 flex-wrap p-1.5 rounded-lg border border-[var(--card-border)] bg-[var(--card)]/80 backdrop-blur sticky top-0 z-10">
         {t.text && (<>
           <Btn onClick={() => props.wrap("**", "**", "粗体文字")} title="加粗"><Bold className="w-3.5 h-3.5" /></Btn>
           <Btn onClick={() => props.wrap("*", "*", "斜体文字")} title="斜体"><Italic className="w-3.5 h-3.5" /></Btn>
@@ -86,32 +107,32 @@ export function Toolbar(props: ToolbarProps) {
         </>)}
 
         {t.block && (<>
-          <Btn onClick={() => setDialog(dialog === "heading" ? null : "heading")} title="标题"><Heading className="w-3.5 h-3.5" /></Btn>
+          <Btn onClick={() => toggle("heading")} title="标题"><Heading className="w-3.5 h-3.5" /></Btn>
           <Btn onClick={() => props.insert("\n- ")} title="无序列表"><List className="w-3.5 h-3.5" /></Btn>
           <Btn onClick={() => props.insert("\n1. ")} title="有序列表"><ListOrdered className="w-3.5 h-3.5" /></Btn>
           <Btn onClick={() => props.insert("\n> ")} title="引用"><Quote className="w-3.5 h-3.5" /></Btn>
           <Btn onClick={() => props.insert("\n---\n")} title="分隔线"><Minus className="w-3.5 h-3.5" /></Btn>
-          <Btn onClick={() => setDialog(dialog === "table" ? null : "table")} title="表格"><Table2 className="w-3.5 h-3.5" /></Btn>
+          <Btn onClick={() => toggle("table")} title="表格"><Table2 className="w-3.5 h-3.5" /></Btn>
           <Sep />
         </>)}
 
         {t.media && (<>
-          <Btn onClick={() => setDialog(dialog === "link" ? null : "link")} title="链接"><Link2 className="w-3.5 h-3.5" /></Btn>
+          <Btn onClick={() => toggle("link")} title="链接"><Link2 className="w-3.5 h-3.5" /></Btn>
           <Btn onClick={props.onPickImage} title="图片"><ImageIcon className="w-3.5 h-3.5" /></Btn>
-          <Btn onClick={() => setDialog(dialog === "code" ? null : "code")} title="代码块"><Code2 className="w-3.5 h-3.5" /></Btn>
+          <Btn onClick={() => toggle("code")} title="代码块"><Code2 className="w-3.5 h-3.5" /></Btn>
           <Sep />
         </>)}
 
         {t.typography && (<>
-          <Btn onClick={() => setDialog(dialog === "font-family" ? null : "font-family")} title="字体"><Type className="w-3.5 h-3.5" /></Btn>
-          <Btn onClick={() => setDialog(dialog === "font-size" ? null : "font-size")} title="字号"><TextCursorInput className="w-3.5 h-3.5" /></Btn>
-          <Btn onClick={() => setDialog(dialog === "font-color" ? null : "font-color")} title="字色"><Palette className="w-3.5 h-3.5" /></Btn>
-          <Btn onClick={() => setDialog(dialog === "line-height" ? null : "line-height")} title="行高"><AlignVerticalJustifyCenter className="w-3.5 h-3.5" /></Btn>
-          <Btn onClick={() => setDialog(dialog === "spacing" ? null : "spacing")} title="段距"><Columns2 className="w-3.5 h-3.5" /></Btn>
+          <Btn onClick={() => toggle("font-family")} title="字体"><Type className="w-3.5 h-3.5" /></Btn>
+          <Btn onClick={() => toggle("font-size")} title="字号"><TextCursorInput className="w-3.5 h-3.5" /></Btn>
+          <Btn onClick={() => toggle("font-color")} title="字色"><Palette className="w-3.5 h-3.5" /></Btn>
+          <Btn onClick={() => toggle("line-height")} title="行高"><AlignVerticalJustifyCenter className="w-3.5 h-3.5" /></Btn>
+          <Btn onClick={() => toggle("spacing")} title="段距"><Columns2 className="w-3.5 h-3.5" /></Btn>
           <Sep />
         </>)}
 
-        <Btn onClick={props.onToggleFullscreen} title={props.isFullscreen ? "退出全屏" : "全屏"}>
+        <Btn onClick={props.onToggleFullscreen} title={props.isFullscreen ? "退出全屏" : "全屏"} ariaPressed={props.isFullscreen}>
           {props.isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
         </Btn>
 
@@ -119,6 +140,7 @@ export function Toolbar(props: ToolbarProps) {
           <button
             type="button"
             onClick={props.onTogglePreview}
+            aria-pressed={!!props.previewActive}
             className={`ml-auto inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded transition-colors ${props.previewActive ? "bg-[var(--primary)]/10 text-[var(--primary)]" : "text-[var(--muted)] hover:text-[var(--primary)]"}`}
           >
             {props.previewActive ? "返回编辑" : "预览"}
