@@ -14,7 +14,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       </div>
       {/* Mobile slide-in sidebar */}
       <div
-        className={`md:hidden fixed inset-y-0 left-0 z-40 transform transition-transform ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}
+        aria-hidden={!mobileOpen}
+        className={`md:hidden fixed inset-y-0 left-0 z-40 transform transition-transform duration-200 ease-out ${mobileOpen ? "translate-x-0" : "-translate-x-full pointer-events-none"}`}
       >
         <Sidebar onNavigate={() => setMobileOpen(false)} />
       </div>
