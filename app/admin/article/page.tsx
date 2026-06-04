@@ -1,18 +1,14 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
-  Loader2, Check, X, Plus, Pencil, Trash2, Eye, ArrowLeft,
-  Import, Sparkles, Clock, Eraser, PenTool, Search,
+  Loader2, X, Plus, Pencil, Trash2, Eye, ArrowLeft,
+  Import, Sparkles, Eraser, Search,
   ChevronDown, ChevronUp, Tag, FolderOpen, FileText,
-  Bold, Italic, Underline, Strikethrough, Superscript, Subscript,
-  Highlighter, Code2, Heading, Image as ImageIcon, List, ListOrdered,
-  Quote, Table2, Minus, Type, Palette, AlignVerticalJustifyCenter, Columns2,
-  Minus as MinusIcon, TextCursorInput, Link2, Code, Footprints,
-  Maximize2, Minimize2,
 } from "lucide-react";
 import { AiWriteModal } from "../../../components/admin/ai-write-modal";
+import { MarkdownEditor } from "../../../components/admin/MarkdownEditor";
 
 type Article = {
   slug: string;
@@ -47,11 +43,7 @@ export default function ArticleManagementPage() {
   const [articleContent, setArticleContent] = useState("");
   const [saving, setSaving] = useState(false);
   const [saveResult, setSaveResult] = useState<{ success: boolean; message: string } | null>(null);
-  const [showPreview, setShowPreview] = useState(false);
-  const [uploadedImageUrl, setUploadedImageUrl] = useState("");
-  const [isFullscreen, setIsFullscreen] = useState(false);
   const [metaExpanded, setMetaExpanded] = useState(false);
-  const editorRef = useRef<HTMLDivElement>(null);
 
   // Feishu import
   const [showFeishuImport, setShowFeishuImport] = useState(false);
@@ -60,44 +52,12 @@ export default function ArticleManagementPage() {
   const [feishuError, setFeishuError] = useState("");
   const [showAiWrite, setShowAiWrite] = useState(false);
 
-  // Table/dialog states
-  const [showCodeBlockLang, setShowCodeBlockLang] = useState(false);
-  const [showTableDialog, setShowTableDialog] = useState(false);
-  const [showHeadingDialog, setShowHeadingDialog] = useState(false);
-  const [showFontFamilyDialog, setShowFontFamilyDialog] = useState(false);
-  const [showFontSizeDialog, setShowFontSizeDialog] = useState(false);
-  const [showFontColorDialog, setShowFontColorDialog] = useState(false);
-  const [showLineHeightDialog, setShowLineHeightDialog] = useState(false);
-  const [showParagraphSpacingDialog, setShowParagraphSpacingDialog] = useState(false);
-  const [selectedFontColor, setSelectedFontColor] = useState("#6366f1");
-  const [customFontSize, setCustomFontSize] = useState(16);
-  const [customLineHeight, setCustomLineHeight] = useState(1.8);
-  const [customParagraphSpacing, setCustomParagraphSpacing] = useState(8);
-  const [globalStyleMode, setGlobalStyleMode] = useState<"selection" | "global">("selection");
-  const [customImageWidth, setCustomImageWidth] = useState(400);
-  const [showImageDialog, setShowImageDialog] = useState(false);
-  const [pendingImageUrl, setPendingImageUrl] = useState("");
-  const [pendingImageAlt, setPendingImageAlt] = useState("");
-  const [imageSize, setImageSize] = useState("full");
-  const [imageLayout, setImageLayout] = useState<"single" | "double">("single");
-  const [doubleImageQueue, setDoubleImageQueue] = useState<string[]>([]);
-  const [tableRows, setTableRows] = useState(3);
-  const [tableCols, setTableCols] = useState(3);
-
   // --- Load articles & categories ---
   useEffect(() => {
     fetch("/api/posts").then((res) => res.json()).then((data) => { setArticles(Array.isArray(data) ? data : []); setLoading(false); }).catch(() => setLoading(false));
     fetch("/api/categories").then((res) => res.json()).then((data) => { setCategories(data); if (data.length > 0 && !articleCategory) setArticleCategory(data[0].name); }).catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  // --- Toggle fullscreen ---
-  const toggleFullscreen = async () => {
-    if (!editorRef.current) return;
-    if (document.fullscreenElement) { document.exitFullscreen(); setIsFullscreen(false); }
-    else { try { await editorRef.current.requestFullscreen(); setIsFullscreen(true); } catch {} }
-  };
-  useEffect(() => { const fn = () => setIsFullscreen(!!document.fullscreenElement); document.addEventListener("fullscreenchange", fn); return () => document.removeEventListener("fullscreenchange", fn); }, []);
 
   // --- Draft auto-save ---
   useEffect(() => {
@@ -118,7 +78,7 @@ export default function ArticleManagementPage() {
   const startNew = () => {
     setEditingSlug(null);
     setArticleTitle(""); setArticleSummary(""); setArticleCategory(categories[0]?.name || "");
-    setArticleTags(""); setArticleContent(""); setShowPreview(false); setView("editor");
+    setArticleTags(""); setArticleContent(""); setView("editor");
   };
 
   // --- Edit article ---
@@ -185,14 +145,6 @@ export default function ArticleManagementPage() {
   // --- Cancel edit ---
   const cancelEdit = () => { setView("list"); setEditingSlug(null); };
 
-  // --- Word count ---
-  const getWordCount = () => {
-    const text = articleContent.replace(/[#*`~\-\[\]!()]/g, "").trim();
-    const cn = (text.match(/[一-鿿]/g) || []).length;
-    const en = (text.replace(/[一-鿿]/g, "").match(/\b\w+\b/g) || []).length;
-    return { cn, en, total: cn + en };
-  };
-
   // --- Feishu import ---
   const importFromFeishu = async () => {
     if (!feishuUrl.trim()) { setFeishuError("请输入飞书文档链接"); return; }
@@ -215,52 +167,6 @@ export default function ArticleManagementPage() {
     if (result.category) { const m = categories.find((c) => c.name === result.category); if (m) setArticleCategory(m.name); }
     localStorage.setItem("blog-draft", JSON.stringify({ title: result.title || articleTitle, summary: result.summary || articleSummary, tags: result.tags || articleTags, category: articleCategory, content: result.content || articleContent }));
   };
-
-  // --- Markdown helpers ---
-  const insertMarkdown = (before: string, after: string = "") => {
-    const textarea = document.querySelector("#article-content") as HTMLTextAreaElement;
-    if (!textarea) return;
-    const start = textarea.selectionStart; const end = textarea.selectionEnd; const selected = articleContent.substring(start, end);
-    const textBefore = articleContent.substring(Math.max(0, start - before.length), start); const textAfter = articleContent.substring(end, Math.min(articleContent.length, end + after.length));
-    if (textBefore === before && textAfter === after) { const newText = articleContent.substring(0, start - before.length) + selected + articleContent.substring(end + after.length); setArticleContent(newText); setTimeout(() => { textarea.focus(); textarea.setSelectionRange(start - before.length, start - before.length + selected.length); }, 0); return; }
-    const newText = articleContent.substring(0, start) + before + selected + after + articleContent.substring(end);
-    setArticleContent(newText); setTimeout(() => { textarea.focus(); textarea.setSelectionRange(start + before.length, start + before.length + selected.length); }, 0);
-  };
-  const insertList = (prefix: string) => {
-    const textarea = document.querySelector("#article-content") as HTMLTextAreaElement; if (!textarea) return;
-    const start = textarea.selectionStart; const end = textarea.selectionEnd;
-    const contentStart = articleContent.lastIndexOf("\n", start - 1) + 1; const contentEndRaw = articleContent.indexOf("\n", end); const contentEnd = contentEndRaw === -1 ? articleContent.length : contentEndRaw;
-    const lines = articleContent.substring(contentStart, contentEnd).split("\n");
-    const allPrefixed = lines.every((l) => !l.trim() || (prefix === "1. " ? /^\d+\. /.test(l) : l.startsWith(prefix)));
-    const processed = allPrefixed ? lines.map((l) => { if (!l.trim()) return l; if (prefix === "1. ") return l.replace(/^\d+\. /, ""); return l.startsWith(prefix) ? l.slice(prefix.length) : l; }).join("\n") : (() => { let c = 1; return lines.map((l) => { if (!l.trim()) return l; if (prefix === "1. ") { const clean = l.replace(/^\d+\. /, ""); return `${c++}. ${clean}`; } return `${prefix}${l}`; }).join("\n"); })();
-    setArticleContent(articleContent.substring(0, contentStart) + processed + articleContent.substring(contentEnd));
-    setTimeout(() => { textarea.focus(); textarea.setSelectionRange(contentStart, contentStart + processed.length); }, 0);
-  };
-  const insertQuote = () => {
-    const textarea = document.querySelector("#article-content") as HTMLTextAreaElement; if (!textarea) return;
-    const start = textarea.selectionStart; const end = textarea.selectionEnd;
-    const contentStart = articleContent.lastIndexOf("\n", start - 1) + 1; const contentEndRaw = articleContent.indexOf("\n", end); const contentEnd = contentEndRaw === -1 ? articleContent.length : contentEndRaw;
-    const lines = articleContent.substring(contentStart, contentEnd).split("\n");
-    const allQuoted = lines.every((l) => !l.trim() || l.startsWith("> "));
-    const processed = allQuoted ? lines.map((l) => !l.trim() ? l : l.startsWith("> ") ? l.slice(2) : l).join("\n") : lines.map((l) => !l.trim() ? l : `> ${l}`).join("\n");
-    setArticleContent(articleContent.substring(0, contentStart) + processed + articleContent.substring(contentEnd));
-    setTimeout(() => { textarea.focus(); textarea.setSelectionRange(contentStart, contentStart + processed.length); }, 0);
-  };
-  const insertCodeBlock = (lang: string) => { const textarea = document.querySelector("#article-content") as HTMLTextAreaElement; if (!textarea) return; const start = textarea.selectionStart; const selected = articleContent.substring(start, textarea.selectionEnd); setArticleContent(articleContent.substring(0, start) + "```" + lang + "\n" + (selected || "// code") + "\n```" + articleContent.substring(textarea.selectionEnd)); setShowCodeBlockLang(false); setTimeout(() => { textarea.focus(); textarea.setSelectionRange(start + lang.length + 4, start + lang.length + 4 + (selected || "// code").length); }, 0); };
-  const insertFootnote = () => { const textarea = document.querySelector("#article-content") as HTMLTextAreaElement; if (!textarea) return; const start = textarea.selectionStart; const footnotes = articleContent.match(/\[\^(\d+)\]/g) || []; const nums = footnotes.map((m) => parseInt(m.replace(/[\[\^:]/g, ""))); const nextNum = nums.length > 0 ? Math.max(...nums) + 1 : 1; const ref = `[^${nextNum}]`; const def = `[^${nextNum}]: 脚注内容`; const newText = articleContent.substring(0, start) + ref + articleContent.substring(start) + "\n\n" + def; setArticleContent(newText); setTimeout(() => { textarea.focus(); const defPos = newText.indexOf(def); if (defPos !== -1) textarea.setSelectionRange(defPos + ref.length + 2, defPos + ref.length + 6); }, 0); };
-  const insertTable = () => { let table = "\n"; table += `| ${Array.from({ length: tableCols }, () => "列名").join(" | ")} |\n`; table += `| ${Array.from({ length: tableCols }, () => "---").join(" | ")} |\n`; for (let r = 0; r < tableRows - 1; r++) table += `| ${Array.from({ length: tableCols }, () => "内容").join(" | ")} |\n`; insertMarkdown(table); setShowTableDialog(false); };
-  const insertFontStyle = (tag: string) => { const textarea = document.querySelector("#article-content") as HTMLTextAreaElement; if (!textarea) return; const start = textarea.selectionStart; const end = textarea.selectionEnd; const selected = articleContent.substring(start, end); if (!selected.trim()) return; setArticleContent(articleContent.substring(0, start) + tag + selected + "</span>" + articleContent.substring(end)); setTimeout(() => { textarea.focus(); textarea.setSelectionRange(start, start + tag.length + selected.length); }, 0); };
-  const setFontFamily = (f: string) => { insertFontStyle(`<span style="font-family: '${f}'">`); setShowFontFamilyDialog(false); };
-  const setFontSize = (s: number) => { insertFontStyle(`<span style="font-size: ${s}px">`); setShowFontSizeDialog(false); };
-  const setFontColor = (c: string) => { insertFontStyle(`<span style="color: ${c}">`); setSelectedFontColor(c); setShowFontColorDialog(false); };
-  const setLineHeight = (v: number) => { insertFontStyle(`<span style="line-height: ${v}">`); setShowLineHeightDialog(false); };
-  const setParagraphSpacing = (v: number) => { insertFontStyle(`<span style="margin-bottom: ${v}px">`); setShowParagraphSpacingDialog(false); };
-  const setGlobalStyle = (prop: string, val: string | number) => { const styleTag = `<style>\n.editor-preview * { ${prop}: ${val} !important; }\n</style>`; const ms = '<!--editor-global-style-->'; const me = '<!--/editor-global-style-->'; const existing = articleContent.match(new RegExp(`${ms.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[\\s\\S]*?${me.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`)); setArticleContent(existing ? articleContent.replace(existing[0], `${ms}\n${styleTag}\n${me}`) : `${ms}\n${styleTag}\n${me}\n\n${articleContent}`); };
-  const applyStyle = (fn: () => void, gf: () => void) => { globalStyleMode === "global" ? gf() : fn(); };
-  const uploadImage = async (e: React.ChangeEvent<HTMLInputElement>) => { const file = e.target.files?.[0]; if (!file) return; const fd = new FormData(); fd.append("file", file); fd.append("type", "blog"); fd.append("category", articleCategory || "未分类"); fd.append("articleTitle", articleTitle || "草稿"); const res = await fetch("/api/upload", { method: "POST", body: fd }); const data = await res.json(); if (data.success) { setUploadedImageUrl(data.url); setPendingImageUrl(data.url); setPendingImageAlt(""); setImageSize("full"); setImageLayout("single"); setShowImageDialog(true); } e.target.value = ""; };
-  const getImageSizeStyle = () => { switch (imageSize) { case "small": return `style="max-width: 33%; margin: 0 auto;"`; case "medium": return `style="max-width: 66%; margin: 0 auto;"`; case "custom": return `style="max-width: ${customImageWidth}px; margin: 0 auto;"`; default: return `class="max-w-full"`; } };
-  const insertImageWithSettings = () => { const sa = getImageSizeStyle(); const alt = pendingImageAlt || "图片"; const cap = pendingImageAlt || "在此输入图片描述..."; let content = ""; if (imageLayout === "double") { setDoubleImageQueue(prev => [...prev, pendingImageUrl]); if (doubleImageQueue.length === 0) { setPendingImageUrl(""); setPendingImageAlt(""); setShowImageDialog(false); return; } content = `\n<div class="flex gap-4">\n<figure class="image-block flex-1"><img src="${doubleImageQueue[0]}" alt="图片1" ${sa} /><figcaption class="image-caption">在此输入图片描述...</figcaption></figure>\n<figure class="image-block flex-1"><img src="${pendingImageUrl}" alt="${alt}" ${sa} /><figcaption class="image-caption">${cap}</figcaption></figure>\n</div>\n`; setDoubleImageQueue([]); } else { content = `\n<figure class="image-block">\n  <img src="${pendingImageUrl}" alt="${alt}" ${sa} />\n  <figcaption class="image-caption">${cap}</figcaption>\n</figure>\n`; } insertMarkdown(content); setShowImageDialog(false); setPendingImageUrl(""); setPendingImageAlt(""); };
-  const cancelImageInsert = () => { setShowImageDialog(false); setPendingImageUrl(""); setPendingImageAlt(""); setDoubleImageQueue([]); };
 
   // --- Markdown preview ---
   const renderPreview = (md: string) => {
@@ -303,33 +209,6 @@ export default function ArticleManagementPage() {
 
   const inputCls = "w-full px-3 py-2 rounded-lg border border-[var(--card-border)] bg-[var(--card)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50 text-sm placeholder:text-[var(--muted)]/50";
   const labelCls = "block text-xs text-[var(--muted)] mb-1";
-
-  const mdToolbar = [
-    { icon: Bold, action: () => insertMarkdown("**", "**"), title: "加粗" },
-    { icon: Italic, action: () => insertMarkdown("*", "*"), title: "斜体" },
-    { icon: Underline, action: () => insertMarkdown("<u>", "</u>"), title: "下划线" },
-    { icon: Strikethrough, action: () => insertMarkdown("~~", "~~"), title: "删除线" },
-    { icon: Superscript, action: () => insertMarkdown("<sup>", "</sup>"), title: "上标" },
-    { icon: Subscript, action: () => insertMarkdown("<sub>", "</sub>"), title: "下标" },
-    { icon: Highlighter, action: () => insertMarkdown("==", "=="), title: "高亮" },
-    { icon: Code2, action: () => insertMarkdown("`", "`"), title: "行内代码" },
-    { icon: Heading, action: () => setShowHeadingDialog(!showHeadingDialog), title: "标题" },
-    { icon: TextCursorInput, action: () => setShowFontFamilyDialog(!showFontFamilyDialog), title: "字体" },
-    { icon: Palette, action: () => setShowFontColorDialog(!showFontColorDialog), title: "字体颜色" },
-    { icon: Type, action: () => setShowFontSizeDialog(!showFontSizeDialog), title: "字体大小" },
-    { icon: AlignVerticalJustifyCenter, action: () => setShowLineHeightDialog(!showLineHeightDialog), title: "行间距" },
-    { icon: Columns2, action: () => setShowParagraphSpacingDialog(!showParagraphSpacingDialog), title: "段落间距" },
-    { icon: Link2, action: () => insertMarkdown("[", "](url)"), title: "链接" },
-    { icon: ImageIcon, action: () => document.getElementById("img-upload")?.click(), title: "插入图片" },
-    { icon: Code, action: () => setShowCodeBlockLang(true), title: "代码块" },
-    { icon: Table2, action: () => setShowTableDialog(true), title: "插入表格" },
-    { icon: Quote, action: () => insertQuote(), title: "引用" },
-    { icon: List, action: () => insertList("- "), title: "无序列表" },
-    { icon: ListOrdered, action: () => insertList("1. "), title: "有序列表" },
-    { icon: Footprints, action: insertFootnote, title: "脚注" },
-    { icon: MinusIcon, action: () => insertMarkdown("\n---\n"), title: "分隔线" },
-    { icon: isFullscreen ? Minimize2 : Maximize2, action: toggleFullscreen, title: isFullscreen ? "退出全屏" : "全屏" },
-  ];
 
   // ========================
   // === LIST VIEW ===
@@ -483,46 +362,13 @@ export default function ArticleManagementPage() {
                 </div>
 
                 {/* Editor */}
-                <div ref={editorRef} className={`editor-container flex flex-col ${showPreview ? "min-h-[60vh]" : "min-h-[40vh]"}`}>
-                  {/* Toolbar */}
-                  <div className="sticky top-0 z-30 border-t border-b border-[var(--card-border)] bg-[var(--card)]/90 backdrop-blur-sm">
-                    <div className="flex items-center justify-between p-1.5">
-                      <div className="relative flex-1">
-                        <div className="flex flex-wrap items-center gap-0.5 p-1 rounded-lg border border-[var(--card-border)]">
-                          {mdToolbar.map((tool, i) => (
-                            <div key={i} className="relative group">
-                              <button onClick={tool.action} className="p-1 rounded hover:text-[var(--primary)] text-[var(--muted)] hover:bg-[var(--primary)]/10 transition-colors">
-                                <tool.icon className="w-3.5 h-3.5" />
-                              </button>
-                              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 px-2 py-0.5 rounded bg-[var(--foreground)] text-[var(--card)] text-[10px] whitespace-nowrap pointer-events-none opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">{tool.title}</div>
-                            </div>
-                          ))}
-                          <input id="img-upload" type="file" accept="image/*" onChange={uploadImage} className="hidden" />
-                        </div>
-                        {/* ... dialogs ... */}
-                        {showHeadingDialog && <div className="absolute z-40 top-full left-0 mt-1 p-2 rounded-lg border border-[var(--card-border)] bg-[var(--card)] shadow-xl w-48" onMouseLeave={() => setShowHeadingDialog(false)}><p className="text-xs text-[var(--muted)] mb-2 px-2">选择标题级别</p>{[{ level: 1, label: "一级标题", prefix: "# " }, { level: 2, label: "二级标题", prefix: "## " }, { level: 3, label: "三级标题", prefix: "### " }, { level: 4, label: "四级标题", prefix: "#### " }, { level: 5, label: "五级标题", prefix: "##### " }, { level: 6, label: "六级标题", prefix: "###### " }].map((h) => <button key={h.level} onClick={() => { insertMarkdown(h.prefix); setShowHeadingDialog(false); }} className="w-full text-left text-sm px-3 py-2 rounded text-[var(--muted)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10 transition-colors flex items-center justify-between"><span>{h.label}</span><span className="text-xs font-mono opacity-50">{h.prefix}</span></button>)}</div>}
-                        {showCodeBlockLang && <div className="absolute z-40 top-full left-0 mt-1 p-2 rounded-lg border border-[var(--card-border)] bg-[var(--card)] shadow-xl grid grid-cols-4 gap-1 w-72" onMouseLeave={() => setShowCodeBlockLang(false)}>{["javascript", "typescript", "python", "java", "sql", "shell", "bash", "yaml", "markdown", "css", "html", "go", "rust", "swift", "json", "dockerfile"].map((lang) => <button key={lang} onClick={() => insertCodeBlock(lang)} className="text-xs px-2 py-1.5 rounded text-[var(--muted)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10 transition-colors text-left">{lang}</button>)}</div>}
-                        {showTableDialog && <div className="absolute z-40 top-full left-0 mt-1 p-4 rounded-lg border border-[var(--card-border)] bg-[var(--card)] shadow-xl w-56"><p className="text-sm text-[var(--foreground)] mb-3">插入表格</p><div className="grid grid-cols-2 gap-3 mb-3"><div><label className="text-xs text-[var(--muted)]">行数</label><input type="number" min={2} max={10} value={tableRows} onChange={(e) => setTableRows(Number(e.target.value))} className="w-full px-2 py-1 rounded border border-[var(--card-border)] bg-[var(--card)] text-sm text-[var(--foreground)]" /></div><div><label className="text-xs text-[var(--muted)]">列数</label><input type="number" min={2} max={6} value={tableCols} onChange={(e) => setTableCols(Number(e.target.value))} className="w-full px-2 py-1 rounded border border-[var(--card-border)] bg-[var(--card)] text-sm text-[var(--foreground)]" /></div></div><div className="flex gap-2"><button onClick={insertTable} className="flex-1 text-xs px-3 py-1.5 rounded bg-[var(--primary)] text-white">插入</button><button onClick={() => setShowTableDialog(false)} className="flex-1 text-xs px-3 py-1.5 rounded border border-[var(--card-border)] text-[var(--muted)]">取消</button></div></div>}
-                        {showFontFamilyDialog && <div className="absolute z-40 top-full left-0 mt-1 p-3 rounded-lg border border-[var(--card-border)] bg-[var(--card)] shadow-xl w-64" onMouseLeave={() => setShowFontFamilyDialog(false)}><p className="text-xs text-[var(--muted)] mb-2 px-1">选择字体</p><div className="flex gap-1 mb-2 px-1"><button onClick={() => setGlobalStyleMode("selection")} className={`text-[10px] px-2 py-0.5 rounded transition-colors ${globalStyleMode === "selection" ? "bg-[var(--primary)] text-white" : "text-[var(--muted)] hover:bg-[var(--primary)]/10"}`}>仅对选中文字</button><button onClick={() => setGlobalStyleMode("global")} className={`text-[10px] px-2 py-0.5 rounded transition-colors ${globalStyleMode === "global" ? "bg-[var(--primary)] text-white" : "text-[var(--muted)] hover:bg-[var(--primary)]/10"}`}>通篇应用</button></div><div className="grid grid-cols-2 gap-1.5">{["Arial", "Georgia", "Times New Roman", "Courier New", "Verdana", "PingFang SC", "Microsoft YaHei"].map((font) => <button key={font} onClick={() => applyStyle(() => setFontFamily(font), () => { setGlobalStyle("font-family", `'${font}'`); setShowFontFamilyDialog(false); })} className="text-xs px-2 py-1.5 rounded text-[var(--muted)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10 transition-colors text-left truncate" style={{ fontFamily: font }}>{font}</button>)}</div></div>}
-                        {showFontColorDialog && <div className="absolute z-40 top-full left-0 mt-1 p-3 rounded-lg border border-[var(--card-border)] bg-[var(--card)] shadow-xl w-72" onMouseLeave={() => setShowFontColorDialog(false)}><p className="text-xs text-[var(--muted)] mb-2 px-1">选择颜色</p><div className="grid grid-cols-6 gap-1.5 mb-2">{["#1e293b", "#ef4444", "#f97316", "#eab308", "#22c55e", "#3b82f6", "#6366f1", "#8b5cf6", "#ec4899", "#6b7280", "#94a3b8", "#000000"].map((color) => <button key={color} onClick={() => setFontColor(color)} className="w-8 h-8 rounded-md border border-[var(--card-border)] hover:scale-110 transition-transform" style={{ backgroundColor: color }} title={color} />)}</div><div className="flex items-center gap-2"><input type="color" value={selectedFontColor} onChange={(e) => setSelectedFontColor(e.target.value)} className="w-8 h-8 rounded cursor-pointer border-0" /><span className="text-xs text-[var(--muted)] font-mono">{selectedFontColor}</span><button onClick={() => { insertFontStyle(`<span style="color: ${selectedFontColor}">`); setShowFontColorDialog(false); }} className="text-xs px-2 py-1 rounded bg-[var(--primary)] text-white ml-auto">应用</button></div></div>}
-                        {showFontSizeDialog && <div className="absolute z-40 top-full left-0 mt-1 p-3 rounded-lg border border-[var(--card-border)] bg-[var(--card)] shadow-xl w-48" onMouseLeave={() => setShowFontSizeDialog(false)}><p className="text-xs text-[var(--muted)] mb-2 px-1">字体大小 (px)</p><div className="flex gap-1 mb-2 px-1"><button onClick={() => setGlobalStyleMode("selection")} className={`text-[10px] px-2 py-0.5 rounded transition-colors ${globalStyleMode === "selection" ? "bg-[var(--primary)] text-white" : "text-[var(--muted)] hover:bg-[var(--primary)]/10"}`}>仅对选中文字</button><button onClick={() => setGlobalStyleMode("global")} className={`text-[10px] px-2 py-0.5 rounded transition-colors ${globalStyleMode === "global" ? "bg-[var(--primary)] text-white" : "text-[var(--muted)] hover:bg-[var(--primary)]/10"}`}>通篇应用</button></div><div className="grid grid-cols-3 gap-1.5 mb-3">{[12, 14, 16, 18, 20, 24, 28, 32, 36].map((size) => <button key={size} onClick={() => applyStyle(() => { insertFontStyle(`<span style="font-size: ${size}px">`); setShowFontSizeDialog(false); }, () => { setGlobalStyle("font-size", `${size}px`); setShowFontSizeDialog(false); })} className="text-xs px-2 py-1.5 rounded text-[var(--muted)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10 transition-colors text-center">{size}px</button>)}</div><div className="flex items-center gap-2"><label className="text-xs text-[var(--muted)]">自定义</label><input type="number" min={8} max={72} value={customFontSize} onChange={(e) => setCustomFontSize(Number(e.target.value))} className="w-16 px-2 py-1 rounded border border-[var(--card-border)] bg-[var(--card)] text-sm text-[var(--foreground)]" /><button onClick={() => applyStyle(() => { insertFontStyle(`<span style="font-size: ${customFontSize}px">`); setShowFontSizeDialog(false); }, () => { setGlobalStyle("font-size", `${customFontSize}px`); setShowFontSizeDialog(false); })} className="text-xs px-2 py-1 rounded bg-[var(--primary)] text-white">应用</button></div></div>}
-                        {showLineHeightDialog && <div className="absolute z-40 top-full left-0 mt-1 p-3 rounded-lg border border-[var(--card-border)] bg-[var(--card)] shadow-xl w-48" onMouseLeave={() => setShowLineHeightDialog(false)}><p className="text-xs text-[var(--muted)] mb-2 px-1">行间距</p><div className="flex gap-1 mb-2 px-1"><button onClick={() => setGlobalStyleMode("selection")} className={`text-[10px] px-2 py-0.5 rounded transition-colors ${globalStyleMode === "selection" ? "bg-[var(--primary)] text-white" : "text-[var(--muted)] hover:bg-[var(--primary)]/10"}`}>仅对选中文字</button><button onClick={() => setGlobalStyleMode("global")} className={`text-[10px] px-2 py-0.5 rounded transition-colors ${globalStyleMode === "global" ? "bg-[var(--primary)] text-white" : "text-[var(--muted)] hover:bg-[var(--primary)]/10"}`}>通篇应用</button></div><div className="grid grid-cols-3 gap-1.5 mb-3">{[1, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6].map((value) => <button key={value} onClick={() => applyStyle(() => { insertFontStyle(`<span style="line-height: ${value}">`); setShowLineHeightDialog(false); }, () => { setGlobalStyle("line-height", String(value)); setShowLineHeightDialog(false); })} className="text-xs px-2 py-1.5 rounded text-[var(--muted)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10 transition-colors text-center">{value}</button>)}</div><div className="flex items-center gap-2"><label className="text-xs text-[var(--muted)]">自定义</label><input type="number" min={0.5} max={4} step={0.1} value={customLineHeight} onChange={(e) => setCustomLineHeight(Number(e.target.value))} className="w-16 px-2 py-1 rounded border border-[var(--card-border)] bg-[var(--card)] text-sm text-[var(--foreground)]" /><button onClick={() => applyStyle(() => { insertFontStyle(`<span style="line-height: ${customLineHeight}">`); setShowLineHeightDialog(false); }, () => { setGlobalStyle("line-height", String(customLineHeight)); setShowLineHeightDialog(false); })} className="text-xs px-2 py-1 rounded bg-[var(--primary)] text-white">应用</button></div></div>}
-                        {showParagraphSpacingDialog && <div className="absolute z-40 top-full left-0 mt-1 p-3 rounded-lg border border-[var(--card-border)] bg-[var(--card)] shadow-xl w-48" onMouseLeave={() => setShowParagraphSpacingDialog(false)}><p className="text-xs text-[var(--muted)] mb-2 px-1">段落间距 (px)</p><div className="flex gap-1 mb-2 px-1"><button onClick={() => setGlobalStyleMode("selection")} className={`text-[10px] px-2 py-0.5 rounded transition-colors ${globalStyleMode === "selection" ? "bg-[var(--primary)] text-white" : "text-[var(--muted)] hover:bg-[var(--primary)]/10"}`}>仅对选中文字</button><button onClick={() => setGlobalStyleMode("global")} className={`text-[10px] px-2 py-0.5 rounded transition-colors ${globalStyleMode === "global" ? "bg-[var(--primary)] text-white" : "text-[var(--muted)] hover:bg-[var(--primary)]/10"}`}>通篇应用</button></div><div className="grid grid-cols-3 gap-1.5 mb-3">{[4, 8, 12, 16, 20, 24, 32, 40, 48].map((value) => <button key={value} onClick={() => applyStyle(() => { insertFontStyle(`<span style="margin-bottom: ${value}px">`); setShowParagraphSpacingDialog(false); }, () => { setGlobalStyle("margin-bottom", `${value}px`); setShowParagraphSpacingDialog(false); })} className="text-xs px-2 py-1.5 rounded text-[var(--muted)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10 transition-colors text-center">{value}px</button>)}</div><div className="flex items-center gap-2"><label className="text-xs text-[var(--muted)]">自定义</label><input type="number" min={0} max={100} value={customParagraphSpacing} onChange={(e) => setCustomParagraphSpacing(Number(e.target.value))} className="w-16 px-2 py-1 rounded border border-[var(--card-border)] bg-[var(--card)] text-sm text-[var(--foreground)]" /><button onClick={() => applyStyle(() => { insertFontStyle(`<span style="margin-bottom: ${customParagraphSpacing}px">`); setShowParagraphSpacingDialog(false); }, () => { setGlobalStyle("margin-bottom", `${customParagraphSpacing}px`); setShowParagraphSpacingDialog(false); })} className="text-xs px-2 py-1 rounded bg-[var(--primary)] text-white">应用</button></div></div>}
-                        {showImageDialog && <div className="absolute z-40 top-full left-0 mt-1 p-4 rounded-lg border border-[var(--card-border)] bg-[var(--card)] shadow-xl w-80" onMouseLeave={() => setShowImageDialog(false)}><p className="text-sm font-medium text-[var(--foreground)] mb-3">图片设置</p><div className="mb-3"><label className="text-xs text-[var(--muted)] block mb-1">图片描述</label><input type="text" value={pendingImageAlt} onChange={(e) => setPendingImageAlt(e.target.value)} placeholder="图片描述..." className="w-full px-2 py-1.5 rounded border border-[var(--card-border)] bg-[var(--card)] text-sm text-[var(--foreground)]" /></div><div className="mb-3"><label className="text-xs text-[var(--muted)] block mb-1">图片大小</label><div className="grid grid-cols-4 gap-1.5 mb-2">{[{ key: "small", label: "小", sub: "33%" }, { key: "medium", label: "中", sub: "66%" }, { key: "full", label: "大", sub: "100%" }, { key: "custom", label: "自定义", sub: "" }].map((s) => <button key={s.key} onClick={() => setImageSize(s.key as typeof imageSize)} className={`text-xs px-2 py-1.5 rounded transition-colors text-center ${imageSize === s.key ? "bg-[var(--primary)] text-white" : "text-[var(--muted)] hover:bg-[var(--primary)]/10"}`}>{s.label}{s.sub && <span className="block text-[10px] opacity-60">{s.sub}</span>}</button>)}</div>{imageSize === "custom" && <div className="flex items-center gap-2"><input type="number" min={50} max={2000} value={customImageWidth} onChange={(e) => setCustomImageWidth(Number(e.target.value))} className="w-20 px-2 py-1 rounded border border-[var(--card-border)] bg-[var(--card)] text-sm text-[var(--foreground)]" /><span className="text-xs text-[var(--muted)]">px</span></div>}</div><div className="mb-4"><label className="text-xs text-[var(--muted)] block mb-1">排版</label><div className="grid grid-cols-2 gap-1.5">{[{ key: "single", label: "单图", icon: "️" }, { key: "double", label: "双栏并排", icon: "️️" }].map((l) => <button key={l.key} onClick={() => setImageLayout(l.key as typeof imageLayout)} className={`text-xs px-2 py-2 rounded transition-colors text-center ${imageLayout === l.key ? "bg-[var(--primary)] text-white" : "text-[var(--muted)] hover:bg-[var(--primary)]/10"}`}><span>{l.icon}</span><span className="block">{l.label}</span></button>)}</div></div><div className="flex gap-2"><button onClick={insertImageWithSettings} className="flex-1 text-xs px-3 py-1.5 rounded bg-[var(--primary)] text-white">{imageLayout === "double" && doubleImageQueue.length === 0 ? "插入第一张" : "插入"}</button><button onClick={cancelImageInsert} className="flex-1 text-xs px-3 py-1.5 rounded border border-[var(--card-border)] text-[var(--muted)]">取消</button></div></div>}
-                      </div>
-                      <button onClick={() => setShowPreview(!showPreview)} className={`ml-3 inline-flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg transition-colors ${showPreview ? "bg-[var(--primary)]/10 text-[var(--primary)]" : "text-[var(--muted)] hover:text-[var(--primary)] border border-[var(--card-border)]"}`}>
-                        <Eye className="w-3 h-3" />{showPreview ? "关闭预览" : "预览"}
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Editor area */}
-                  <div className={`flex-1 flex min-h-0`}>
-                    <div className={`${showPreview ? "flex-1 border-r border-[var(--card-border)]" : "w-full"} flex flex-col`}>
-                      <textarea id="article-content" value={articleContent} onChange={(e) => setArticleContent(e.target.value)} placeholder={"## 标题\n\n正文内容..."} className="flex-1 w-full px-6 py-4 bg-transparent text-[var(--foreground)] focus:outline-none resize-none text-sm leading-relaxed min-h-[400px]" />
-                    </div>
-                    {showPreview && <div className="flex-1 overflow-auto"><div className="h-full px-6 py-4 text-[var(--foreground)] min-h-[400px] prose-custom" dangerouslySetInnerHTML={renderPreview(articleContent)} /></div>}
-                  </div>
+                <div className="px-6 pb-6">
+                  <MarkdownEditor
+                    value={articleContent}
+                    onChange={setArticleContent}
+                    uploadMeta={{ type: "blog", category: articleCategory || "未分类", articleTitle: articleTitle || "草稿" }}
+                    renderPreview={renderPreview}
+                  />
                 </div>
 
                 {/* Save result */}
