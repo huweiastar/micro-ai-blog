@@ -32,7 +32,7 @@ export function Topbar({ onMenu }: { onMenu?: () => void }) {
     <header className="h-14 px-4 sm:px-6 flex items-center justify-between border-b border-[var(--card-border)] bg-[var(--card)]/30 backdrop-blur">
       <div className="flex items-center gap-3">
         {onMenu && (
-          <button onClick={onMenu} className="md:hidden p-1 -ml-1 text-[var(--muted)] hover:text-[var(--foreground)]">
+          <button onClick={onMenu} aria-label="打开菜单" className="md:hidden p-1 -ml-1 text-[var(--muted)] hover:text-[var(--foreground)]">
             <Menu className="w-5 h-5" />
           </button>
         )}
