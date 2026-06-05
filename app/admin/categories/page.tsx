@@ -1,95 +1,208 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
-import { Plus, Trash2 } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { SplitWorkspace } from "../../../components/admin/SplitWorkspace";
+import { MarkdownEditor } from "../../../components/admin/MarkdownEditor";
+import { Loader2, Trash2 } from "lucide-react";
 
-type CategoryConfig = {
+type Category = {
+  id: string;
   name: string;
   description: string;
   background?: string;
   bgOpacity?: number;
+  description_long?: string;
 };
 
-export default function CategoriesPage() {
-  // Categories state
-  const [categories, setCategories] = useState<CategoryConfig[]>([]);
-  const [newCategoryName, setNewCategoryName] = useState("");
-  const [newCategoryDesc, setNewCategoryDesc] = useState("");
-  const [categoryResult, setCategoryResult] = useState<{ success: boolean; message: string } | null>(null);
-  const [newCategoryBg, setNewCategoryBg] = useState("");
-  const [newCategoryOpacity, setNewCategoryOpacity] = useState(15);
+const BG_PRESETS = ["gradient-1", "gradient-2", "gradient-3", "gradient-4", "gradient-5", "gradient-6"];
 
-  // Load categories
+export default function CategoriesPage() {
+  const router = useRouter();
+  const params = useSearchParams();
+  const selectedId = params.get("id");
+  const isNew = params.get("new") === "1";
+
+  const [items, setItems] = useState<Category[]>([]);
+  const [counts, setCounts] = useState<Record<string, number>>({});
+
   useEffect(() => {
-    fetch("/api/categories")
-      .then((res) => res.json())
-      .then((data) => setCategories(data))
-      .catch(() => {});
+    fetch("/api/categories").then((r) => r.json()).then((data: Category[]) => {
+      setItems(data.map((c) => ({ ...c, id: c.name })));
+    });
+    fetch("/api/posts").then((r) => r.json()).then((posts: { category: string }[]) => {
+      const map: Record<string, number> = {};
+      posts.forEach((p) => { map[p.category] = (map[p.category] ?? 0) + 1; });
+      setCounts(map);
+    });
   }, []);
 
-  // Category management
-  const addCategory = async () => {
-    if (!newCategoryName.trim()) { setCategoryResult({ success: false, message: "请输入专栏名称" }); return; }
+  return (
+    <SplitWorkspace<Category>
+      items={items}
+      selectedId={selectedId}
+      onSelect={(id) => router.push(id ? `/admin/categories?id=${encodeURIComponent(id)}` : "/admin/categories")}
+      onNew={() => router.push("/admin/categories?new=1")}
+      newButtonLabel="新专栏"
+      searchPredicate={(c, q) => c.name.toLowerCase().includes(q)}
+      renderRow={(c) => (
+        <div>
+          <div className="flex items-center justify-between mb-1">
+            <span className="font-medium text-sm">{c.name}</span>
+            <span className="text-xs text-[var(--muted)]">{counts[c.name] ?? 0} 篇</span>
+          </div>
+          {c.description && <div className="text-xs text-[var(--muted)] line-clamp-2">{c.description}</div>}
+        </div>
+      )}
+    >
+      {selectedId || isNew ? (
+        <CategoryEditor
+          key={selectedId ?? "new"}
+          name={selectedId}
+          isNew={isNew}
+          existing={items.find((c) => c.id === selectedId)}
+          onSaved={(savedName) => {
+            fetch("/api/categories").then((r) => r.json()).then((data: Category[]) => setItems(data.map((c) => ({ ...c, id: c.name }))));
+            router.replace(`/admin/categories?id=${encodeURIComponent(savedName)}`);
+          }}
+          onDeleted={(deletedName) => {
+            setItems((prev) => prev.filter((c) => c.id !== deletedName));
+            router.replace("/admin/categories");
+          }}
+        />
+      ) : null}
+    </SplitWorkspace>
+  );
+}
+
+function CategoryEditor({
+  name, isNew, existing, onSaved, onDeleted,
+}: {
+  name: string | null; isNew: boolean; existing?: Category;
+  onSaved: (name: string) => void; onDeleted: (name: string) => void;
+}) {
+  const [formName, setFormName] = useState(existing?.name ?? "");
+  const [formDesc, setFormDesc] = useState(existing?.description ?? "");
+  const [formBg, setFormBg] = useState(existing?.background ?? "");
+  const [formOpacity, setFormOpacity] = useState(existing?.bgOpacity ?? 15);
+  const [formLongDesc, setFormLongDesc] = useState(existing?.description_long ?? "");
+  const [saving, setSaving] = useState(false);
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+
+  const save = async () => {
+    if (!formName.trim()) {
+      setMsg({ ok: false, text: "名称不能为空" });
+      return;
+    }
+    setSaving(true);
+    const payload = {
+      name: formName.trim(),
+      description: formDesc,
+      background: formBg || undefined,
+      bgOpacity: formOpacity,
+      description_long: formLongDesc || undefined,
+    };
+    const isEdit = !isNew && !!name;
     const res = await fetch("/api/categories", {
-      method: "POST",
+      method: isEdit ? "PUT" : "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: newCategoryName, description: newCategoryDesc, background: newCategoryBg || undefined, bgOpacity: newCategoryOpacity }),
+      body: JSON.stringify(isEdit ? { ...payload, oldName: name } : payload),
     });
     const data = await res.json();
-    setCategoryResult(data);
+    setSaving(false);
     if (data.success) {
-      setCategories([...categories, { name: newCategoryName, description: newCategoryDesc, background: newCategoryBg || undefined, bgOpacity: newCategoryOpacity }]);
-      setNewCategoryName(""); setNewCategoryDesc(""); setNewCategoryBg(""); setNewCategoryOpacity(15);
+      setMsg({ ok: true, text: "已保存" });
+      onSaved(payload.name);
+    } else {
+      setMsg({ ok: false, text: data.error || "保存失败" });
     }
-    setTimeout(() => setCategoryResult(null), 3000);
   };
 
-  const deleteCategory = async (name: string) => {
-    if (!confirm(`确定删除专栏「${name}」吗？`)) return;
-    const res = await fetch("/api/categories", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name }) });
+  const remove = async () => {
+    if (!name || isNew) return;
+    if (!confirm(`确定删除专栏 "${name}"？`)) return;
+    const res = await fetch("/api/categories", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name }),
+    });
     const data = await res.json();
-    if (data.success) setCategories(categories.filter((c) => c.name !== name));
+    if (data.success) onDeleted(name);
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
-      <h1 className="text-2xl font-bold mb-6">专栏管理</h1>
-      <div className="space-y-8">
-        <div className="glass rounded-xl p-6">
-          <h2 className="text-lg font-semibold mb-4">添加专栏</h2>
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="sm:col-span-1"><label className="block text-sm text-[var(--muted)] mb-1">专栏名称 <span className="text-red-400">*</span></label><input type="text" value={newCategoryName} onChange={(e) => setNewCategoryName(e.target.value)} placeholder="如：大模型安全" className="w-full px-4 py-2.5 rounded-lg border border-[var(--card-border)] bg-[var(--card)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50" /></div>
-              <div className="sm:col-span-2"><label className="block text-sm text-[var(--muted)] mb-1">简介</label><input type="text" value={newCategoryDesc} onChange={(e) => setNewCategoryDesc(e.target.value)} placeholder="专栏简介" className="w-full px-4 py-2.5 rounded-lg border border-[var(--card-border)] bg-[var(--card)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50" /></div>
-            </div>
-
-            {categoryResult && (
-              <div className={`p-3 rounded-lg text-sm ${categoryResult.success ? "bg-green-500/10 text-green-400 border border-green-500/20" : "bg-red-500/10 text-red-400 border border-red-500/20"}`}>{categoryResult.message}</div>
-            )}
-            <button onClick={addCategory} className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[var(--primary)] text-white text-sm hover:bg-[var(--primary-hover)] transition-colors">
-              <Plus className="w-4 h-4" />添加专栏
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-semibold">{isNew ? "新建专栏" : `编辑：${name}`}</h1>
+        <div className="flex items-center gap-2">
+          {!isNew && (
+            <button onClick={remove} className="px-3 py-1.5 rounded-lg border border-[var(--card-border)] text-sm text-[var(--muted)] hover:text-red-400 hover:border-red-500/30 inline-flex items-center gap-1">
+              <Trash2 className="w-3.5 h-3.5" /> 删除
             </button>
+          )}
+          <button onClick={save} disabled={saving} className="px-4 py-1.5 rounded-lg bg-[var(--primary)] text-white text-sm font-medium hover:opacity-90 disabled:opacity-50 inline-flex items-center gap-1">
+            {saving && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+            保存
+          </button>
+        </div>
+      </div>
+
+      {msg && (
+        <div className={`px-3 py-2 rounded text-sm ${msg.ok ? "bg-emerald-500/10 text-emerald-400" : "bg-red-500/10 text-red-400"}`}>
+          {msg.text}
+        </div>
+      )}
+
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm text-[var(--muted)] mb-1">名称</label>
+          <input
+            value={formName}
+            onChange={(e) => setFormName(e.target.value)}
+            className="w-full px-4 py-2 rounded-lg border border-[var(--card-border)] bg-[var(--card)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50"
+          />
+        </div>
+        <div>
+          <label className="block text-sm text-[var(--muted)] mb-1">短描述</label>
+          <textarea
+            rows={2}
+            value={formDesc}
+            onChange={(e) => setFormDesc(e.target.value)}
+            className="w-full px-4 py-2 rounded-lg border border-[var(--card-border)] bg-[var(--card)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50"
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm text-[var(--muted)] mb-1">背景预设</label>
+            <select
+              value={formBg}
+              onChange={(e) => setFormBg(e.target.value)}
+              className="w-full px-4 py-2 rounded-lg border border-[var(--card-border)] bg-[var(--card)]"
+            >
+              <option value="">（无）</option>
+              {BG_PRESETS.map((b) => <option key={b} value={b}>{b}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm text-[var(--muted)] mb-1">背景透明度（0-100）</label>
+            <input
+              type="number"
+              min={0} max={100}
+              value={formOpacity}
+              onChange={(e) => setFormOpacity(Number(e.target.value))}
+              className="w-full px-4 py-2 rounded-lg border border-[var(--card-border)] bg-[var(--card)]"
+            />
           </div>
         </div>
 
-        {/* Category List */}
-        <div className="glass rounded-xl p-6">
-          <h2 className="text-lg font-semibold mb-4">已添加的专题 ({categories.length})</h2>
-          <div className="space-y-3">
-            {categories.length === 0 && <p className="text-[var(--muted)] text-sm">还没有专栏</p>}
-            {categories.map((cat) => (
-              <div key={cat.name} className="flex items-center justify-between p-4 rounded-lg border border-[var(--card-border)] bg-[var(--card)]">
-                <Link href={`/categories/${encodeURIComponent(cat.name)}`} className="flex-1 group">
-                  <h3 className="font-medium group-hover:text-[var(--primary)] transition-colors">{cat.name}</h3>
-                  {cat.description && <p className="text-sm text-[var(--muted)]">{cat.description}</p>}
-                </Link>
-                <button onClick={() => deleteCategory(cat.name)} className="p-2 rounded-lg text-[var(--muted)] hover:text-red-400 hover:bg-red-500/10 transition-colors" title="删除">
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            ))}
-          </div>
+        <div>
+          <label className="block text-sm text-[var(--muted)] mb-2">详细描述（用于专栏详情页）</label>
+          <MarkdownEditor
+            value={formLongDesc}
+            onChange={setFormLongDesc}
+            placeholder="描述这个专栏的内容定位、目标读者、阅读顺序等…"
+            uploadMeta={{ type: "category", category: formName || "未命名" }}
+          />
         </div>
       </div>
     </div>
