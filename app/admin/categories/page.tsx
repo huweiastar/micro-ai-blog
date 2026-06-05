@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SplitWorkspace } from "../../../components/admin/SplitWorkspace";
 import { MarkdownEditor } from "../../../components/admin/MarkdownEditor";
@@ -18,6 +18,14 @@ type Category = {
 const BG_PRESETS = ["gradient-1", "gradient-2", "gradient-3", "gradient-4", "gradient-5", "gradient-6"];
 
 export default function CategoriesPage() {
+  return (
+    <Suspense fallback={null}>
+      <CategoriesPageInner />
+    </Suspense>
+  );
+}
+
+function CategoriesPageInner() {
   const router = useRouter();
   const params = useSearchParams();
   const selectedId = params.get("id");

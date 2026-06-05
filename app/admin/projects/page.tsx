@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, Trash2 } from "lucide-react";
 import { SplitWorkspace } from "../../../components/admin/SplitWorkspace";
@@ -21,6 +21,14 @@ type Project = {
 };
 
 export default function ProjectsPage() {
+  return (
+    <Suspense fallback={null}>
+      <ProjectsPageInner />
+    </Suspense>
+  );
+}
+
+function ProjectsPageInner() {
   const router = useRouter();
   const params = useSearchParams();
   const selectedId = params.get("id");

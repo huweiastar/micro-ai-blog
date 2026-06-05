@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { Suspense, useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Loader2,
@@ -34,6 +34,14 @@ type Article = {
 type CategoryConfig = { name: string; description: string };
 
 export default function ArticlesPage() {
+  return (
+    <Suspense fallback={null}>
+      <ArticlesPageInner />
+    </Suspense>
+  );
+}
+
+function ArticlesPageInner() {
   const router = useRouter();
   const params = useSearchParams();
   const selectedId = params.get("id");
