@@ -1,31 +1,91 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
-import { Loader2, ArrowLeft } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Loader2, Trash2 } from "lucide-react";
+import { SplitWorkspace } from "../../../components/admin/SplitWorkspace";
 import { MarkdownEditor } from "../../../components/admin/MarkdownEditor";
 import { renderMarkdownPreview as renderPreview } from "../../../lib/markdown/render";
 
-type ExistingProject = {
+type Project = {
+  id: string;
   slug: string;
   name: string;
   description: string;
   cover?: string;
-  image?: string;
   techStack: string[];
   highlights: string[];
   githubUrl?: string;
   demoUrl?: string;
-  relatedPosts?: string[];
   content?: string;
-  details?: Record<string, string>;
 };
 
-export default function ProjectEditPage() {
-  const [projects, setProjects] = useState<ExistingProject[]>([]);
-  const [editSlug, setEditSlug] = useState<string | null>(null);
+export default function ProjectsPage() {
+  const router = useRouter();
+  const params = useSearchParams();
+  const selectedId = params.get("id");
+  const isNew = params.get("new") === "1";
 
-  // Form fields
+  const [projects, setProjects] = useState<Project[]>([]);
+
+  useEffect(() => {
+    fetch("/api/projects")
+      .then((r) => r.json())
+      .then((d) => setProjects(Array.isArray(d) ? d.map((p: Omit<Project, "id">) => ({ ...p, id: p.slug })) : []))
+      .catch(() => {});
+  }, []);
+
+  return (
+    <SplitWorkspace<Project>
+      items={projects}
+      selectedId={selectedId}
+      onSelect={(id) => router.push(id ? `/admin/projects?id=${id}` : "/admin/projects")}
+      onNew={() => router.push("/admin/projects?new=1")}
+      newButtonLabel="新项目"
+      searchPredicate={(p, q) => p.name.toLowerCase().includes(q)}
+      renderRow={(p) => (
+        <div className="flex items-center gap-3">
+          {p.cover && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={p.cover} alt="" className="w-10 h-10 rounded object-cover shrink-0" />
+          )}
+          <div className="min-w-0">
+            <div className="font-medium text-sm line-clamp-1">{p.name}</div>
+            <div className="text-xs text-[var(--muted)] line-clamp-1">
+              {p.techStack.slice(0, 4).join(" · ")}
+            </div>
+          </div>
+        </div>
+      )}
+    >
+      {selectedId || isNew ? (
+        <ProjectEditor
+          key={selectedId ?? "new"}
+          slug={selectedId}
+          isNew={isNew}
+          onSaved={(s) => {
+            fetch("/api/projects")
+              .then((r) => r.json())
+              .then((d) => setProjects(Array.isArray(d) ? d.map((p: Omit<Project, "id">) => ({ ...p, id: p.slug })) : []));
+            router.replace(`/admin/projects?id=${s}`);
+          }}
+          onDeleted={(s) => {
+            setProjects((prev) => prev.filter((p) => p.id !== s));
+            router.replace("/admin/projects");
+          }}
+        />
+      ) : null}
+    </SplitWorkspace>
+  );
+}
+
+// ===========================
+// === ProjectEditor (pane) ==
+// ===========================
+
+function ProjectEditor({ slug, isNew, onSaved, onDeleted }: {
+  slug: string | null; isNew: boolean; onSaved: (s: string) => void; onDeleted: (s: string) => void;
+}) {
   const [projName, setProjName] = useState("");
   const [projDesc, setProjDesc] = useState("");
   const [projTechStack, setProjTechStack] = useState("");
@@ -34,35 +94,17 @@ export default function ProjectEditPage() {
   const [projDemo, setProjDemo] = useState("");
   const [projCover, setProjCover] = useState("");
   const [projContent, setProjContent] = useState("");
-
-  // UI state
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [saveResult, setSaveResult] = useState<{ success: boolean; message: string } | null>(null);
 
-  // Load existing projects for selector
-  useEffect(() => {
-    fetch("/api/projects")
-      .then((res) => res.json())
-      .then((data) => setProjects(data))
-      .catch(() => {});
-  }, []);
+  const isEdit = !isNew && !!slug;
 
-  // Read slug from URL query param
+  // Load project data when editing
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const slug = params.get("slug");
-    if (slug) setEditSlug(slug);
-  }, []);
-
-  // Load project if editing
-  useEffect(() => {
-    if (!editSlug) {
-      setProjName(""); setProjDesc(""); setProjTechStack("");
-      setProjHighlights(""); setProjGithub(""); setProjDemo("");
-      setProjCover(""); setProjContent("");
-      return;
-    }
-    fetch(`/api/projects?slug=${editSlug}`)
+    if (!isEdit || !slug) return;
+    setLoading(true);
+    fetch(`/api/projects?slug=${slug}`)
       .then((res) => res.json())
       .then((data) => {
         if (data.success && data.project) {
@@ -77,10 +119,11 @@ export default function ProjectEditPage() {
           setProjContent(p.content || "");
         }
       })
-      .catch(() => {});
-  }, [editSlug]);
+      .catch(() => {})
+      .finally(() => setLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slug, isEdit]);
 
-  // --- Save ---
   const saveProject = async () => {
     if (!projName.trim()) { setSaveResult({ success: false, message: "请输入项目名称" }); return; }
     if (!projContent.trim()) { setSaveResult({ success: false, message: "请输入项目内容" }); return; }
@@ -89,7 +132,6 @@ export default function ProjectEditPage() {
     const techStack = projTechStack.split(/[,，]/).map((t) => t.trim()).filter(Boolean);
     const highlights = projHighlights.split("\n").map((h) => h.trim()).filter(Boolean);
 
-    const isEdit = !!editSlug;
     const payload: Record<string, unknown> = {
       name: projName,
       description: projDesc,
@@ -103,11 +145,12 @@ export default function ProjectEditPage() {
 
     try {
       if (isEdit) {
-        payload.slug = editSlug;
+        payload.slug = slug;
         const res = await fetch("/api/projects", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
         const data = await res.json();
         if (data.success) {
           setSaveResult({ success: true, message: "更新成功" });
+          onSaved(data.slug ?? slug ?? "");
           setTimeout(() => setSaveResult(null), 2000);
         } else {
           setSaveResult({ success: false, message: data.error || "更新失败" });
@@ -117,13 +160,7 @@ export default function ProjectEditPage() {
         const data = await res.json();
         if (data.success) {
           setSaveResult({ success: true, message: "创建成功" });
-          // Reset form
-          setEditSlug(null);
-          setProjName(""); setProjDesc(""); setProjTechStack("");
-          setProjHighlights(""); setProjGithub(""); setProjDemo("");
-          setProjCover(""); setProjContent("");
-          // Refresh project list
-          fetch("/api/projects").then((res) => res.json()).then((data) => setProjects(data)).catch(() => {});
+          onSaved(data.slug ?? "");
           setTimeout(() => setSaveResult(null), 2000);
         } else {
           setSaveResult({ success: false, message: data.error || "创建失败" });
@@ -136,91 +173,102 @@ export default function ProjectEditPage() {
     }
   };
 
+  const deleteProject = async () => {
+    if (!slug || isNew) return;
+    if (!confirm(`确定删除项目「${projName}」吗？`)) return;
+    const res = await fetch("/api/projects", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ slug }),
+    });
+    const data = await res.json();
+    if (data.success) onDeleted(slug);
+  };
+
+  const inputCls = "w-full px-3 py-2 rounded-lg border border-[var(--card-border)] bg-[var(--card)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50 text-sm";
+  const labelCls = "block text-sm text-[var(--muted)] mb-1";
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full text-[var(--muted)]">
+        <Loader2 className="w-5 h-5 animate-spin mr-2" />加载中...
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Top bar */}
-      <div className="sticky top-0 z-40 border-b border-[var(--card-border)] glass">
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link href="/admin" className="inline-flex items-center gap-1.5 text-sm text-[var(--muted)] hover:text-[var(--foreground)] transition-colors">
-              <ArrowLeft className="w-4 h-4" />返回管理
-            </Link>
-            <span className="text-sm font-medium">{editSlug ? "编辑项目" : "新建项目"}</span>
-          </div>
-          <div className="flex items-center gap-3">
-            {/* Project selector for quick edit */}
-            <select
-              value={editSlug || ""}
-              onChange={(e) => setEditSlug(e.target.value || null)}
-              className="px-3 py-1.5 rounded-lg border border-[var(--card-border)] bg-[var(--card)] text-sm text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50"
-            >
-              <option value="">+ 新建项目</option>
-              {projects.map((p) => (
-                <option key={p.slug} value={p.slug}>{p.name}</option>
-              ))}
-            </select>
-            <button onClick={saveProject} disabled={saving} className="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-[var(--primary)] text-white text-sm hover:bg-[var(--primary-hover)] transition-colors disabled:opacity-50">
-              {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-              {saving ? "保存中..." : "保存"}
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-semibold">{isNew ? "新建项目" : `编辑：${projName || slug}`}</h1>
+        <div className="flex items-center gap-2">
+          {!isNew && (
+            <button onClick={deleteProject} className="px-3 py-1.5 rounded-lg border border-[var(--card-border)] text-sm text-[var(--muted)] hover:text-red-400 hover:border-red-500/30 inline-flex items-center gap-1">
+              <Trash2 className="w-3.5 h-3.5" /> 删除
             </button>
-          </div>
+          )}
+          <button onClick={saveProject} disabled={saving} className="px-4 py-1.5 rounded-lg bg-[var(--primary)] text-white text-sm font-medium hover:opacity-90 disabled:opacity-50 inline-flex items-center gap-1">
+            {saving && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+            {saving ? "保存中..." : "保存"}
+          </button>
         </div>
       </div>
 
-      {/* Main content */}
-      <div className="flex-1 max-w-[1400px] w-full mx-auto px-4 sm:px-6 py-6">
-        <div className="space-y-6">
-          {/* Meta fields */}
-          <div className="glass rounded-xl p-5">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm text-[var(--muted)] mb-1">项目名称 <span className="text-red-400">*</span></label>
-                <input type="text" value={projName} onChange={(e) => setProjName(e.target.value)} placeholder="项目名称" className="w-full px-3 py-2 rounded-lg border border-[var(--card-border)] bg-[var(--card)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50 text-sm" />
-              </div>
-              <div>
-                <label className="block text-sm text-[var(--muted)] mb-1">项目描述</label>
-                <input type="text" value={projDesc} onChange={(e) => setProjDesc(e.target.value)} placeholder="一句话概括" className="w-full px-3 py-2 rounded-lg border border-[var(--card-border)] bg-[var(--card)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50 text-sm" />
-              </div>
-              <div>
-                <label className="block text-sm text-[var(--muted)] mb-1">封面图片URL</label>
-                <input type="text" value={projCover} onChange={(e) => setProjCover(e.target.value)} placeholder="/images/projects/cover.png" className="w-full px-3 py-2 rounded-lg border border-[var(--card-border)] bg-[var(--card)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50 text-sm" />
-              </div>
-              <div>
-                <label className="block text-sm text-[var(--muted)] mb-1">技术栈（逗号分隔）</label>
-                <input type="text" value={projTechStack} onChange={(e) => setProjTechStack(e.target.value)} placeholder="Python, Spark, Hive" className="w-full px-3 py-2 rounded-lg border border-[var(--card-border)] bg-[var(--card)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50 text-sm" />
-              </div>
-              <div>
-                <label className="block text-sm text-[var(--muted)] mb-1">GitHub 地址</label>
-                <input type="text" value={projGithub} onChange={(e) => setProjGithub(e.target.value)} placeholder="https://github.com/..." className="w-full px-3 py-2 rounded-lg border border-[var(--card-border)] bg-[var(--card)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50 text-sm" />
-              </div>
-              <div>
-                <label className="block text-sm text-[var(--muted)] mb-1">在线演示地址</label>
-                <input type="text" value={projDemo} onChange={(e) => setProjDemo(e.target.value)} placeholder="https://demo.example.com" className="w-full px-3 py-2 rounded-lg border border-[var(--card-border)] bg-[var(--card)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50 text-sm" />
-              </div>
-            </div>
-            <div className="mt-4">
-              <label className="block text-sm text-[var(--muted)] mb-1">项目亮点（每行一个）</label>
-              <textarea value={projHighlights} onChange={(e) => setProjHighlights(e.target.value)} placeholder={"支持亿级数据去重\n实现文档级和段落级去重"} rows={2} className="w-full px-3 py-2 rounded-lg border border-[var(--card-border)] bg-[var(--card)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50 text-sm resize-none" />
-            </div>
-          </div>
-
-          {/* Editor */}
-          <div className="glass rounded-xl p-5">
-            <MarkdownEditor
-              value={projContent}
-              onChange={setProjContent}
-              uploadMeta={{ type: "uploads" }}
-              renderPreview={renderPreview}
-            />
-          </div>
-
-          {/* Save result */}
-          {saveResult && (
-            <div className={`p-3 rounded-lg text-sm text-center ${saveResult.success ? "bg-green-500/10 text-green-400 border border-green-500/20" : "bg-red-500/10 text-red-400 border border-red-500/20"}`}>
-              {saveResult.message}
-            </div>
-          )}
+      {saveResult && (
+        <div className={`px-3 py-2 rounded text-sm ${saveResult.success ? "bg-emerald-500/10 text-emerald-400" : "bg-red-500/10 text-red-400"}`}>
+          {saveResult.message}
         </div>
+      )}
+
+      {/* Meta fields */}
+      <div className="space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className={labelCls}>项目名称 <span className="text-red-400">*</span></label>
+            <input type="text" value={projName} onChange={(e) => setProjName(e.target.value)} placeholder="项目名称" className={inputCls} />
+          </div>
+          <div>
+            <label className={labelCls}>项目描述</label>
+            <input type="text" value={projDesc} onChange={(e) => setProjDesc(e.target.value)} placeholder="一句话概括" className={inputCls} />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className={labelCls}>技术栈（逗号分隔）</label>
+            <input type="text" value={projTechStack} onChange={(e) => setProjTechStack(e.target.value)} placeholder="Python, Spark, Hive" className={inputCls} />
+          </div>
+          <div>
+            <label className={labelCls}>封面图片 URL</label>
+            <input type="text" value={projCover} onChange={(e) => setProjCover(e.target.value)} placeholder="/images/projects/cover.png" className={inputCls} />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className={labelCls}>GitHub 地址</label>
+            <input type="text" value={projGithub} onChange={(e) => setProjGithub(e.target.value)} placeholder="https://github.com/..." className={inputCls} />
+          </div>
+          <div>
+            <label className={labelCls}>在线演示地址</label>
+            <input type="text" value={projDemo} onChange={(e) => setProjDemo(e.target.value)} placeholder="https://demo.example.com" className={inputCls} />
+          </div>
+        </div>
+
+        <div>
+          <label className={labelCls}>项目亮点（每行一个）</label>
+          <textarea value={projHighlights} onChange={(e) => setProjHighlights(e.target.value)} placeholder={"支持亿级数据去重\n实现文档级和段落级去重"} rows={2} className={`${inputCls} resize-none`} />
+        </div>
+      </div>
+
+      {/* Markdown editor */}
+      <div>
+        <label className="block text-sm text-[var(--muted)] mb-2">项目内容 <span className="text-red-400">*</span></label>
+        <MarkdownEditor
+          value={projContent}
+          onChange={setProjContent}
+          uploadMeta={{ type: "projects" }}
+          renderPreview={renderPreview}
+        />
       </div>
     </div>
   );
