@@ -4,6 +4,7 @@ import { getPostsByCategory } from "../../../lib/posts";
 import { getAllCategories, getCategoryByName } from "../../../lib/categories";
 import { BlogCard } from "../../../components/BlogCard";
 import { generatePageMetadata } from "../../../lib/seo";
+import { renderMarkdownPreview } from "../../../lib/markdown/render";
 import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 
@@ -50,6 +51,12 @@ export default function CategoryDetailPage({ params }: CategoryPageProps) {
           <h1 className="text-3xl font-bold mb-2">{category}</h1>
           {catConfig.description && (
             <p className="text-[var(--muted)] mb-4 text-base">{catConfig.description}</p>
+          )}
+          {catConfig.description_long && (
+            <div
+              className="mt-4 prose prose-invert max-w-none"
+              dangerouslySetInnerHTML={renderMarkdownPreview(catConfig.description_long)}
+            />
           )}
           <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--primary)]/15 text-[var(--primary)] text-sm font-medium">
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" /></svg>
