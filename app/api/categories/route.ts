@@ -9,7 +9,7 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { name, description, background, bgOpacity } = body;
+    const { name, description, background, bgOpacity, description_long } = body;
 
     if (!name) {
       return NextResponse.json({ error: "专栏名称不能为空" }, { status: 400 });
@@ -21,7 +21,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "该专栏名称已存在" }, { status: 400 });
     }
 
-    categories.push({ name, description: description || "", background: background || undefined, bgOpacity });
+    categories.push({
+      name,
+      description: description || "",
+      background: background || undefined,
+      bgOpacity,
+      description_long: description_long || undefined,
+    });
     saveCategoryConfigs(categories);
 
     return NextResponse.json({ success: true, message: "专栏已添加" });
@@ -33,7 +39,7 @@ export async function POST(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   try {
     const body = await req.json();
-    const { oldName, name, description, background, bgOpacity } = body;
+    const { oldName, name, description, background, bgOpacity, description_long } = body;
 
     if (!oldName || !name) {
       return NextResponse.json({ error: "参数不完整" }, { status: 400 });
@@ -45,7 +51,13 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "专栏不存在" }, { status: 404 });
     }
 
-    categories[index] = { name, description: description || "", background: background || undefined, bgOpacity };
+    categories[index] = {
+      name,
+      description: description || "",
+      background: background || undefined,
+      bgOpacity,
+      description_long: description_long || undefined,
+    };
     saveCategoryConfigs(categories);
 
     return NextResponse.json({ success: true, message: "专栏已更新" });

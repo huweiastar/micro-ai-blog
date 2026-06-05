@@ -10,6 +10,7 @@ export type CategoryConfig = {
   description: string;
   background?: string;
   bgOpacity?: number;
+  description_long?: string;
 };
 
 export function getCategoryConfigs(): CategoryConfig[] {
