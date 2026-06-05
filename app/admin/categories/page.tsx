@@ -89,6 +89,8 @@ function CategoryEditor({
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
+  const isEdit = !isNew && !!name;
+  const draftKey = `draft:categories:${name ?? "new"}`;
   const save = async () => {
     if (!formName.trim()) {
       setMsg({ ok: false, text: "名称不能为空" });
@@ -111,6 +113,7 @@ function CategoryEditor({
     const data = await res.json();
     setSaving(false);
     if (data.success) {
+      if (typeof window !== "undefined") window.localStorage.removeItem(draftKey);
       setMsg({ ok: true, text: "已保存" });
       onSaved(payload.name);
     } else {
@@ -202,6 +205,7 @@ function CategoryEditor({
             onChange={setFormLongDesc}
             placeholder="描述这个专栏的内容定位、目标读者、阅读顺序等…"
             uploadMeta={{ type: "category", category: formName || "未命名" }}
+            draftKey={draftKey}
           />
         </div>
       </div>

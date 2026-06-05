@@ -99,6 +99,7 @@ function ProjectEditor({ slug, isNew, onSaved, onDeleted }: {
   const [saveResult, setSaveResult] = useState<{ success: boolean; message: string } | null>(null);
 
   const isEdit = !isNew && !!slug;
+  const draftKey = `draft:projects:${slug ?? "new"}`;
 
   // Load project data when editing
   useEffect(() => {
@@ -149,6 +150,7 @@ function ProjectEditor({ slug, isNew, onSaved, onDeleted }: {
         const res = await fetch("/api/projects", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
         const data = await res.json();
         if (data.success) {
+          if (typeof window !== "undefined") window.localStorage.removeItem(draftKey);
           setSaveResult({ success: true, message: "更新成功" });
           onSaved(data.slug ?? slug ?? "");
           setTimeout(() => setSaveResult(null), 2000);
@@ -159,6 +161,7 @@ function ProjectEditor({ slug, isNew, onSaved, onDeleted }: {
         const res = await fetch("/api/projects", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
         const data = await res.json();
         if (data.success) {
+          if (typeof window !== "undefined") window.localStorage.removeItem(draftKey);
           setSaveResult({ success: true, message: "创建成功" });
           onSaved(data.slug ?? "");
           setTimeout(() => setSaveResult(null), 2000);
@@ -268,6 +271,7 @@ function ProjectEditor({ slug, isNew, onSaved, onDeleted }: {
           onChange={setProjContent}
           uploadMeta={{ type: "projects" }}
           renderPreview={renderPreview}
+          draftKey={draftKey}
         />
       </div>
     </div>

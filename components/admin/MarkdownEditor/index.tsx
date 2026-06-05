@@ -6,6 +6,7 @@ import { Preview } from "./Preview";
 import { useMarkdownInsert } from "./hooks/useMarkdownInsert";
 import { useFullscreen } from "./hooks/useFullscreen";
 import { useImageUpload } from "./hooks/useImageUpload";
+import { useDraftAutosave } from "./hooks/useDraftAutosave";
 import { ImageDialog } from "./dialogs/ImageDialog";
 
 export interface MarkdownEditorProps {
@@ -38,6 +39,7 @@ export function MarkdownEditor({
   className,
   uploadEndpoint,
   uploadMeta,
+  draftKey,
 }: MarkdownEditorProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -50,6 +52,12 @@ export function MarkdownEditor({
     useMarkdownInsert(textareaRef, value, onChange);
   const { isFullscreen, toggle } = useFullscreen(wrapRef);
   const { upload } = useImageUpload(uploadEndpoint);
+  const { detectedDraft, restore, discard } = useDraftAutosave(draftKey, value);
+
+  const handleRestore = () => {
+    const v = restore();
+    if (v !== null) onChange(v);
+  };
 
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -61,6 +69,15 @@ export function MarkdownEditor({
 
   return (
     <div ref={wrapRef} className={`flex flex-col gap-2 ${isFullscreen ? "h-screen bg-[var(--background)] p-4" : ""} ${className ?? ""}`}>
+      {detectedDraft && (
+        <div className="flex items-center justify-between gap-3 px-3 py-2 rounded-lg border border-amber-500/30 bg-amber-500/5 text-sm text-amber-300">
+          <span>检测到未保存的草稿（{Math.max(1, Math.round((Date.now() - detectedDraft.updatedAt) / 60000))} 分钟前）</span>
+          <div className="flex items-center gap-2">
+            <button onClick={handleRestore} className="px-2 py-0.5 rounded bg-amber-500/20 hover:bg-amber-500/30">恢复</button>
+            <button onClick={discard} className="px-2 py-0.5 rounded text-amber-300/70 hover:text-amber-200">丢弃</button>
+          </div>
+        </div>
+      )}
       <Toolbar
         wrap={wrap}
         insert={insert}

@@ -148,6 +148,7 @@ function ArticleEditor({ slug, isNew, categories, onSaved, onDeleted }: ArticleE
   const [showAiWrite, setShowAiWrite] = useState(false);
 
   const isEdit = !isNew && !!slug;
+  const draftKey = `draft:articles:${slug ?? "new"}`;
 
   // Load existing article when editing
   useEffect(() => {
@@ -210,6 +211,7 @@ function ArticleEditor({ slug, isNew, categories, onSaved, onDeleted }: ArticleE
       });
       const data = await res.json();
       if (data.success) {
+        if (typeof window !== "undefined") window.localStorage.removeItem(draftKey);
         setSaveResult({ success: true, message: isEdit ? "文章已更新" : "文章已发布" });
         const savedSlug: string = data.slug ?? slug ?? "";
         onSaved(savedSlug);
@@ -424,6 +426,7 @@ function ArticleEditor({ slug, isNew, categories, onSaved, onDeleted }: ArticleE
                 articleTitle: articleTitle || "草稿",
               }}
               renderPreview={renderPreview}
+              draftKey={draftKey}
             />
           </div>
 
