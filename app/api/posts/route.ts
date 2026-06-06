@@ -69,9 +69,10 @@ function buildFrontmatter(opts: {
   tags: string[];
   category: string;
   draft: boolean;
+  cover?: string;
   content: string;
 }): string {
-  const { title, date, summary, tags, category, draft, content } = opts;
+  const { title, date, summary, tags, category, draft, cover, content } = opts;
   return `---
 title: "${yamlEscape(title)}"
 date: "${yamlEscape(date)}"
@@ -79,6 +80,7 @@ summary: "${yamlEscape(summary || title)}"
 tags: [${tags.map((t) => `"${yamlEscape(t)}"`).join(", ")}]
 category: "${yamlEscape(category)}"
 draft: ${draft ? "true" : "false"}
+${cover ? `cover: "${yamlEscape(cover)}"` : ""}
 ---
 
 ${content}
@@ -108,6 +110,7 @@ export async function GET(req: NextRequest) {
         category: (data.category as string) || "",
         draft: (data.draft as boolean) || false,
         content,
+        cover: (data.cover as string) || undefined,
       });
     }
 
@@ -133,6 +136,7 @@ export async function GET(req: NextRequest) {
         category: (data.category as string) || "",
         draft: (data.draft as boolean) || false,
         wordCount: calculateWordCount(content),
+        cover: (data.cover as string) || undefined,
       };
     });
 
@@ -185,6 +189,7 @@ export async function POST(req: NextRequest) {
       tags: normalizeTags(tags),
       category: String(category || ""),
       draft: Boolean(draft),
+      cover: body.cover ? String(body.cover) : undefined,
       content: String(content),
     });
 
@@ -241,6 +246,7 @@ export async function PUT(req: NextRequest) {
       tags: normalizeTags(tags),
       category: String(category || ""),
       draft: Boolean(draft),
+      cover: body.cover ? String(body.cover) : undefined,
       content: String(content),
     });
 

@@ -29,6 +29,7 @@ type Article = {
   category: string;
   draft: boolean;
   wordCount: number;
+  cover?: string;
 };
 
 type CategoryConfig = { name: string; description: string };
@@ -140,6 +141,7 @@ interface ArticleEditorProps {
 function ArticleEditor({ slug, isNew, categories, onSaved, onDeleted }: ArticleEditorProps) {
   const [articleTitle, setArticleTitle] = useState("");
   const [articleSummary, setArticleSummary] = useState("");
+  const [articleCover, setArticleCover] = useState("");
   const [articleCategory, setArticleCategory] = useState("");
   const [articleTags, setArticleTags] = useState("");
   const [articleContent, setArticleContent] = useState("");
@@ -175,6 +177,7 @@ function ArticleEditor({ slug, isNew, categories, onSaved, onDeleted }: ArticleE
         if (post && typeof post === "object") {
           setArticleTitle(post.title || "");
           setArticleSummary(post.summary || "");
+          setArticleCover(post.cover || "");
           setArticleCategory(post.category || categories[0]?.name || "");
           setArticleTags(Array.isArray(post.tags) ? post.tags.join(", ") : post.tags || "");
           setArticleContent(post.content || "");
@@ -205,6 +208,7 @@ function ArticleEditor({ slug, isNew, categories, onSaved, onDeleted }: ArticleE
       title: articleTitle,
       date: new Date().toISOString().split("T")[0],
       summary: articleSummary || articleTitle,
+      cover: articleCover || undefined,
       tags: articleTags,
       category: articleCategory,
       content: articleContent,
@@ -366,6 +370,43 @@ function ArticleEditor({ slug, isNew, categories, onSaved, onDeleted }: ArticleE
             placeholder="一句话概括这篇文章..."
             className="w-full text-base bg-transparent text-[var(--muted)] placeholder:text-[var(--muted)]/30 focus:outline-none border-none px-6 pb-4"
           />
+
+          {/* Cover Image */}
+          <div className="px-6 pb-4">
+            <label className="block text-xs text-[var(--muted)] mb-1">封面图片</label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={articleCover}
+                onChange={(e) => setArticleCover(e.target.value)}
+                placeholder="/images/covers/cover.png"
+                className="w-full px-3 py-2 rounded-lg border border-[var(--card-border)] bg-[var(--card)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50 text-sm placeholder:text-[var(--muted)]/50"
+              />
+              <input
+                type="file"
+                accept="image/*"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  e.target.value = "";
+                  if (!file) return;
+                  const fd = new FormData();
+                  fd.append("file", file);
+                  fd.append("type", "blog");
+                  const res = await fetch("/api/upload", { method: "POST", body: fd });
+                  const data = await res.json();
+                  if (data.success && data.url) setArticleCover(data.url);
+                }}
+                className="hidden"
+                id="article-cover-upload"
+              />
+              <label
+                htmlFor="article-cover-upload"
+                className="px-3 py-2 rounded-lg border border-[var(--card-border)] bg-[var(--card)] text-sm text-[var(--muted)] hover:text-[var(--primary)] cursor-pointer shrink-0"
+              >
+                上传
+              </label>
+            </div>
+          </div>
 
           <div className="px-6 pb-3">
             <div className="flex items-center gap-3">
