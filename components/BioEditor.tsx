@@ -14,7 +14,7 @@ interface BioEditorProps {
 }
 
 export function BioEditor({ label, value, onChange }: BioEditorProps) {
-  const [showPreview, setShowPreview] = useState(true);
+  const [showPreview, setShowPreview] = useState(false);
   const [showCodeBlockLang, setShowCodeBlockLang] = useState(false);
   const [showTableDialog, setShowTableDialog] = useState(false);
   const [showHeadingDialog, setShowHeadingDialog] = useState(false);
