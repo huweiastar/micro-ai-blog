@@ -11,6 +11,7 @@ export type CategoryConfig = {
   background?: string;
   bgOpacity?: number;
   description_long?: string;
+  cover?: string;
 };
 
 export function getCategoryConfigs(): CategoryConfig[] {

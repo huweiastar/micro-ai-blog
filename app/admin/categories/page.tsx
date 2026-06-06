@@ -13,6 +13,7 @@ type Category = {
   background?: string;
   bgOpacity?: number;
   description_long?: string;
+  cover?: string;
 };
 
 const BG_PRESETS = ["gradient-1", "gradient-2", "gradient-3", "gradient-4", "gradient-5", "gradient-6"];
@@ -93,6 +94,7 @@ function CategoryEditor({
   const [formDesc, setFormDesc] = useState(existing?.description ?? "");
   const [formBg, setFormBg] = useState(existing?.background ?? "");
   const [formOpacity, setFormOpacity] = useState(existing?.bgOpacity ?? 15);
+  const [formCover, setFormCover] = useState(existing?.cover ?? "");
   const [formLongDesc, setFormLongDesc] = useState(existing?.description_long ?? "");
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
@@ -111,6 +113,7 @@ function CategoryEditor({
       background: formBg || undefined,
       bgOpacity: formOpacity,
       description_long: formLongDesc || undefined,
+      cover: formCover || undefined,
     };
     const isEdit = !isNew && !!name;
     const res = await fetch("/api/categories", {
@@ -203,6 +206,42 @@ function CategoryEditor({
               onChange={(e) => setFormOpacity(Number(e.target.value))}
               className="w-full px-4 py-2 rounded-lg border border-[var(--card-border)] bg-[var(--card)]"
             />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm text-[var(--muted)] mb-1">封面图片</label>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={formCover}
+              onChange={(e) => setFormCover(e.target.value)}
+              placeholder="/images/covers/category.png"
+              className="w-full px-3 py-2 rounded-lg border border-[var(--card-border)] bg-[var(--card)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50 text-sm placeholder:text-[var(--muted)]/50"
+            />
+            <input
+              type="file"
+              accept="image/*"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                e.target.value = "";
+                if (!file) return;
+                const fd = new FormData();
+                fd.append("file", file);
+                fd.append("type", "blog");
+                const res = await fetch("/api/upload", { method: "POST", body: fd });
+                const data = await res.json();
+                if (data.success && data.url) setFormCover(data.url);
+              }}
+              className="hidden"
+              id="category-cover-upload"
+            />
+            <label
+              htmlFor="category-cover-upload"
+              className="px-3 py-2 rounded-lg border border-[var(--card-border)] bg-[var(--card)] text-sm text-[var(--muted)] hover:text-[var(--primary)] cursor-pointer shrink-0"
+            >
+              上传
+            </label>
           </div>
         </div>
 
