@@ -22,7 +22,11 @@ export function useDraftAutosave(
 } {
   const [detectedDraft, setDetectedDraft] = useState<DraftEnvelope | null>(null);
   const openTimeRef = useRef<number>(typeof window === "undefined" ? 0 : Date.now());
+  /** The last value we wrote to localStorage. */
   const lastSavedRef = useRef<string>(value);
+  /** The previous `value` prop — used to detect whether a change came from
+   *  user input (prevValue === lastSaved) or from an API load (prevValue !== lastSaved). */
+  const prevValueRef = useRef<string>(value);
 
   // On mount: load + decide whether to surface banner
   useEffect(() => {
@@ -47,20 +51,30 @@ export function useDraftAutosave(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draftKey]);
 
-  // Debounced write
+  // Debounced write — only fires when the value change came from USER INPUT.
+  // We distinguish user input from API loads by checking whether prevValue === lastSaved.
   useEffect(() => {
     if (!draftKey || typeof window === "undefined") return;
-    if (value === lastSavedRef.current) return;
-    const handle = window.setTimeout(() => {
-      try {
-        const env: DraftEnvelope = { html: value, updatedAt: Date.now() };
-        window.localStorage.setItem(draftKey, JSON.stringify(env));
-        lastSavedRef.current = value;
-      } catch {
-        /* quota exceeded — silently ignore */
-      }
-    }, DEBOUNCE_MS);
-    return () => window.clearTimeout(handle);
+
+    const isUserChange = prevValueRef.current === lastSavedRef.current;
+    prevValueRef.current = value;
+
+    if (isUserChange && value !== lastSavedRef.current) {
+      const handle = window.setTimeout(() => {
+        try {
+          const env: DraftEnvelope = { html: value, updatedAt: Date.now() };
+          window.localStorage.setItem(draftKey, JSON.stringify(env));
+          lastSavedRef.current = value;
+        } catch {
+          /* quota exceeded — silently ignore */
+        }
+      }, DEBOUNCE_MS);
+      return () => window.clearTimeout(handle);
+    }
+
+    // Not a user change (API loaded content) — just sync the refs.
+    lastSavedRef.current = value;
+    return () => {};
   }, [draftKey, value]);
 
   const restore = useCallback((): string | null => {
