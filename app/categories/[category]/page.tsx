@@ -43,9 +43,21 @@ export default function CategoryDetailPage({ params }: CategoryPageProps) {
 
       {/* Category Header */}
       <div className="relative rounded-2xl overflow-hidden mb-10 border border-[var(--card-border)]">
-        {/* Gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary)]/15 via-[var(--accent)]/8 to-transparent" />
-        <div className="absolute inset-0 bg-[var(--card)]/50 backdrop-blur-sm" />
+        {/* Background */}
+        {catConfig.cover ? (
+          <>
+            <div
+              className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+              style={{ backgroundImage: `url(${catConfig.cover})` }}
+            />
+            <div className="absolute inset-0 bg-[var(--card)]/80 backdrop-blur-sm" />
+          </>
+        ) : (
+          <>
+            <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary)]/15 via-[var(--accent)]/8 to-transparent" />
+            <div className="absolute inset-0 bg-[var(--card)]/50 backdrop-blur-sm" />
+          </>
+        )}
 
         <div className="relative z-10 p-8">
           <h1 className="text-3xl font-bold mb-2">{category}</h1>
