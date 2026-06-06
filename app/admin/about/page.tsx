@@ -33,9 +33,7 @@ export default function AboutPage() {
       .then((res) => res.json())
       .then((data) => {
         setAboutName(data.name || "");
-        // Merge bio and bio2 into a single field (separated by blank line)
-        const combined = [data.bio, data.bio2].filter(Boolean).join("\n\n");
-        setAboutBio(combined || "");
+        setAboutBio(data.bio || "");
         setAboutEmail(data.email || "");
         setAboutGithub(data.github || "");
         setAboutSkills(data.skills || []);
