@@ -29,6 +29,18 @@ export function BlogCard({ post }: BlogCardProps) {
       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[var(--primary)]/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out" />
 
       <div className="relative z-10">
+        {/* Cover image */}
+        {post.cover && (
+          <div className="mb-4 -mx-6 -mt-6 overflow-hidden rounded-t-xl">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={post.cover}
+              alt={post.title}
+              className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+          </div>
+        )}
+
         {/* Title */}
         <h2 className="text-xl font-semibold mb-3 text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors duration-300 flex items-center justify-between">
           <span className="flex-1">{post.title}</span>
