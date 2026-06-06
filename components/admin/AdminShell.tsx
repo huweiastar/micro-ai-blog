@@ -4,10 +4,25 @@ import { useState } from "react";
 import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
 
-export function AdminShell({ children }: { children: React.ReactNode }) {
+export function AdminShell({ children, theme }: {
+  children: React.ReactNode;
+  theme?: { backgroundImage: string; backgroundOpacity: number } | null;
+}) {
   const [mobileOpen, setMobileOpen] = useState(false);
   return (
-    <div className="min-h-screen flex bg-[var(--background)] text-[var(--foreground)]">
+    <div className="min-h-screen flex bg-transparent text-[var(--foreground)] relative">
+      {theme?.backgroundImage && (
+        <div className="fixed inset-0 -z-10">
+          <div
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+            style={{ backgroundImage: `url(${theme.backgroundImage})` }}
+          />
+          <div
+            className="absolute inset-0"
+            style={{ backgroundColor: "var(--background)", opacity: (theme.backgroundOpacity ?? 40) / 100 }}
+          />
+        </div>
+      )}
       {/* Desktop sidebar */}
       <div className="hidden md:flex">
         <Sidebar />
