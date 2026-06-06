@@ -24,13 +24,13 @@ export function AdminShell({ children, theme }: {
         </div>
       )}
       {/* Desktop sidebar */}
-      <div className="hidden md:flex">
+      <div className="hidden md:flex w-64 shrink-0">
         <Sidebar />
       </div>
       {/* Mobile slide-in sidebar */}
       <div
         aria-hidden={!mobileOpen}
-        className={`md:hidden fixed inset-y-0 left-0 z-40 transform transition-transform duration-200 ease-out ${mobileOpen ? "translate-x-0" : "-translate-x-full pointer-events-none"}`}
+        className={`md:hidden fixed inset-y-0 left-0 z-40 w-64 transform transition-transform duration-200 ease-out ${mobileOpen ? "translate-x-0" : "-translate-x-full pointer-events-none"}`}
       >
         <Sidebar onNavigate={() => setMobileOpen(false)} />
       </div>

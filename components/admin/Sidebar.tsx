@@ -28,7 +28,7 @@ const groups = [
 export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   return (
-    <aside className="w-60 shrink-0 border-r border-[var(--card-border)] bg-[var(--card)]/30 backdrop-blur flex flex-col">
+    <aside className="w-full h-full border-r border-[var(--card-border)] bg-[var(--card)]/30 backdrop-blur flex flex-col">
       <div className="p-4 border-b border-[var(--card-border)]">
         <Link href="/admin" className="text-lg font-bold text-[var(--foreground)] hover:text-[var(--primary)]" onClick={onNavigate}>
           后台管理
