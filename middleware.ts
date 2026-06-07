@@ -54,6 +54,19 @@ function timingSafeEqualHex(a: string, b: string): boolean {
   return mismatch === 0;
 }
 
+// 反代后 request.url 的 host 会被固定成进程绑定地址（localhost:3000），
+// 不反映真实的对外域名。构造跳转 URL 时改用代理转发的 Host 头，避免把外部
+// 用户重定向到 localhost。
+function getRequestOrigin(request: NextRequest): string {
+  const host =
+    request.headers.get("x-forwarded-host") ?? request.headers.get("host");
+  if (!host) return request.nextUrl.origin;
+  const proto =
+    request.headers.get("x-forwarded-proto") ??
+    request.nextUrl.protocol.replace(/:$/, "");
+  return `${proto}://${host}`;
+}
+
 async function verifyToken(token: string): Promise<boolean> {
   const password = process.env.ADMIN_PASSWORD;
   if (!password) return false;
@@ -83,13 +96,13 @@ export async function middleware(request: NextRequest) {
   if (pathname.startsWith("/admin")) {
     if (pathname === "/admin/login") {
       if (isAuthenticated) {
-        return NextResponse.redirect(new URL("/admin", request.url));
+        return NextResponse.redirect(new URL("/admin", getRequestOrigin(request)));
       }
       return NextResponse.next();
     }
 
     if (!isAuthenticated) {
-      const loginUrl = new URL("/admin/login", request.url);
+      const loginUrl = new URL("/admin/login", getRequestOrigin(request));
       loginUrl.searchParams.set("callbackUrl", pathname + search);
       return NextResponse.redirect(loginUrl);
     }
