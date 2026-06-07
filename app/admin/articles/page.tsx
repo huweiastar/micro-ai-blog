@@ -4,6 +4,7 @@ import { Suspense, useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Loader2,
+  Save,
   Trash2,
   Import,
   Sparkles,
@@ -339,6 +340,18 @@ function ArticleEditor({ slug, isNew, categories, onSaved, onDeleted }: ArticleE
               <Trash2 className="w-3 h-3" />删除
             </button>
           )}
+          <button
+            onClick={() => {
+              if (typeof window !== "undefined") {
+                window.localStorage.setItem(draftKey, JSON.stringify({ html: articleContent, updatedAt: Date.now() }));
+              }
+              setSaveResult({ success: true, message: "草稿已保存" });
+              setTimeout(() => setSaveResult(null), 2000);
+            }}
+            className="inline-flex items-center gap-1 text-xs px-2 py-1.5 rounded-lg border border-[var(--card-border)] text-[var(--muted)] hover:text-[var(--primary)] transition-colors"
+          >
+            <Save className="w-3 h-3" />保存草稿
+          </button>
           <button
             onClick={saveArticle}
             disabled={saving}

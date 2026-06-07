@@ -2,7 +2,7 @@
 
 import { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Loader2, Trash2 } from "lucide-react";
+import { Loader2, Save, Trash2 } from "lucide-react";
 import { SplitWorkspace } from "../../../components/admin/SplitWorkspace";
 import { MarkdownEditor } from "../../../components/admin/MarkdownEditor";
 import { renderMarkdownPreview as renderPreview } from "../../../lib/markdown/render";
@@ -217,6 +217,15 @@ function ProjectEditor({ slug, isNew, onSaved, onDeleted }: {
               <Trash2 className="w-3.5 h-3.5" /> 删除
             </button>
           )}
+          <button onClick={() => {
+              if (typeof window !== "undefined") {
+                window.localStorage.setItem(draftKey, JSON.stringify({ html: projContent, updatedAt: Date.now() }));
+              }
+              setSaveResult({ success: true, message: "草稿已保存" });
+              setTimeout(() => setSaveResult(null), 2000);
+            }} className="px-3 py-1.5 rounded-lg border border-[var(--card-border)] text-sm text-[var(--muted)] hover:text-[var(--primary)] transition-colors inline-flex items-center gap-1">
+            <Save className="w-3.5 h-3.5" /> 草稿
+          </button>
           <button onClick={saveProject} disabled={saving} className="px-4 py-1.5 rounded-lg bg-[var(--primary)] text-white text-sm font-medium hover:opacity-90 disabled:opacity-50 inline-flex items-center gap-1">
             {saving && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
             {saving ? "保存中..." : "保存"}
