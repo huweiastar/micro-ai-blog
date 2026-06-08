@@ -5,15 +5,16 @@ import { renderMarkdownToHtml } from "../../../lib/posts";
 import { Comment } from "../../../components/Comment";
 import { Tag } from "../../../components/Tag";
 import { ShareButtons } from "../../../components/blog/ShareButtons";
+import { PostMeta } from "../../../components/blog/PostMeta";
 import { BackToTop } from "../../../components/ui/BackToTop";
 import { ReadingProgress } from "../../../components/ui/ReadingProgress";
 import { ViewCount } from "../../../components/ViewCount";
-import { formatDate, formatShortDate } from "../../../lib/utils";
+import { formatShortDate } from "../../../lib/utils";
 import { generatePageMetadata, generateArticleStructuredData, getSiteUrl } from "../../../lib/seo";
 import { StructuredData } from "../../../components/StructuredData";
 import { ArticleLayout } from "../../../components/ArticleLayout";
 import { Container } from "../../../components/ui/Container";
-import { ArrowLeft, ArrowRight, Calendar, Clock, FolderOpen, Hash } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
 
 interface PostPageProps {
@@ -86,30 +87,15 @@ export default async function PostPage({ params }: PostPageProps) {
 
             <p className="text-[var(--muted)] mb-6 leading-relaxed">{post.summary}</p>
 
-            <div className="flex flex-wrap items-center gap-4 text-sm text-[var(--muted)]">
-              <span className="inline-flex items-center gap-1">
-                <Calendar className="w-4 h-4" />
-                {formatDate(post.date)}
-              </span>
-              {post.updated && (
-                <span className="inline-flex items-center gap-1">
-                  更新于 {formatDate(post.updated)}
-                </span>
-              )}
-              <span className="inline-flex items-center gap-1">
-                <Clock className="w-4 h-4" />
-                {post.readingTime}
-              </span>
-              <span className="inline-flex items-center gap-1">
-                <Hash className="w-4 h-4" />
-                {post.wordCount} 字
-              </span>
-              <span className="inline-flex items-center gap-1">
-                <FolderOpen className="w-4 h-4" />
-                {post.category}
-              </span>
+            <PostMeta
+              date={post.date}
+              readingTime={post.readingTime}
+              wordCount={post.wordCount}
+              updated={post.updated}
+              category={post.category}
+            >
               <ViewCount path={currentPath} />
-            </div>
+            </PostMeta>
 
             <div className="flex flex-wrap gap-2 mt-4">
               {post.tags.map((tag) => (

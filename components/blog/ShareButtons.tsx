@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Share2, Twitter, Link2, Check } from "lucide-react";
+import { Twitter, Link2, Check, MessageCircle } from "lucide-react";
 
 export function ShareButtons() {
   const [copied, setCopied] = useState(false);
@@ -34,8 +34,18 @@ export function ShareButtons() {
     );
   };
 
+  const handleShareWeibo = () => {
+    const url = encodeURIComponent(window.location.href);
+    const title = encodeURIComponent(document.title);
+    window.open(
+      `https://service.weibo.com/share/share.php?url=${url}&title=${title}`,
+      "_blank",
+      "noopener,noreferrer"
+    );
+  };
+
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-wrap items-center gap-2">
       <button
         onClick={handleCopyLink}
         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[var(--card-border)] text-sm text-[var(--muted)] hover:text-[var(--primary)] hover:border-[var(--primary)]/50 transition-colors"
@@ -56,10 +66,18 @@ export function ShareButtons() {
       <button
         onClick={handleShareTwitter}
         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[var(--card-border)] text-sm text-[var(--muted)] hover:text-[var(--primary)] hover:border-[var(--primary)]/50 transition-colors"
-        aria-label="Share on Twitter"
+        aria-label="分享到 X / Twitter"
       >
         <Twitter className="w-3.5 h-3.5" />
-        分享
+        X
+      </button>
+      <button
+        onClick={handleShareWeibo}
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[var(--card-border)] text-sm text-[var(--muted)] hover:text-[var(--primary)] hover:border-[var(--primary)]/50 transition-colors"
+        aria-label="分享到微博"
+      >
+        <MessageCircle className="w-3.5 h-3.5" />
+        微博
       </button>
     </div>
   );
