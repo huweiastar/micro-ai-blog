@@ -499,6 +499,33 @@
   }
 }
 
+/* Slow, large-amplitude drift for background aurora layers */
+@keyframes aurora-drift {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  25% {
+    transform: translate(6%, -4%) scale(1.12);
+  }
+  50% {
+    transform: translate(-5%, 5%) scale(0.95);
+  }
+  75% {
+    transform: translate(4%, 3%) scale(1.08);
+  }
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+}
+
+.animate-aurora {
+  animation: aurora-drift 26s ease-in-out infinite;
+}
+
+.animate-aurora-slow {
+  animation: aurora-drift 38s ease-in-out infinite reverse;
+}
+
 @keyframes float {
   0%, 100% {
     transform: translateY(0);
