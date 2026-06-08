@@ -12,6 +12,7 @@ import { formatDate, formatShortDate } from "../../../lib/utils";
 import { generatePageMetadata, generateArticleStructuredData, getSiteUrl } from "../../../lib/seo";
 import { StructuredData } from "../../../components/StructuredData";
 import { ArticleLayout } from "../../../components/ArticleLayout";
+import { Container } from "../../../components/ui/Container";
 import { ArrowLeft, ArrowRight, Calendar, Clock, FolderOpen, Hash } from "lucide-react";
 import type { Metadata } from "next";
 
@@ -57,7 +58,7 @@ export default async function PostPage({ params }: PostPageProps) {
     <>
       <StructuredData data={structuredData} />
       <ReadingProgress />
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-12">
+      <Container className="py-12">
         <ArticleLayout
           tocItems={post.toc}
           backLink={
@@ -70,6 +71,16 @@ export default async function PostPage({ params }: PostPageProps) {
             </Link>
           }
         >
+          {post.cover && (
+            <div className="mb-8 overflow-hidden rounded-xl border border-[var(--card-border)]">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={post.cover}
+                alt={post.title}
+                className="w-full h-56 sm:h-72 object-cover"
+              />
+            </div>
+          )}
           <header className="mb-8">
             <h1 className="text-3xl sm:text-4xl font-bold mb-4">{post.title}</h1>
 
@@ -149,9 +160,11 @@ export default async function PostPage({ params }: PostPageProps) {
                   <Link
                     key={rp.slug}
                     href={`/blog/${rp.slug}`}
-                    className="p-4 rounded-lg border border-[var(--card-border)] bg-[var(--card)] hover:border-[var(--primary)]/50 transition-colors"
+                    className="group p-4 rounded-xl border border-[var(--card-border)] bg-[var(--card)] transition-all duration-300 hover:border-[var(--primary)]/50 hover:-translate-y-0.5 hover:shadow-[var(--shadow-md)]"
                   >
-                    <h3 className="font-medium text-sm mb-1 line-clamp-2">{rp.title}</h3>
+                    <h3 className="font-medium text-sm mb-1 line-clamp-2 group-hover:text-[var(--primary)] transition-colors">
+                      {rp.title}
+                    </h3>
                     <p className="text-xs text-[var(--muted)]">{formatShortDate(rp.date)}</p>
                   </Link>
                 ))}
@@ -162,7 +175,7 @@ export default async function PostPage({ params }: PostPageProps) {
           {/* Comments */}
           <Comment slug={post.slug} title={post.title} />
         </ArticleLayout>
-      </div>
+      </Container>
       <BackToTop />
     </>
   );
