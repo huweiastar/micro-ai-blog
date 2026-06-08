@@ -201,7 +201,11 @@ export async function renderMarkdownToHtml(content: string): Promise<string> {
     .use(remarkGfm)
     .use(remarkRehype, { allowDangerousHtml: true })
     .use(rehypeSlug)
-    .use(rehypeAutolinkHeadings)
+    .use(rehypeAutolinkHeadings, {
+      behavior: "prepend",
+      properties: { className: ["heading-anchor"], ariaHidden: true, tabIndex: -1 },
+      content: { type: "text", value: "#" },
+    })
     .use(rehypeCallouts)
     .use(rehypePrettyCode, {
       theme: "github-dark",

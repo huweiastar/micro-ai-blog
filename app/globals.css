@@ -146,19 +146,33 @@
   }
 
   .prose-custom h1 {
-    @apply text-3xl font-bold mb-6 scroll-mt-20;
+    @apply relative text-3xl font-bold mb-6 scroll-mt-20;
   }
 
   .prose-custom h2 {
-    @apply text-2xl font-bold mt-10 mb-4 scroll-mt-20;
+    @apply relative text-2xl font-bold mt-10 mb-4 scroll-mt-20;
   }
 
   .prose-custom h3 {
-    @apply text-xl font-semibold mt-8 mb-3 scroll-mt-20;
+    @apply relative text-xl font-semibold mt-8 mb-3 scroll-mt-20;
+  }
+
+  /* Heading anchor — a faint # that surfaces on hover */
+  .prose-custom .heading-anchor {
+    @apply absolute -left-5 top-0 font-normal text-[var(--muted)] no-underline opacity-0 transition-opacity duration-200;
+  }
+  .prose-custom :is(h1, h2, h3):hover .heading-anchor,
+  .prose-custom .heading-anchor:focus-visible {
+    @apply opacity-100;
   }
 
   .prose-custom p {
     @apply leading-8 mb-5;
+  }
+
+  /* Lead paragraph when an article opens with prose */
+  .prose-custom > p:first-child {
+    @apply text-lg leading-relaxed text-[var(--foreground)];
   }
 
   .prose-custom ul {
