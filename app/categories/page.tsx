@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { getAllCategories } from "../../lib/categories";
+import { PageHeader } from "../../components/ui/PageHeader";
+import { Container } from "../../components/ui/Container";
 import { generatePageMetadata } from "../../lib/seo";
 import type { Metadata } from "next";
 
@@ -12,10 +14,15 @@ export default function CategoriesPage() {
   const categories = getAllCategories();
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-12">
-      <h1 className="text-3xl font-bold mb-8">专栏主题</h1>
-
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <>
+      <PageHeader
+        title="专栏主题"
+        description="按主题组织的文章合集"
+        count={categories.length}
+        countLabel="个专栏"
+      />
+      <Container className="pb-12">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {categories.map((category) => (
           <Link
             key={category.name}
@@ -33,7 +40,8 @@ export default function CategoriesPage() {
             </span>
           </Link>
         ))}
-      </div>
-    </div>
+        </div>
+      </Container>
+    </>
   );
 }

@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { getAllPostsSync } from "../../lib/posts";
+import { PageHeader } from "../../components/ui/PageHeader";
+import { Container } from "../../components/ui/Container";
 import { generatePageMetadata } from "../../lib/seo";
 import type { Metadata } from "next";
 
@@ -13,10 +15,15 @@ export default function ArchivePage() {
   const grouped = groupPostsByYearAndMonth(posts);
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-12">
-      <h1 className="text-3xl font-bold mb-8">文章归档</h1>
-
-      <div className="space-y-8">
+    <>
+      <PageHeader
+        title="文章归档"
+        description="按时间回顾全部文章"
+        count={posts.length}
+        countLabel="篇"
+      />
+      <Container className="pb-12">
+        <div className="space-y-8">
         {Object.entries(grouped)
           .sort((a, b) => b[0].localeCompare(a[0]))
           .map(([year, months]) => (
@@ -52,8 +59,9 @@ export default function ArchivePage() {
               </div>
             </div>
           ))}
-      </div>
-    </div>
+        </div>
+      </Container>
+    </>
   );
 }
 

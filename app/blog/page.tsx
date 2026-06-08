@@ -1,6 +1,8 @@
 import { getAllPostsSync } from "../../lib/posts";
 import { BlogCard } from "../../components/BlogCard";
 import { Pagination } from "../../components/Pagination";
+import { PageHeader } from "../../components/ui/PageHeader";
+import { Container } from "../../components/ui/Container";
 import { generatePageMetadata, getSiteUrl } from "../../lib/seo";
 import type { Metadata } from "next";
 
@@ -27,16 +29,22 @@ export default function BlogPage({ searchParams }: BlogPageProps) {
   const pagePosts = posts.slice(startIndex, startIndex + POSTS_PER_PAGE);
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-12">
-      <h1 className="text-3xl font-bold mb-8">博客文章</h1>
+    <>
+      <PageHeader
+        title="博客文章"
+        description="所有技术文章列表"
+        count={posts.length}
+        countLabel="篇"
+      />
+      <Container className="pb-12">
+        <div className="grid gap-6">
+          {pagePosts.map((post) => (
+            <BlogCard key={post.slug} post={post} />
+          ))}
+        </div>
 
-      <div className="grid gap-6">
-        {pagePosts.map((post) => (
-          <BlogCard key={post.slug} post={post} />
-        ))}
-      </div>
-
-      <Pagination currentPage={currentPage} totalPages={totalPages} basePath="/blog" />
-    </div>
+        <Pagination currentPage={currentPage} totalPages={totalPages} basePath="/blog" />
+      </Container>
+    </>
   );
 }
