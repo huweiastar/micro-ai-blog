@@ -1,62 +1,62 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://your-domain.com</loc>
+    <loc>https://huweiastar.deepai.icu</loc>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://your-domain.com/blog</loc>
+    <loc>https://huweiastar.deepai.icu/blog</loc>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://your-domain.com/tags</loc>
+    <loc>https://huweiastar.deepai.icu/tags</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://your-domain.com/categories</loc>
+    <loc>https://huweiastar.deepai.icu/categories</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://your-domain.com/archive</loc>
+    <loc>https://huweiastar.deepai.icu/archive</loc>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://your-domain.com/projects</loc>
+    <loc>https://huweiastar.deepai.icu/projects</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://your-domain.com/about</loc>
+    <loc>https://huweiastar.deepai.icu/about</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://your-domain.com/blog/大模型演进史-从规模法则到通用人工智能的破局之路</loc>
+    <loc>https://huweiastar.deepai.icu/blog/大模型演进史-从规模法则到通用人工智能的破局之路</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://your-domain.com/blog/llm-data-cleaning</loc>
+    <loc>https://huweiastar.deepai.icu/blog/llm-data-cleaning</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://your-domain.com/blog/rag-system-design</loc>
+    <loc>https://huweiastar.deepai.icu/blog/rag-system-design</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://your-domain.com/blog/llm-architecture</loc>
+    <loc>https://huweiastar.deepai.icu/blog/llm-architecture</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://your-domain.com/blog/spark-data-skew</loc>
+    <loc>https://huweiastar.deepai.icu/blog/spark-data-skew</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
