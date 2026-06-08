@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getPostsByTag, getAllTags } from "../../../lib/posts";
 import { BlogCard } from "../../../components/BlogCard";
+import { Container } from "../../../components/ui/Container";
 import { generatePageMetadata } from "../../../lib/seo";
 import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
@@ -29,7 +30,7 @@ export default function TagDetailPage({ params }: TagPageProps) {
   if (posts.length === 0) notFound();
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-12">
+    <Container className="py-12">
       <Link
         href="/tags"
         className="inline-flex items-center justify-center w-9 h-9 rounded-full border border-[var(--card-border)] text-[var(--muted)] hover:text-[var(--primary)] hover:border-[var(--primary)]/50 hover:shadow-[var(--primary)]/10 hover:shadow-md transition-all duration-200 mb-6 group"
@@ -48,6 +49,6 @@ export default function TagDetailPage({ params }: TagPageProps) {
           <BlogCard key={post.slug} post={post} />
         ))}
       </div>
-    </div>
+    </Container>
   );
 }

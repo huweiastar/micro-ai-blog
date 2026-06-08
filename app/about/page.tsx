@@ -1,7 +1,9 @@
-import { generatePageMetadata, getSiteUrl } from "../../lib/seo";
+import { generatePageMetadata } from "../../lib/seo";
 import { getAboutProfile } from "../../lib/about";
 import { SkillGroup } from "../../components/profile/SkillGroup";
 import { ContactCard } from "../../components/profile/ContactCard";
+import { PageHeader } from "../../components/ui/PageHeader";
+import { Container } from "../../components/ui/Container";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = generatePageMetadata({
@@ -13,9 +15,9 @@ export default function AboutPage() {
   const profile = getAboutProfile();
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-12">
-      <h1 className="text-3xl font-bold mb-8">关于我</h1>
-
+    <>
+      <PageHeader title="关于我" description="个人介绍、技术栈和联系方式" />
+      <Container className="pb-12">
       {/* Introduction */}
       <section className="mb-12">
         <h2 className="text-xl font-semibold mb-4">个人简介</h2>
@@ -45,6 +47,7 @@ export default function AboutPage() {
 
       {/* Contact */}
       <ContactCard />
-    </div>
+      </Container>
+    </>
   );
 }

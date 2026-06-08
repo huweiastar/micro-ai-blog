@@ -3,6 +3,8 @@ import Link from "next/link";
 import { getPostsByCategory } from "../../../lib/posts";
 import { getAllCategories, getCategoryByName } from "../../../lib/categories";
 import { BlogCard } from "../../../components/BlogCard";
+import { Container } from "../../../components/ui/Container";
+import { EmptyState } from "../../../components/ui/EmptyState";
 import { generatePageMetadata } from "../../../lib/seo";
 import { renderMarkdownPreview } from "../../../lib/markdown/render";
 import { ArrowLeft } from "lucide-react";
@@ -32,7 +34,7 @@ export default function CategoryDetailPage({ params }: CategoryPageProps) {
   if (!catConfig) notFound();
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-12">
+    <Container className="py-12">
       <Link
         href="/categories"
         className="inline-flex items-center justify-center w-9 h-9 rounded-full border border-[var(--card-border)] text-[var(--muted)] hover:text-[var(--primary)] hover:border-[var(--primary)]/50 hover:shadow-[var(--primary)]/10 hover:shadow-md transition-all duration-200 mb-6 group"
@@ -81,9 +83,11 @@ export default function CategoryDetailPage({ params }: CategoryPageProps) {
       </div>
 
       {posts.length === 0 ? (
-        <div className="glass rounded-xl p-12 text-center">
-          <p className="text-[var(--muted)]">该专栏下还没有文章</p>
-        </div>
+        <EmptyState
+          title="该专栏下还没有文章"
+          description="敬请期待，更多内容正在路上"
+          action={{ label: "浏览全部文章", href: "/blog" }}
+        />
       ) : (
         <div className="grid gap-6">
           {posts.map((post) => (
@@ -91,6 +95,6 @@ export default function CategoryDetailPage({ params }: CategoryPageProps) {
           ))}
         </div>
       )}
-    </div>
+    </Container>
   );
 }

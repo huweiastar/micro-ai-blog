@@ -2,6 +2,8 @@ import Link from "next/link";
 import { Github, Mail } from "lucide-react";
 import { navConfig } from "../config/nav";
 import { getAboutProfile } from "../lib/about";
+import { siteConfig } from "../config/site";
+import { Container } from "./ui/Container";
 
 export function Footer() {
   const profile = getAboutProfile();
@@ -12,13 +14,16 @@ export function Footer() {
 
   return (
     <footer className="border-t border-[var(--card-border)] glass mt-20">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10">
+      <Container className="py-10">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           {/* Brand */}
           <div className="col-span-2 md:col-span-1">
             <h3 className="font-semibold text-[var(--foreground)] mb-3">
               {profile.name}
             </h3>
+            <p className="text-xs leading-relaxed text-[var(--muted)]">
+              {siteConfig.description}
+            </p>
           </div>
 
           {/* Nav */}
@@ -70,7 +75,7 @@ export function Footer() {
         <div className="border-t border-[var(--card-border)] mt-8 pt-6 text-center text-xs text-[var(--muted)]">
           <p>© {new Date().getFullYear()} {profile.name}. All rights reserved.</p>
         </div>
-      </div>
+      </Container>
     </footer>
   );
 }

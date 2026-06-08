@@ -2,6 +2,8 @@ import { getAllPostsSync } from "../../lib/posts";
 import { getProjects } from "../../lib/projects";
 import { formatDate } from "../../lib/utils";
 import { generatePageMetadata } from "../../lib/seo";
+import { PageHeader } from "../../components/ui/PageHeader";
+import { Container } from "../../components/ui/Container";
 import { FileText, FolderGit2 } from "lucide-react";
 import type { Metadata } from "next";
 
@@ -40,10 +42,14 @@ export default function FootprintPage() {
   ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-12">
-      <h1 className="text-3xl font-bold mb-2">足迹</h1>
-      <p className="text-[var(--muted)] mb-8">记录每一篇文章和项目</p>
-
+    <>
+      <PageHeader
+        title="足迹"
+        description="记录每一篇文章和项目"
+        count={items.length}
+        countLabel="条"
+      />
+      <Container className="pb-12">
       <div className="relative border-l-2 border-[var(--card-border)] ml-4 space-y-8">
         {items.length === 0 && (
           <p className="pl-6 text-[var(--muted)]">还没有足迹</p>
@@ -69,6 +75,7 @@ export default function FootprintPage() {
           </div>
         ))}
       </div>
-    </div>
+      </Container>
+    </>
   );
 }
