@@ -5,21 +5,14 @@ import Link from "next/link";
 import { ParticleNetwork } from "../components/ui/ParticleNetwork";
 import { AvatarDisplay } from "../components/ui/AvatarDisplay";
 import { useProfile } from "../components/ProfileProvider.client";
-import { Github, Mail, ArrowRight, Database, Brain, Code2, Globe, Sparkles, Zap, Cpu, Layers, FileText, BookOpen, FolderGit2, Eye, Users } from "lucide-react";
-import { getGradientClass, getBackgroundImage } from "../lib/gradient-styles";
+import { Github, Mail, ArrowRight, Database, Brain, Code2, Sparkles, Zap, Layers, FileText, BookOpen, FolderGit2, Eye, Users } from "lucide-react";
+import { getCategoryStyle } from "../lib/category-style";
 
 type StatsData = {
   postCount: number;
   totalWords: number;
   projectCount: number;
   columnCount: number;
-};
-
-const iconMap: Record<string, typeof Database> = {
-  "大数据开发工程": Database,
-  "大模型数据工程": Brain,
-  "大模型基础架构": Cpu,
-  "大模型应用工程": Globe,
 };
 
 type ColumnTheme = {
@@ -87,6 +80,18 @@ export function HomeClient({ stats, columns, initialVisits }: HomeClientProps) {
     { name: "多模态", icon: Sparkles },
   ];
 
+  const wordsDisplay =
+    stats.totalWords > 10000 ? `${(stats.totalWords / 10000).toFixed(1)}万` : `${stats.totalWords}`;
+
+  const statItems = [
+    { icon: FileText, value: `${stats.postCount}`, label: "文章" },
+    { icon: BookOpen, value: wordsDisplay, label: "字数" },
+    { icon: Layers, value: `${stats.columnCount}`, label: "专栏" },
+    { icon: FolderGit2, value: `${stats.projectCount}`, label: "项目" },
+    { icon: Eye, value: visitStats.pv.toLocaleString(), label: "访问量" },
+    { icon: Users, value: visitStats.uv.toLocaleString(), label: "访客" },
+  ];
+
   return (
     <>
       {/* Hero Section with Particle Background */}
@@ -146,50 +151,25 @@ export function HomeClient({ stats, columns, initialVisits }: HomeClientProps) {
             ))}
           </div>
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-3 sm:grid-cols-6 gap-4 max-w-3xl mx-auto animate-fade-in-up" style={{ animationDelay: "0.8s" }}>
-            <div className="glass rounded-xl p-4 text-center hover:border-[var(--primary)]/50 hover:-translate-y-1 transition-all duration-300">
-              <FileText className="w-5 h-5 text-[var(--primary)] mx-auto mb-2" />
-              <div className="text-2xl font-bold bg-gradient-to-r from-[var(--primary)] to-[var(--accent)] bg-clip-text text-transparent">
-                {stats.postCount}
+          {/* Stats — unified telemetry panel */}
+          <div
+            className="glass mx-auto grid max-w-3xl grid-cols-3 overflow-hidden rounded-2xl border border-[var(--card-border)] divide-x divide-y divide-[var(--card-border)] sm:grid-cols-6 sm:divide-y-0 animate-fade-in-up"
+            style={{ animationDelay: "0.8s" }}
+          >
+            {statItems.map((item) => (
+              <div
+                key={item.label}
+                className="group/stat relative px-2 py-4 text-center transition-colors hover:bg-[var(--primary)]/[0.04]"
+              >
+                <item.icon className="mx-auto mb-2 h-4 w-4 text-[var(--muted)] transition-colors group-hover/stat:text-[var(--primary)]" />
+                <div className="bg-gradient-to-r from-[var(--primary)] to-[var(--accent)] bg-clip-text font-mono text-xl font-bold tabular-nums text-transparent sm:text-2xl">
+                  {item.value}
+                </div>
+                <div className="mt-1 text-[10px] uppercase tracking-[0.12em] text-[var(--muted)]">
+                  {item.label}
+                </div>
               </div>
-              <div className="text-xs text-[var(--muted)] mt-1">篇文章</div>
-            </div>
-            <div className="glass rounded-xl p-4 text-center hover:border-[var(--primary)]/50 hover:-translate-y-1 transition-all duration-300">
-              <BookOpen className="w-5 h-5 text-[var(--accent)] mx-auto mb-2" />
-              <div className="text-2xl font-bold bg-gradient-to-r from-[var(--accent)] to-[var(--primary)] bg-clip-text text-transparent">
-                {stats.totalWords > 10000 ? `${(stats.totalWords / 10000).toFixed(1)}万` : stats.totalWords}
-              </div>
-              <div className="text-xs text-[var(--muted)] mt-1">总字数</div>
-            </div>
-            <div className="glass rounded-xl p-4 text-center hover:border-[var(--primary)]/50 hover:-translate-y-1 transition-all duration-300">
-              <Layers className="w-5 h-5 text-[var(--primary)] mx-auto mb-2" />
-              <div className="text-2xl font-bold bg-gradient-to-r from-[var(--primary)] to-[var(--accent)] bg-clip-text text-transparent">
-                {stats.columnCount}
-              </div>
-              <div className="text-xs text-[var(--muted)] mt-1">个专栏</div>
-            </div>
-            <div className="glass rounded-xl p-4 text-center hover:border-[var(--primary)]/50 hover:-translate-y-1 transition-all duration-300">
-              <FolderGit2 className="w-5 h-5 text-[var(--primary)] mx-auto mb-2" />
-              <div className="text-2xl font-bold bg-gradient-to-r from-[var(--primary)] to-[var(--accent)] bg-clip-text text-transparent">
-                {stats.projectCount}
-              </div>
-              <div className="text-xs text-[var(--muted)] mt-1">个项目</div>
-            </div>
-            <div className="glass rounded-xl p-4 text-center hover:border-[var(--primary)]/50 hover:-translate-y-1 transition-all duration-300">
-              <Eye className="w-5 h-5 text-[var(--primary)] mx-auto mb-2" />
-              <div className="text-2xl font-bold bg-gradient-to-r from-[var(--primary)] to-[var(--accent)] bg-clip-text text-transparent">
-                {visitStats.pv.toLocaleString()}
-              </div>
-              <div className="text-xs text-[var(--muted)] mt-1">访问量</div>
-            </div>
-            <div className="glass rounded-xl p-4 text-center hover:border-[var(--primary)]/50 hover:-translate-y-1 transition-all duration-300">
-              <Users className="w-5 h-5 text-[var(--accent)] mx-auto mb-2" />
-              <div className="text-2xl font-bold bg-gradient-to-r from-[var(--accent)] to-[var(--primary)] bg-clip-text text-transparent">
-                {visitStats.uv.toLocaleString()}
-              </div>
-              <div className="text-xs text-[var(--muted)] mt-1">访问人数</div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
@@ -206,39 +186,38 @@ export function HomeClient({ stats, columns, initialVisits }: HomeClientProps) {
           </Link>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {columns.slice(0, 8).map((theme, index) => {
-            const Icon = iconMap[theme.name] || Database;
-            const gradientClass = getGradientClass(theme.background);
-            const bgImage = getBackgroundImage(theme.background);
-            const opacity = theme.bgOpacity !== undefined ? (100 - theme.bgOpacity) / 100 : 0.85;
+          {columns.slice(0, 8).map((theme) => {
+            const style = getCategoryStyle(theme.name);
+            const Icon = style.icon;
+            const grad = `linear-gradient(135deg, ${style.gradient[0]}, ${style.gradient[1]})`;
 
             return (
               <Link
                 key={theme.name}
                 href={`/categories/${encodeURIComponent(theme.name)}`}
-                className={`rounded-xl p-5 border border-[var(--card-border)] hover:-translate-y-1 hover:shadow-lg transition-all duration-300 overflow-hidden relative group ${gradientClass}`}
+                style={{ "--cat": style.accent } as React.CSSProperties}
+                className="group relative overflow-hidden rounded-xl border border-[var(--card-border)] bg-[var(--card)] p-5 transition-all duration-300 hover:-translate-y-1 hover:border-[var(--cat)] hover:shadow-[0_14px_32px_-14px_var(--cat)]"
               >
-                {/* Background overlay */}
-                {bgImage ? (
-                  <div
-                    className="absolute inset-0 bg-cover bg-center"
-                    style={{ backgroundImage: `url(${bgImage})`, opacity: 0.2 }}
-                  />
-                ) : null}
-                <div className="absolute inset-0 bg-[var(--card)]" style={{ opacity }} />
-
+                {/* Top accent bar */}
+                <div className="absolute inset-x-0 top-0 h-1 opacity-90" style={{ background: grad }} />
+                {/* Corner glow on hover */}
+                <div
+                  className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-0 blur-2xl transition-opacity duration-300 group-hover:opacity-30"
+                  style={{ background: style.accent }}
+                />
                 <div className="relative z-10">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="p-2 rounded-lg bg-gradient-to-br from-[var(--primary)]/20 to-[var(--accent)]/20 group-hover:from-[var(--primary)]/30 group-hover:to-[var(--accent)]/30 transition-all duration-300">
-                      <Icon className="w-5 h-5 text-[var(--primary)]" />
+                  <div className="mb-3 flex items-center gap-3">
+                    <div
+                      className="flex h-10 w-10 items-center justify-center rounded-xl shadow-sm transition-transform duration-300 group-hover:scale-105"
+                      style={{ background: grad }}
+                    >
+                      <Icon className="h-5 w-5 text-white" />
                     </div>
-                    <h3 className="font-semibold group-hover:text-[var(--primary)] transition-colors">
+                    <h3 className="font-semibold transition-colors group-hover:text-[var(--cat)]">
                       {theme.name}
                     </h3>
                   </div>
-                  <p className="text-sm text-[var(--muted)] leading-relaxed">
-                    {theme.desc}
-                  </p>
+                  <p className="text-sm leading-relaxed text-[var(--muted)]">{theme.desc}</p>
                 </div>
               </Link>
             );

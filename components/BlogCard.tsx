@@ -2,10 +2,12 @@
 
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import type { CSSProperties } from "react";
 import type { BlogPost } from "../lib/posts";
 import { formatDate } from "../lib/utils";
+import { getCategoryStyle } from "../lib/category-style";
 import { ArrowRight, Calendar, Clock, FileText } from "lucide-react";
-import { Badge } from "./ui/Badge";
+import { CategoryBadge } from "./blog/CategoryBadge";
 
 interface BlogCardProps {
   post: BlogPost;
@@ -13,12 +15,19 @@ interface BlogCardProps {
 
 export function BlogCard({ post }: BlogCardProps) {
   const router = useRouter();
+  const style = getCategoryStyle(post.category);
 
   return (
     <div
-      className="relative glass rounded-xl p-6 overflow-hidden transition-all duration-300 hover:shadow-[var(--shadow-lg)] hover:-translate-y-1 active:scale-[0.99] cursor-pointer group"
+      style={{ "--cat": style.accent } as CSSProperties}
+      className="group relative glass cursor-pointer overflow-hidden rounded-xl p-6 pl-7 transition-all duration-300 hover:-translate-y-1 hover:border-[var(--cat)]/40 hover:shadow-[var(--shadow-lg)] active:scale-[0.99]"
       onClick={() => router.push(`/blog/${post.slug}`)}
     >
+      {/* Category accent spine */}
+      <div
+        className="absolute inset-y-0 left-0 w-1 opacity-70 transition-opacity duration-300 group-hover:opacity-100"
+        style={{ background: `linear-gradient(180deg, ${style.gradient[0]}, ${style.gradient[1]})` }}
+      />
       <div className="relative z-10">
         {/* Cover image */}
         {post.cover && (
@@ -33,9 +42,9 @@ export function BlogCard({ post }: BlogCardProps) {
         )}
 
         {/* Title */}
-        <h2 className="text-xl font-semibold mb-3 text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors duration-300 flex items-start justify-between gap-2">
+        <h2 className="text-xl font-semibold mb-3 text-[var(--foreground)] group-hover:text-[var(--cat)] transition-colors duration-300 flex items-start justify-between gap-2">
           <span className="flex-1 line-clamp-2">{post.title}</span>
-          <ArrowRight className="w-5 h-5 mt-0.5 shrink-0 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 text-[var(--primary)]" />
+          <ArrowRight className="w-5 h-5 mt-0.5 shrink-0 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 text-[var(--cat)]" />
         </h2>
 
         {/* Summary */}
@@ -63,7 +72,11 @@ export function BlogCard({ post }: BlogCardProps) {
             <Calendar className="w-3.5 h-3.5" />
             {formatDate(post.date)}
           </span>
-          {post.category && <Badge tone="accent">{post.category}</Badge>}
+          {post.category && (
+            <span onClick={(e) => e.stopPropagation()}>
+              <CategoryBadge name={post.category} />
+            </span>
+          )}
           <span className="flex items-center gap-1">
             <Clock className="w-3.5 h-3.5" />
             {post.readingTime}
