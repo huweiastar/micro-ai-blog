@@ -10,6 +10,7 @@
 /.next/
 /.next.build/
 /.next.old/
+/.next.dev/
 /out/
 
 # production
