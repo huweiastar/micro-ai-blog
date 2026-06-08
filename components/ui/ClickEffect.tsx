@@ -15,8 +15,16 @@ interface Particle {
 export function ClickRipple() {
   const { theme } = useThemeConfig();
   const [particles, setParticles] = useState<Particle[]>([]);
+  const [enabled, setEnabled] = useState(true);
 
   useEffect(() => {
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const coarse = window.matchMedia("(pointer: coarse)").matches;
+    setEnabled(!reduce && !coarse);
+  }, []);
+
+  useEffect(() => {
+    if (!enabled) return;
     let pid = 0;
 
     const handleClick = (e: MouseEvent) => {
@@ -57,7 +65,9 @@ export function ClickRipple() {
 
     window.addEventListener("click", handleClick);
     return () => window.removeEventListener("click", handleClick);
-  }, [theme.effectStyle]);
+  }, [theme.effectStyle, enabled]);
+
+  if (!enabled) return null;
 
   return (
     <>

@@ -3,7 +3,7 @@ import { clsx } from "clsx";
 interface ContainerProps {
   children: React.ReactNode;
   className?: string;
-  as?: "div" | "section" | "main" | "header" | "footer";
+  as?: "div" | "section" | "main" | "header" | "footer" | "nav";
 }
 
 export function Container({ children, className, as: Tag = "div" }: ContainerProps) {

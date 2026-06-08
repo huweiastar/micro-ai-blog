@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface ParticleNetworkProps {
   className?: string;
@@ -18,12 +18,20 @@ interface Particle {
 export function ParticleNetwork({ className, mousePos }: ParticleNetworkProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const mouseRef = useRef(mousePos);
+  const [enabled, setEnabled] = useState(true);
+
+  useEffect(() => {
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const coarse = window.matchMedia("(pointer: coarse)").matches;
+    setEnabled(!reduce && !coarse);
+  }, []);
 
   useEffect(() => {
     mouseRef.current = mousePos;
   }, [mousePos]);
 
   useEffect(() => {
+    if (!enabled) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -159,7 +167,9 @@ export function ParticleNetwork({ className, mousePos }: ParticleNetworkProps) {
       window.removeEventListener("resize", resize);
       observer.disconnect();
     };
-  }, []);
+  }, [enabled]);
+
+  if (!enabled) return null;
 
   return (
     <canvas

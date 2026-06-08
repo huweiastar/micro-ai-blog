@@ -105,10 +105,18 @@ export default function RootLayout({
               <PageViewTracker />
               <MouseFollow />
               <ClickRipple />
+              <a
+                href="#main-content"
+                className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-[var(--primary)] focus:px-4 focus:py-2 focus:text-white"
+              >
+                跳到主内容
+              </a>
               <div className="min-h-screen flex flex-col relative">
                 <AnimatedBackground />
                 <Header />
-                <main className="flex-1 relative z-10">{children}</main>
+                <main id="main-content" className="flex-1 relative z-10">
+                  {children}
+                </main>
                 <Footer />
                 <BackToTop />
               </div>

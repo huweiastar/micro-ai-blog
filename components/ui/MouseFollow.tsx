@@ -7,8 +7,16 @@ export function MouseFollow() {
   const [isPointer, setIsPointer] = useState(false);
   const [isClicking, setIsClicking] = useState(false);
   const [trails, setTrails] = useState<Array<{ id: number; x: number; y: number }>>([]);
+  const [enabled, setEnabled] = useState(true);
 
   useEffect(() => {
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const coarse = window.matchMedia("(pointer: coarse)").matches;
+    setEnabled(!reduce && !coarse);
+  }, []);
+
+  useEffect(() => {
+    if (!enabled) return;
     let trailId = 0;
 
     const handleMouseMove = (e: MouseEvent) => {
@@ -38,7 +46,7 @@ export function MouseFollow() {
       window.removeEventListener("mousedown", handleMouseDown);
       window.removeEventListener("mouseup", handleMouseUp);
     };
-  }, []);
+  }, [enabled]);
 
   // Clear trails after animation
   useEffect(() => {
@@ -48,6 +56,8 @@ export function MouseFollow() {
 
     return () => clearTimeout(timer);
   }, [trails]);
+
+  if (!enabled) return null;
 
   return (
     <>
