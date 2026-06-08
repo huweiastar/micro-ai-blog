@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
+import { ToastProvider } from "./Toast";
 
 export function AdminShell({ children, theme }: {
   children: React.ReactNode;
@@ -10,6 +11,7 @@ export function AdminShell({ children, theme }: {
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   return (
+    <ToastProvider>
     <div className="min-h-screen flex bg-transparent text-[var(--foreground)] relative">
       {theme?.backgroundImage && (
         <div className="fixed inset-0 -z-10">
@@ -45,5 +47,6 @@ export function AdminShell({ children, theme }: {
         <main className="flex-1 min-w-0 overflow-x-hidden">{children}</main>
       </div>
     </div>
+    </ToastProvider>
   );
 }

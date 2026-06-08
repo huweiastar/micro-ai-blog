@@ -6,10 +6,12 @@ import {
   X, Edit3,
 } from "lucide-react";
 import { BioEditor } from "../../../components/BioEditor";
+import { useToast } from "../../../components/admin/Toast";
 
 type SkillGroup = { title: string; items: string[] };
 
 export default function AboutPage() {
+  const { show } = useToast();
   // About (profile) state
   const [avatar, setAvatar] = useState("");
   const [avatarPreview, setAvatarPreview] = useState("");
@@ -49,7 +51,7 @@ export default function AboutPage() {
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !file.type.startsWith("image/")) return;
-    if (file.size > 5 * 1024 * 1024) { alert("图片不能超过 5MB"); return; }
+    if (file.size > 5 * 1024 * 1024) { show("图片不能超过 5MB", "error"); return; }
 
     try {
       const formData = new FormData();
@@ -63,11 +65,12 @@ export default function AboutPage() {
         setAvatar(data.url);
         setAvatarPreview(data.url);
         localStorage.setItem("blog-avatar", data.url);
+        show("头像已更新", "success");
       } else {
-        alert(data.error || "上传失败");
+        show(data.error || "上传失败", "error");
       }
     } catch {
-      alert("上传失败，请重试");
+      show("上传失败，请重试", "error");
     }
 
     if (e.target) e.target.value = "";
@@ -89,7 +92,10 @@ export default function AboutPage() {
     setAboutResult(data);
     if (data.success) {
       setAboutSaved(true);
+      show("保存成功", "success");
       setTimeout(() => setAboutSaved(false), 2000);
+    } else {
+      show(data.message || "保存失败", "error");
     }
     setTimeout(() => setAboutResult(null), 3000);
   };
