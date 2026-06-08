@@ -8,6 +8,7 @@ import rehypeSlug from "rehype-slug";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import rehypeStringify from "rehype-stringify";
 import rehypePrettyCode from "rehype-pretty-code";
+import { rehypeCallouts } from "./rehype-callouts";
 import readingTime from "reading-time";
 import Slugger from "github-slugger";
 
@@ -201,6 +202,7 @@ export async function renderMarkdownToHtml(content: string): Promise<string> {
     .use(remarkRehype, { allowDangerousHtml: true })
     .use(rehypeSlug)
     .use(rehypeAutolinkHeadings)
+    .use(rehypeCallouts)
     .use(rehypePrettyCode, {
       theme: "github-dark",
       keepBackground: false,

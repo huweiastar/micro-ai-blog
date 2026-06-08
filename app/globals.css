@@ -181,6 +181,46 @@
     @apply border-l-4 border-[var(--primary)] pl-4 italic text-[var(--muted)];
   }
 
+  /* GitHub-style callouts / admonitions */
+  .prose-custom .callout {
+    @apply my-6 rounded-xl px-4 py-3 not-italic text-[var(--foreground)];
+    border: 1px solid color-mix(in srgb, var(--cl) 28%, var(--card-border));
+    border-left-width: 4px;
+    border-left-color: var(--cl);
+    background: color-mix(in srgb, var(--cl) 7%, var(--card));
+  }
+  .prose-custom .callout-note {
+    --cl: #3b82f6;
+  }
+  .prose-custom .callout-tip {
+    --cl: #10b981;
+  }
+  .prose-custom .callout-important {
+    --cl: #8b5cf6;
+  }
+  .prose-custom .callout-warning {
+    --cl: #f59e0b;
+  }
+  .prose-custom .callout-caution {
+    --cl: #ef4444;
+  }
+  .prose-custom .callout-title {
+    @apply mb-1.5 flex items-center gap-2 font-semibold not-italic;
+    color: var(--cl);
+  }
+  .prose-custom .callout-title .callout-icon {
+    flex: none;
+  }
+  .prose-custom .callout > p {
+    @apply my-1 leading-relaxed;
+  }
+  .prose-custom .callout > p:last-child {
+    margin-bottom: 0;
+  }
+  .prose-custom .callout a {
+    color: var(--cl);
+  }
+
   .prose-custom img {
     @apply rounded-lg mx-auto;
   }
