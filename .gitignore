@@ -41,3 +41,6 @@ next-env.d.ts
 .idea/
 *.iml
 .claude/
+
+# Playwright MCP screenshots/snapshots
+.playwright-mcp/

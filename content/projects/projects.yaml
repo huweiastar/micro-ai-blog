@@ -1,7 +1,6 @@
 - slug: "llm-data-cleaning"
   name: "大模型训练数据清洗平台"
   description: "基于 Python 和 Spark 构建的大模型训练数据清洗流程，支持文本去重、低质量过滤、敏感信息识别和格式规范化。"
-  cover: "/images/projects/llm-data-cleaning.png"
   techStack:
     - Python
     - Spark
@@ -28,7 +27,6 @@
 - slug: "multimodal-pipeline"
   name: "多模态数据处理 Pipeline"
   description: "构建支持文本、图像、音频等多模态数据的处理流水线，实现多模态数据的清洗、标注和格式转换。"
-  cover: "/images/projects/multimodal-pipeline.png"
   techStack:
     - Python
     - OpenCV
@@ -52,7 +50,6 @@
 - slug: "rag-chatbot"
   name: "RAG 知识库问答系统"
   description: "基于 LangChain 和向量数据库构建的智能问答系统，支持企业知识库的文档检索和自然语言问答。"
-  cover: "/images/projects/rag-chatbot.png"
   techStack:
     - Python
     - LangChain
@@ -78,7 +75,6 @@
 - slug: "spark-dedup"
   name: "Spark 亿级数据去重项目"
   description: "基于 MinHash + LSH 算法实现亿级文档的近似重复检测，将处理时间从数天缩短到数小时。"
-  cover: "/images/projects/spark-dedup.png"
   techStack:
     - Spark
     - Scala
@@ -103,7 +99,6 @@
 - slug: "ai-tech-blog"
   name: "个人技术博客系统"
   description: "基于 Next.js + TypeScript + Tailwind CSS 构建的个人技术博客系统，支持 MDX、分类标签、全文搜索、SEO 优化和自动化部署。"
-  cover: "/images/projects/ai-tech-blog.png"
   techStack:
     - Next.js
     - TypeScript

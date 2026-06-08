@@ -59,8 +59,8 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
 
       {/* Project Header */}
       <header className="glass rounded-xl p-8 border border-[var(--card-border)] mb-8">
-        {/* Cover hero image — hides itself if the asset is missing */}
-        {project.cover && <ProjectCover src={project.cover} alt={project.name} />}
+        {/* Cover hero — real image, or deterministic generated artwork when absent */}
+        <ProjectCover src={project.cover} alt={project.name} seed={project.slug} />
         <h1 className="text-3xl font-bold mb-3">{project.name}</h1>
         <p className="text-[var(--muted)] text-lg leading-relaxed mb-6">{project.description}</p>
 

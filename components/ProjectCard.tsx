@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Github, ExternalLink, Star, Code2, ArrowUpRight } from "lucide-react";
+import { Github, ExternalLink, Star, ArrowUpRight } from "lucide-react";
+import { GeneratedCover } from "./ui/GeneratedCover";
 import type { Project } from "../types/project";
 
 interface ProjectCardProps {
@@ -19,24 +20,24 @@ export function ProjectCard({ project }: ProjectCardProps) {
       className="group relative glass rounded-xl p-6 overflow-hidden transition-all duration-300 hover:shadow-[var(--shadow-lg)] hover:-translate-y-1 active:scale-[0.99] cursor-pointer flex flex-col"
       onClick={() => router.push(`/projects/${project.slug}`)}
     >
-      {/* Cover banner — falls back to an icon badge when absent or broken */}
-      {showCover ? (
-        <div className="mb-4 -mx-6 -mt-6 overflow-hidden rounded-t-xl">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
+      {/* Cover banner — falls back to deterministic generated artwork when absent or broken */}
+      <div className="mb-4 -mx-6 -mt-6 h-40 overflow-hidden rounded-t-xl">
+        {showCover ? (
+          /* eslint-disable-next-line @next/next/no-img-element */
           <img
             src={project.cover}
             alt={project.name}
             onError={() => setCoverFailed(true)}
-            className="w-full h-40 object-cover transition-transform duration-500 group-hover:scale-105"
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
-        </div>
-      ) : (
-        <div className="mb-4">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-[var(--primary)] to-[var(--accent)] shadow-md transition-transform duration-300 group-hover:scale-105">
-            <Code2 className="w-6 h-6 text-white" />
-          </div>
-        </div>
-      )}
+        ) : (
+          <GeneratedCover
+            seed={project.slug}
+            label={project.name}
+            className="transition-transform duration-500 group-hover:scale-105"
+          />
+        )}
+      </div>
 
       <div className="flex flex-col flex-1">
         <h3 className="text-xl font-semibold mb-3 text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors duration-300 flex items-center gap-2">
