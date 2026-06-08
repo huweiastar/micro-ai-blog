@@ -8,6 +8,7 @@ import { BackToTop } from "../components/ui/BackToTop";
 import { MouseFollow } from "../components/ui/MouseFollow";
 import { ClickRipple } from "../components/ui/ClickEffect";
 import { AssistantLauncher } from "../components/assistant/AssistantLauncher";
+import { SiteChrome } from "../components/SiteChrome";
 import { ThemeConfigProvider } from "../components/ThemeContext";
 import { CodeCopyButton } from "../components/CodeCopyButton";
 import { PageViewTracker } from "../components/PageViewTracker";
@@ -111,16 +112,15 @@ export default function RootLayout({
               >
                 跳到主内容
               </a>
-              <div className="min-h-screen flex flex-col relative">
-                <AnimatedBackground />
-                <Header />
-                <main id="main-content" className="flex-1 relative z-10">
-                  {children}
-                </main>
-                <Footer />
-                <BackToTop />
-              </div>
-              <AssistantLauncher />
+              <SiteChrome
+                background={<AnimatedBackground />}
+                header={<Header />}
+                footer={<Footer />}
+                backToTop={<BackToTop />}
+                launcher={<AssistantLauncher />}
+              >
+                {children}
+              </SiteChrome>
               <CodeCopyButton />
             </ThemeConfigProvider>
           </ProfileProvider>

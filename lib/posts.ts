@@ -40,6 +40,7 @@ export type SearchItem = {
   category: string;
   content: string;
   slug: string;
+  type: "post" | "project";
 };
 
 export type Tag = {
@@ -250,12 +251,27 @@ export function getRelatedPosts(
 
 export function generateSearchIndex(): SearchItem[] {
   const posts = getAllPostsSync();
-  return posts.map((post) => ({
+  const postItems: SearchItem[] = posts.map((post) => ({
     title: post.title,
     summary: post.summary,
     tags: post.tags,
     category: post.category,
     content: post.content.replace(/[#*`>\-_]/g, ""),
     slug: post.slug,
+    type: "post",
   }));
+
+  // 把项目也纳入站内搜索（延迟 require 避免与 projects 模块的循环引用风险）
+  const { getProjects } = require("./projects") as typeof import("./projects");
+  const projectItems: SearchItem[] = getProjects().map((p) => ({
+    title: p.name,
+    summary: p.description,
+    tags: p.techStack || [],
+    category: "项目",
+    content: [p.content || "", ...(p.highlights || [])].join(" ").replace(/[#*`>\-_]/g, ""),
+    slug: p.slug,
+    type: "project",
+  }));
+
+  return [...postItems, ...projectItems];
 }

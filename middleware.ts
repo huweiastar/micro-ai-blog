@@ -5,6 +5,7 @@ const SESSION_MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7 days in ms
 
 const WRITE_API_PATHS = [
   "/api/publish",
+  "/api/posts",
   "/api/upload",
   "/api/categories",
   "/api/projects",

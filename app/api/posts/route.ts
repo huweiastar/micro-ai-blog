@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
+import { refreshAfterContentChange } from "../../../lib/regenerate";
 
 const postsDirectory = path.join(process.cwd(), "content/blog");
 
@@ -195,6 +196,8 @@ export async function POST(req: NextRequest) {
 
     fs.writeFileSync(path.join(postsDirectory, fileName), mdContent, "utf-8");
 
+    refreshAfterContentChange(finalSlug);
+
     return NextResponse.json({
       success: true,
       slug: finalSlug,
@@ -252,6 +255,8 @@ export async function PUT(req: NextRequest) {
 
     fs.writeFileSync(filePath, mdContent, "utf-8");
 
+    refreshAfterContentChange(slug);
+
     return NextResponse.json({ success: true, slug });
   } catch (error) {
     console.error("Update post error:", error);
@@ -280,6 +285,8 @@ export async function DELETE(req: NextRequest) {
     }
 
     fs.unlinkSync(filePath);
+
+    refreshAfterContentChange(slug);
 
     return NextResponse.json({ success: true });
   } catch (error) {

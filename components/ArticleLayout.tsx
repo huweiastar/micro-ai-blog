@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Toc } from "./Toc";
+import { MobileToc } from "./MobileToc";
 import type { TocItem } from "../lib/posts";
 
 interface ArticleLayoutProps {
@@ -38,6 +39,7 @@ export function ArticleLayout({ tocItems, children, backLink }: ArticleLayoutPro
       <article className={`transition-all duration-300 ${
         tocCollapsed ? "lg:col-span-11" : "lg:col-span-9"
       }`}>
+        <MobileToc items={tocItems} />
         {children}
       </article>
     </div>

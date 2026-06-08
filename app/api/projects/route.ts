@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 import yaml from "js-yaml";
+import { refreshAfterContentChange } from "../../../lib/regenerate";
 
 const projectsPath = path.join(process.cwd(), "content/projects/projects.yaml");
 
@@ -58,6 +59,8 @@ export async function POST(req: NextRequest) {
     projects.push(project);
     writeProjects(projects);
 
+    refreshAfterContentChange();
+
     return NextResponse.json({ success: true, project });
   } catch (error) {
     return NextResponse.json({ error: "创建失败" }, { status: 500 });
@@ -88,6 +91,8 @@ export async function PUT(req: NextRequest) {
     projects[index] = { ...projects[index], ...updates };
     writeProjects(projects);
 
+    refreshAfterContentChange();
+
     return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json({ error: "更新失败" }, { status: 500 });
@@ -102,6 +107,8 @@ export async function DELETE(req: NextRequest) {
 
     projects = projects.filter((p: any) => p.slug !== slug);
     writeProjects(projects);
+
+    refreshAfterContentChange();
 
     return NextResponse.json({ success: true });
   } catch (error) {

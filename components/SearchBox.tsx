@@ -50,7 +50,7 @@ export function SearchBox({ index }: SearchBoxProps) {
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="搜索文章..."
+          placeholder="搜索文章、项目..."
           className="w-full pl-10 pr-10 py-3 rounded-xl border border-[var(--card-border)] bg-[var(--card)] text-[var(--foreground)] placeholder:text-[var(--muted)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50"
         />
         {query && (
@@ -70,36 +70,50 @@ export function SearchBox({ index }: SearchBoxProps) {
           ) : results.length > 0 ? (
             <>
               <p className="text-sm text-[var(--muted)]">
-                找到 {results.length} 篇相关文章
+                找到 {results.length} 条相关结果
               </p>
-              {results.map((item) => (
-                <Link
-                  key={item.slug}
-                  href={`/blog/${item.slug}`}
-                  className="block p-4 rounded-lg border border-[var(--card-border)] bg-[var(--card)] hover:border-[var(--primary)]/50 transition-colors"
-                >
-                  <h3 className="font-medium text-[var(--foreground)] mb-1">
-                    {item.title}
-                  </h3>
-                  <p className="text-sm text-[var(--muted)] line-clamp-2">
-                    {item.summary}
-                  </p>
-                  <div className="flex gap-2 mt-2">
-                    {item.tags.slice(0, 3).map((tag) => (
+              {results.map((item) => {
+                const isProject = item.type === "project";
+                return (
+                  <Link
+                    key={`${item.type}-${item.slug}`}
+                    href={isProject ? `/projects/${item.slug}` : `/blog/${item.slug}`}
+                    className="block p-4 rounded-lg border border-[var(--card-border)] bg-[var(--card)] hover:border-[var(--primary)]/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-2 mb-1">
                       <span
-                        key={tag}
-                        className="text-xs px-2 py-0.5 rounded bg-[var(--primary)]/10 text-[var(--primary)]"
+                        className={`text-xs px-1.5 py-0.5 rounded shrink-0 ${
+                          isProject
+                            ? "bg-[var(--accent)]/15 text-[var(--accent)]"
+                            : "bg-[var(--primary)]/10 text-[var(--primary)]"
+                        }`}
                       >
-                        {tag}
+                        {isProject ? "项目" : "文章"}
                       </span>
-                    ))}
-                  </div>
-                </Link>
-              ))}
+                      <h3 className="font-medium text-[var(--foreground)]">
+                        {item.title}
+                      </h3>
+                    </div>
+                    <p className="text-sm text-[var(--muted)] line-clamp-2">
+                      {item.summary}
+                    </p>
+                    <div className="flex gap-2 mt-2">
+                      {item.tags.slice(0, 3).map((tag) => (
+                        <span
+                          key={tag}
+                          className="text-xs px-2 py-0.5 rounded bg-[var(--primary)]/10 text-[var(--primary)]"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </Link>
+                );
+              })}
             </>
           ) : (
             <p className="text-center text-[var(--muted)] text-sm">
-              未找到相关文章
+              未找到相关结果
             </p>
           )}
         </div>

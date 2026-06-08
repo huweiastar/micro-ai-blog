@@ -66,13 +66,16 @@ function parseBlocks(content: string): React.ReactNode[] {
   while (i < lines.length) {
     const line = lines[i];
 
-    // Code blocks
-    if (line.startsWith("```")) {
-      const lang = line.slice(3).trim();
+    // Code blocks — tolerate leading whitespace so fenced blocks that the AI
+    // nests inside list items (indented ```) still render correctly.
+    const fenceMatch = line.match(/^(\s*)```/);
+    if (fenceMatch) {
+      const indent = fenceMatch[1].length;
       const codeLines: string[] = [];
       i++;
-      while (i < lines.length && !lines[i].startsWith("```")) {
-        codeLines.push(lines[i]);
+      while (i < lines.length && !/^\s*```/.test(lines[i])) {
+        // Strip the fence's indentation from each line, keeping deeper indents.
+        codeLines.push(lines[i].slice(0, indent).trim() === "" ? lines[i].slice(indent) : lines[i]);
         i++;
       }
       elements.push(
@@ -80,7 +83,7 @@ function parseBlocks(content: string): React.ReactNode[] {
           <code className="text-[var(--foreground)]">{codeLines.join("\n")}</code>
         </pre>
       );
-      i++;
+      i++; // skip closing fence
       continue;
     }
 
@@ -215,7 +218,7 @@ function parseBlocks(content: string): React.ReactNode[] {
     while (
       i < lines.length &&
       lines[i].trim() !== "" &&
-      !lines[i].startsWith("```") &&
+      !/^\s*```/.test(lines[i]) &&
       !lines[i].startsWith("# ") &&
       !lines[i].startsWith("## ") &&
       !lines[i].startsWith("### ") &&

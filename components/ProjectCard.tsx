@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Github, ExternalLink, Star, Code2, ArrowUpRight } from "lucide-react";
 import type { Project } from "../types/project";
@@ -10,19 +11,22 @@ interface ProjectCardProps {
 
 export function ProjectCard({ project }: ProjectCardProps) {
   const router = useRouter();
+  const [coverFailed, setCoverFailed] = useState(false);
+  const showCover = Boolean(project.cover) && !coverFailed;
 
   return (
     <div
       className="group relative glass rounded-xl p-6 overflow-hidden transition-all duration-300 hover:shadow-[var(--shadow-lg)] hover:-translate-y-1 active:scale-[0.99] cursor-pointer flex flex-col"
       onClick={() => router.push(`/projects/${project.slug}`)}
     >
-      {/* Cover banner — falls back to an icon badge when absent */}
-      {project.cover ? (
+      {/* Cover banner — falls back to an icon badge when absent or broken */}
+      {showCover ? (
         <div className="mb-4 -mx-6 -mt-6 overflow-hidden rounded-t-xl">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={project.cover}
             alt={project.name}
+            onError={() => setCoverFailed(true)}
             className="w-full h-40 object-cover transition-transform duration-500 group-hover:scale-105"
           />
         </div>

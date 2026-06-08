@@ -31,17 +31,18 @@ type ColumnTheme = {
 
 interface HomeClientProps {
   stats: StatsData;
+  columns: ColumnTheme[];
+  initialVisits: { pv: number; uv: number };
 }
 
-export function HomeClient({ stats }: HomeClientProps) {
+export function HomeClient({ stats, columns, initialVisits }: HomeClientProps) {
   const [mousePos, setMousePos] = useState({ x: -1000, y: -1000 });
   const profile = useProfile();
-  const [columns, setColumns] = useState<ColumnTheme[]>([]);
   const socialLinks = {
     github: profile?.github || "https://github.com/huweiastar",
     email: profile?.email ? `mailto:${profile.email}` : "mailto:your-email@example.com",
   };
-  const [visitStats, setVisitStats] = useState<{ pv: number; uv: number }>({ pv: 0, uv: 0 });
+  const [visitStats, setVisitStats] = useState<{ pv: number; uv: number }>(initialVisits);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -50,29 +51,6 @@ export function HomeClient({ stats }: HomeClientProps) {
 
   const handleMouseLeave = useCallback(() => {
     setMousePos({ x: -1000, y: -1000 });
-  }, []);
-
-  // Load columns from API
-  useEffect(() => {
-    fetch("/api/categories")
-      .then((res) => res.json())
-      .then((data: any[]) => {
-        setColumns(data.map((c) => ({
-          name: c.name,
-          desc: c.description || "",
-          background: c.background,
-          bgOpacity: c.bgOpacity,
-        })));
-      })
-      .catch(() => {
-        // Fallback to hardcoded
-        setColumns([
-          { name: "大数据开发工程", desc: "Spark / Hive / SQL 性能优化与数据管道" },
-          { name: "大模型数据工程", desc: "训练数据清洗、质量控制与 SFT 数据处理" },
-          { name: "大模型基础架构", desc: "LLM 架构、训练流程与模型优化" },
-          { name: "大模型应用工程", desc: "RAG 知识库、Agent 与多模态应用" },
-        ]);
-      });
   }, []);
 
   // Load visit stats — POST to record and get updated count atomically

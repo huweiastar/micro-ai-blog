@@ -6,6 +6,7 @@ import { formatDate } from "../../../lib/utils";
 import { generatePageMetadata } from "../../../lib/seo";
 import { Comment } from "../../../components/Comment";
 import { ViewCount } from "../../../components/ViewCount";
+import { ProjectCover } from "../../../components/ProjectCover";
 import { ArrowLeft, Github, ExternalLink, Code2, FolderOpen } from "lucide-react";
 import type { Metadata } from "next";
 
@@ -58,13 +59,8 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
 
       {/* Project Header */}
       <header className="glass rounded-xl p-8 border border-[var(--card-border)] mb-8">
-        {/* Cover hero image */}
-        {project.cover && (
-          <div className="mb-6 -mx-8 -mt-8 overflow-hidden rounded-t-xl border-b border-[var(--card-border)]">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={project.cover} alt={project.name} className="w-full h-64 object-cover" />
-          </div>
-        )}
+        {/* Cover hero image — hides itself if the asset is missing */}
+        {project.cover && <ProjectCover src={project.cover} alt={project.name} />}
         <h1 className="text-3xl font-bold mb-3">{project.name}</h1>
         <p className="text-[var(--muted)] text-lg leading-relaxed mb-6">{project.description}</p>
 

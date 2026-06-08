@@ -1,6 +1,7 @@
 import { getAllPostsSync } from "../lib/posts";
 import { getProjects } from "../lib/projects";
 import { getAllCategories } from "../lib/categories";
+import { getAnalytics } from "../lib/analytics";
 import { generatePageMetadata, getSiteUrl } from "../lib/seo";
 import { getAboutProfile } from "../lib/about";
 import { HomeClient } from "./page.client";
@@ -33,9 +34,18 @@ export default function HomePage() {
     columnCount: allCategories.length,
   };
 
+  // 服务端直出，避免首屏闪 0/空 + 利于 SEO
+  const columns = allCategories.map((c) => ({
+    name: c.name,
+    desc: c.description || "",
+    background: c.background,
+    bgOpacity: c.bgOpacity,
+  }));
+  const initialVisits = getAnalytics();
+
   return (
     <div className="relative">
-      <HomeClient stats={stats} />
+      <HomeClient stats={stats} columns={columns} initialVisits={initialVisits} />
 
       {/* Latest Posts */}
       <Section title="最新文章" moreHref="/blog" className="mb-20">

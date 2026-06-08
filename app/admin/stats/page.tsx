@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { BarChart3, FileText, Rocket, Type } from "lucide-react";
+import { BarChart3, FileText, Rocket, Type, Eye, Users } from "lucide-react";
 
 interface Stats {
   postCount: number;
@@ -9,8 +9,16 @@ interface Stats {
   projectCount: number;
 }
 
+interface VisitSummary {
+  pv: number;
+  uv: number;
+  updatedAt: string;
+  paths: Array<{ path: string; pv: number; uv: number; updatedAt: string }>;
+}
+
 export default function StatsPage() {
   const [stats, setStats] = useState<Stats | null>(null);
+  const [visits, setVisits] = useState<VisitSummary | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -18,15 +26,28 @@ export default function StatsPage() {
       .then((r) => r.json())
       .then((data: Stats) => setStats(data))
       .catch(() => setError("加载统计失败"));
+
+    fetch("/api/analytics?scope=admin")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: VisitSummary | null) => data && setVisits(data))
+      .catch(() => {});
   }, []);
 
-  const cards: Array<{ label: string; value: number; Icon: typeof BarChart3 }> = stats
-    ? [
-        { label: "文章数", value: stats.postCount, Icon: FileText },
-        { label: "总字数", value: stats.totalWords, Icon: Type },
-        { label: "项目数", value: stats.projectCount, Icon: Rocket },
-      ]
-    : [];
+  const cards: Array<{ label: string; value: number; Icon: typeof BarChart3 }> = [
+    ...(visits
+      ? [
+          { label: "总浏览量 (PV)", value: visits.pv, Icon: Eye },
+          { label: "总访客数 (UV)", value: visits.uv, Icon: Users },
+        ]
+      : []),
+    ...(stats
+      ? [
+          { label: "文章数", value: stats.postCount, Icon: FileText },
+          { label: "总字数", value: stats.totalWords, Icon: Type },
+          { label: "项目数", value: stats.projectCount, Icon: Rocket },
+        ]
+      : []),
+  ];
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
@@ -45,8 +66,8 @@ export default function StatsPage() {
         </div>
       )}
 
-      {stats && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {cards.length > 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
           {cards.map((c) => (
             <div
               key={c.label}
@@ -59,6 +80,44 @@ export default function StatsPage() {
               <div className="text-3xl font-bold">{c.value.toLocaleString()}</div>
             </div>
           ))}
+        </div>
+      )}
+
+      {visits && visits.paths.length > 0 && (
+        <div className="mt-8">
+          <h2 className="text-lg font-semibold mb-3">页面访问排行</h2>
+          <div className="overflow-x-auto rounded-xl border border-[var(--card-border)] bg-[var(--card)]/30">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-[var(--card-border)] text-[var(--muted)] text-left">
+                  <th className="px-4 py-3 font-medium">页面</th>
+                  <th className="px-4 py-3 font-medium text-right whitespace-nowrap">PV</th>
+                  <th className="px-4 py-3 font-medium text-right whitespace-nowrap">UV</th>
+                </tr>
+              </thead>
+              <tbody>
+                {visits.paths.slice(0, 50).map((p) => (
+                  <tr
+                    key={p.path}
+                    className="border-b border-[var(--card-border)]/50 last:border-0"
+                  >
+                    <td className="px-4 py-2.5">
+                      <a
+                        href={p.path}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-[var(--primary)] hover:underline break-all"
+                      >
+                        {p.path}
+                      </a>
+                    </td>
+                    <td className="px-4 py-2.5 text-right tabular-nums">{p.pv.toLocaleString()}</td>
+                    <td className="px-4 py-2.5 text-right tabular-nums">{p.uv.toLocaleString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>

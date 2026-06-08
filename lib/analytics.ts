@@ -70,6 +70,25 @@ export function getAnalytics(): { pv: number; uv: number } {
   return { pv: data.pv, uv: data.uv };
 }
 
+export type AnalyticsSummary = {
+  pv: number;
+  uv: number;
+  updatedAt: string;
+  paths: Array<{ path: string; pv: number; uv: number; updatedAt: string }>;
+};
+
+/**
+ * 后台仪表盘用：返回全站汇总 + 按 PV 降序的每页明细，
+ * 但**不包含** visitorIds（避免泄露访客标识）。
+ */
+export function getAnalyticsSummary(): AnalyticsSummary {
+  const data = readAnalytics();
+  const paths = Object.entries(data.paths || {})
+    .map(([path, p]) => ({ path, pv: p.pv, uv: p.uv, updatedAt: p.updatedAt }))
+    .sort((a, b) => b.pv - a.pv);
+  return { pv: data.pv, uv: data.uv, updatedAt: data.updatedAt, paths };
+}
+
 export function getPathAnalytics(pagePath: string): PathAnalytics {
   const data = readAnalytics();
   return (
