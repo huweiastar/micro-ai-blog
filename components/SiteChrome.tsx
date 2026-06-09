@@ -8,6 +8,7 @@ interface SiteChromeProps {
   footer: React.ReactNode;
   backToTop: React.ReactNode;
   launcher: React.ReactNode;
+  commandPalette: React.ReactNode;
   children: React.ReactNode;
 }
 
@@ -21,6 +22,7 @@ export function SiteChrome({
   footer,
   backToTop,
   launcher,
+  commandPalette,
   children,
 }: SiteChromeProps) {
   const pathname = usePathname();
@@ -38,6 +40,7 @@ export function SiteChrome({
         {!isAdmin && backToTop}
       </div>
       {!isAdmin && launcher}
+      {!isAdmin && commandPalette}
     </>
   );
 }

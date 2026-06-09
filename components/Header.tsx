@@ -8,6 +8,7 @@ import { ThemeToggle } from "./ThemeToggle";
 import { navConfig } from "../config/nav";
 import { useProfile } from "./ProfileProvider.client";
 import { Container } from "./ui/Container";
+import { openCommandPalette } from "./CommandPalette";
 
 export function Header() {
   const pathname = usePathname();
@@ -51,21 +52,26 @@ export function Header() {
             </Link>
             );
           })}
-          <Link
-            href="/search"
-            className="ml-2 p-2 rounded-lg text-[var(--muted)] hover:text-[var(--primary)] hover:bg-[var(--card)]/50 transition-all duration-300 hover:scale-110 active:scale-95 group"
+          <button
+            onClick={openCommandPalette}
+            aria-label="搜索 (⌘K)"
+            className="group ml-2 inline-flex items-center gap-2 rounded-lg border border-[var(--card-border)] bg-[var(--card)]/40 py-1.5 pl-2.5 pr-2 text-[var(--muted)] transition-all duration-300 hover:border-[var(--primary)]/50 hover:text-[var(--primary)]"
           >
-            <Search className="w-5 h-5 group-hover:rotate-12 transition-transform duration-300" />
-          </Link>
+            <Search className="h-4 w-4 transition-transform duration-300 group-hover:rotate-12" />
+            <span className="text-sm">搜索</span>
+            <kbd className="rounded border border-[var(--card-border)] px-1.5 py-0.5 text-[10px] leading-none text-[var(--muted)]">
+              ⌘K
+            </kbd>
+          </button>
           <div className="p-1">
             <ThemeToggle />
           </div>
         </div>
 
         <div className="flex items-center gap-3 md:hidden">
-          <Link href="/search" className="text-[var(--muted)]">
+          <button onClick={openCommandPalette} aria-label="搜索" className="text-[var(--muted)]">
             <Search className="w-5 h-5" />
-          </Link>
+          </button>
           <ThemeToggle />
           <button
             onClick={() => setMobileOpen(!mobileOpen)}

@@ -9,6 +9,7 @@ import { MouseFollow } from "../components/ui/MouseFollow";
 import { ClickRipple } from "../components/ui/ClickEffect";
 import { AssistantLauncher } from "../components/assistant/AssistantLauncher";
 import { SiteChrome } from "../components/SiteChrome";
+import { CommandPalette } from "../components/CommandPalette";
 import { ThemeConfigProvider } from "../components/ThemeContext";
 import { CodeCopyButton } from "../components/CodeCopyButton";
 import { PageViewTracker } from "../components/PageViewTracker";
@@ -118,6 +119,7 @@ export default function RootLayout({
                 footer={<Footer />}
                 backToTop={<BackToTop />}
                 launcher={<AssistantLauncher />}
+                commandPalette={<CommandPalette />}
               >
                 {children}
               </SiteChrome>
