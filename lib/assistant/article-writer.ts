@@ -64,7 +64,7 @@ export function buildArticlePrompt(
             ? `[文章] ${chunk.title}${chunk.url ? ` (${chunk.url})` : ""}`
             : chunk.sourceType === "project"
             ? `[项目] ${chunk.title}`
-            : `[代码] ${chunk.title}${chunk.filePath ? ` (${chunk.filePath})` : ""}`;
+            : `[代码] ${chunk.title}`;
 
         return `【参考资料 ${i + 1}】${source}\n${chunk.content.slice(0, 800)}`;
       })

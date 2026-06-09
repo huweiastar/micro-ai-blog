@@ -42,10 +42,7 @@ export function AssistantSources({ sources }: AssistantSourcesProps) {
               <Icon className="w-3 h-3 text-[var(--primary)] flex-shrink-0" />
               <div className="flex-1 min-w-0">
                 <span className="text-[var(--foreground)] truncate block">{source.title}</span>
-                <span className="text-[var(--muted)]">
-                  {label}
-                  {source.filePath && ` · ${source.filePath.split("/").slice(-2).join("/")}`}
-                </span>
+                <span className="text-[var(--muted)]">{label}</span>
               </div>
               {source.url && (
                 <a

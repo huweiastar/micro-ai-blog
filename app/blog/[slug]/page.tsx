@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { getAllPostsSync, getPostBySlug, getAdjacentPosts, getSeriesContext } from "../../../lib/posts";
+import { getAllPostsSync, getPostBySlug, getSeriesContext } from "../../../lib/posts";
 import { renderMarkdownToHtml } from "../../../lib/posts";
 import { Comment } from "../../../components/Comment";
 import { Tag } from "../../../components/Tag";
@@ -17,7 +17,7 @@ import { BookmarkButton } from "../../../components/blog/BookmarkButton";
 import { LikeButton } from "../../../components/blog/LikeButton";
 import { ReadingPosition } from "../../../components/blog/ReadingPosition";
 import { Container } from "../../../components/ui/Container";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 
 interface PostPageProps {
@@ -52,7 +52,6 @@ export default async function PostPage({ params }: PostPageProps) {
   if (!post) notFound();
 
   const html = await renderMarkdownToHtml(post.content);
-  const { prev, next } = getAdjacentPosts(getAllPostsSync(), post.slug);
   const series = getSeriesContext(getAllPostsSync(), post.slug);
   const siteUrl = getSiteUrl();
   const postUrl = `${siteUrl}/blog/${post.slug}`;
@@ -134,30 +133,6 @@ export default async function PostPage({ params }: PostPageProps) {
             className="prose-custom"
             dangerouslySetInnerHTML={{ __html: html }}
           />
-
-          {/* Adjacent Posts */}
-          <div className="flex justify-between items-center mt-12 pt-6 border-t border-[var(--card-border)]">
-            {prev ? (
-              <Link
-                href={`/blog/${prev.slug}`}
-                className="inline-flex items-center gap-2 text-sm text-[var(--primary)] hover:underline"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                {prev.title}
-              </Link>
-            ) : (
-              <div />
-            )}
-            {next && (
-              <Link
-                href={`/blog/${next.slug}`}
-                className="inline-flex items-center gap-2 text-sm text-[var(--primary)] hover:underline"
-              >
-                {next.title}
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-            )}
-          </div>
 
           {/* Series Navigation */}
           {series && <SeriesNav series={series} />}
