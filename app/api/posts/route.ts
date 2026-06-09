@@ -155,12 +155,14 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { title, summary, category, tags, content, draft } = body;
+    const isDraft = Boolean(draft);
 
-    if (!title || !content) {
-      return NextResponse.json(
-        { error: "标题和正文不能为空" },
-        { status: 400 }
-      );
+    if (!title) {
+      return NextResponse.json({ error: "标题不能为空" }, { status: 400 });
+    }
+    // 草稿允许正文为空（仅占位标题即可入草稿箱）；正式发布才强制正文。
+    if (!isDraft && !content) {
+      return NextResponse.json({ error: "正文不能为空" }, { status: 400 });
     }
 
     const baseSlug = deriveSlug(String(title));
@@ -189,9 +191,9 @@ export async function POST(req: NextRequest) {
       summary: String(summary || ""),
       tags: normalizeTags(tags),
       category: String(category || ""),
-      draft: Boolean(draft),
+      draft: isDraft,
       cover: body.cover ? String(body.cover) : undefined,
-      content: String(content),
+      content: String(content ?? ""),
     });
 
     fs.writeFileSync(path.join(postsDirectory, fileName), mdContent, "utf-8");
@@ -216,6 +218,7 @@ export async function PUT(req: NextRequest) {
   try {
     const body = await req.json();
     const { slug, title, summary, category, tags, content, draft } = body;
+    const isDraft = Boolean(draft);
 
     if (!slug || typeof slug !== "string") {
       return NextResponse.json({ error: "缺少 slug" }, { status: 400 });
@@ -223,11 +226,11 @@ export async function PUT(req: NextRequest) {
     if (!SLUG_PATTERN.test(slug)) {
       return NextResponse.json({ error: "无效的 slug" }, { status: 400 });
     }
-    if (!title || !content) {
-      return NextResponse.json(
-        { error: "标题和正文不能为空" },
-        { status: 400 }
-      );
+    if (!title) {
+      return NextResponse.json({ error: "标题不能为空" }, { status: 400 });
+    }
+    if (!isDraft && !content) {
+      return NextResponse.json({ error: "正文不能为空" }, { status: 400 });
     }
 
     const filePath = findPostFile(slug);
@@ -248,9 +251,9 @@ export async function PUT(req: NextRequest) {
       summary: String(summary || ""),
       tags: normalizeTags(tags),
       category: String(category || ""),
-      draft: Boolean(draft),
+      draft: isDraft,
       cover: body.cover ? String(body.cover) : undefined,
-      content: String(content),
+      content: String(content ?? ""),
     });
 
     fs.writeFileSync(filePath, mdContent, "utf-8");

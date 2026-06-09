@@ -190,13 +190,16 @@ function ArticleEditor({ slug, isNew, categories, onSaved, onDeleted }: ArticleE
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug, isEdit]);
 
-  const saveArticle = async () => {
+  // asDraft 显式指定保存为草稿（不传则沿用当前草稿开关状态）。
+  // 草稿仅需标题即可入库；正式发布才要求正文非空。
+  const saveArticle = async (asDraft?: boolean) => {
+    const saveAsDraft = asDraft ?? draft;
     if (!articleTitle.trim()) {
       setSaveResult({ success: false, message: "请输入文章标题" });
       setTimeout(() => setSaveResult(null), 2000);
       return;
     }
-    if (!articleContent.trim()) {
+    if (!saveAsDraft && !articleContent.trim()) {
       setSaveResult({ success: false, message: "请输入文章内容" });
       setTimeout(() => setSaveResult(null), 2000);
       return;
@@ -213,7 +216,7 @@ function ArticleEditor({ slug, isNew, categories, onSaved, onDeleted }: ArticleE
       tags: articleTags,
       category: articleCategory,
       content: articleContent,
-      draft,
+      draft: saveAsDraft,
     };
     try {
       const method = isEdit ? "PUT" : "POST";
@@ -225,14 +228,18 @@ function ArticleEditor({ slug, isNew, categories, onSaved, onDeleted }: ArticleE
       const data = await res.json();
       if (data.success) {
         if (typeof window !== "undefined") window.localStorage.removeItem(draftKey);
-        setSaveResult({ success: true, message: isEdit ? "文章已更新" : "文章已发布" });
+        if (saveAsDraft) setDraft(true);
+        setSaveResult({
+          success: true,
+          message: saveAsDraft ? "草稿已保存" : isEdit ? "文章已更新" : "文章已发布",
+        });
         const savedSlug: string = data.slug ?? slug ?? "";
         onSaved(savedSlug);
         setTimeout(() => setSaveResult(null), 2000);
       } else {
         setSaveResult({
           success: false,
-          message: data.error || (isEdit ? "更新失败" : "发布失败"),
+          message: data.error || (saveAsDraft ? "草稿保存失败" : isEdit ? "更新失败" : "发布失败"),
         });
       }
     } catch {
@@ -341,24 +348,19 @@ function ArticleEditor({ slug, isNew, categories, onSaved, onDeleted }: ArticleE
             </button>
           )}
           <button
-            onClick={() => {
-              if (typeof window !== "undefined") {
-                window.localStorage.setItem(draftKey, JSON.stringify({ html: articleContent, updatedAt: Date.now() }));
-              }
-              setSaveResult({ success: true, message: "草稿已保存" });
-              setTimeout(() => setSaveResult(null), 2000);
-            }}
-            className="inline-flex items-center gap-1 text-xs px-2 py-1.5 rounded-lg border border-[var(--card-border)] text-[var(--muted)] hover:text-[var(--primary)] transition-colors"
+            onClick={() => saveArticle(true)}
+            disabled={saving}
+            className="inline-flex items-center gap-1 text-xs px-2 py-1.5 rounded-lg border border-[var(--card-border)] text-[var(--muted)] hover:text-[var(--primary)] transition-colors disabled:opacity-50"
           >
             <Save className="w-3 h-3" />保存草稿
           </button>
           <button
-            onClick={saveArticle}
+            onClick={() => saveArticle(draft ? true : false)}
             disabled={saving}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--primary)] text-white text-sm font-medium hover:bg-[var(--primary-hover)] transition-colors disabled:opacity-50"
           >
             {saving && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-            {saving ? "保存中..." : isEdit ? "更新" : "发布"}
+            {saving ? "保存中..." : draft ? "保存草稿" : isEdit ? "更新" : "发布"}
           </button>
         </div>
       </div>
