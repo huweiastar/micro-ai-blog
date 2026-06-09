@@ -751,6 +751,35 @@
   animation: fade-in-up 0.6s ease-out forwards;
 }
 
+/* 路由切换：主内容进场过渡（淡入 + 轻微上浮 + 去模糊）。
+   reduced-motion 下由上方全局规则自动降级为瞬时显示。 */
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.page-transition {
+  animation: page-enter 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+  will-change: opacity, transform, filter;
+}
+
+/* 原生 View Transitions API（支持的浏览器）做整页交叉淡化兜底。 */
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 0.35s;
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+}
+
 .animate-gradient {
   background-size: 200% 200%;
   animation: gradient-shift 3s ease infinite;

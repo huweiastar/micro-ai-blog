@@ -34,7 +34,13 @@ export function SiteChrome({
         {!isAdmin && background}
         {!isAdmin && header}
         <main id="main-content" className="flex-1 relative z-10">
-          {children}
+          {isAdmin ? (
+            children
+          ) : (
+            <div key={pathname} className="page-transition">
+              {children}
+            </div>
+          )}
         </main>
         {!isAdmin && footer}
         {!isAdmin && backToTop}
