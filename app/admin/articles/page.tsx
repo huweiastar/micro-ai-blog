@@ -15,9 +15,12 @@ import {
   FolderOpen,
   CalendarDays,
   Clock,
+  Share2,
+  BookOpen,
   X,
 } from "lucide-react";
 import { AiWriteModal } from "../../../components/admin/ai-write-modal";
+import { SyntaxCheatsheet } from "../../../components/admin/SyntaxCheatsheet";
 import { MarkdownEditor } from "../../../components/admin/MarkdownEditor";
 import { renderMarkdownPreview as renderPreview } from "../../../lib/markdown/render";
 import { SplitWorkspace } from "../../../components/admin/SplitWorkspace";
@@ -206,6 +209,9 @@ function ArticleEditor({ slug, isNew, categories, onSaved, onDeleted }: ArticleE
   const [feishuLoading, setFeishuLoading] = useState(false);
   const [feishuError, setFeishuError] = useState("");
   const [showAiWrite, setShowAiWrite] = useState(false);
+  const [showOg, setShowOg] = useState(false);
+  const [ogUrl, setOgUrl] = useState("");
+  const [showCheatsheet, setShowCheatsheet] = useState(false);
 
   const isEdit = !isNew && !!slug;
   const draftKey = `draft:articles:${slug ?? "new"}`;
@@ -307,6 +313,21 @@ function ArticleEditor({ slug, isNew, categories, onSaved, onDeleted }: ArticleE
       setSaving(false);
     }
   };
+
+  // OG 分享卡实时预览：防抖构建 /og 地址，仅在展开时请求。
+  useEffect(() => {
+    if (!showOg) return;
+    const t = setTimeout(() => {
+      if (!articleTitle.trim()) {
+        setOgUrl("");
+        return;
+      }
+      const params = new URLSearchParams({ title: articleTitle.trim() });
+      if (articleCategory) params.set("category", articleCategory);
+      setOgUrl(`/og?${params.toString()}`);
+    }, 600);
+    return () => clearTimeout(t);
+  }, [showOg, articleTitle, articleCategory]);
 
   // 键盘快捷键：⌘/Ctrl+S 保存草稿，⌘/Ctrl+Enter 按当前状态保存/发布。
   const saveRef = useRef(saveArticle);
@@ -426,6 +447,12 @@ function ArticleEditor({ slug, isNew, categories, onSaved, onDeleted }: ArticleE
             className="inline-flex items-center gap-1 text-xs px-2 py-1.5 rounded-lg border border-[var(--primary)]/30 text-[var(--primary)] hover:bg-[var(--primary)]/10 transition-colors"
           >
             <Sparkles className="w-3 h-3" />AI 帮写
+          </button>
+          <button
+            onClick={() => setShowCheatsheet(true)}
+            className="inline-flex items-center gap-1 text-xs px-2 py-1.5 rounded-lg border border-[var(--card-border)] text-[var(--muted)] hover:text-[var(--primary)] transition-colors"
+          >
+            <BookOpen className="w-3 h-3" />语法
           </button>
           <button
             onClick={() => {
@@ -614,6 +641,29 @@ function ArticleEditor({ slug, isNew, categories, onSaved, onDeleted }: ArticleE
             )}
           </div>
 
+          {/* OG 分享卡预览 */}
+          <div className="px-6 pb-3">
+            <button
+              onClick={() => setShowOg((v) => !v)}
+              className="inline-flex items-center gap-2 text-xs text-[var(--muted)] hover:text-[var(--primary)] transition-colors"
+            >
+              {showOg ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+              <Share2 className="w-3 h-3" />分享预览（OG 卡片）
+            </button>
+            {showOg && (
+              <div className="mt-2 rounded-lg border border-[var(--card-border)] overflow-hidden max-w-md">
+                {ogUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={ogUrl} alt="OG 分享预览" className="w-full aspect-[1200/630] object-cover" />
+                ) : (
+                  <div className="aspect-[1200/630] flex items-center justify-center text-xs text-[var(--muted)] bg-[var(--card)]">
+                    输入标题后生成预览
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
           <div className="px-6 pb-2">
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-[var(--muted)] border-t border-[var(--card-border)] pt-3">
               <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded border ${quality.cls}`}>
@@ -720,6 +770,8 @@ function ArticleEditor({ slug, isNew, categories, onSaved, onDeleted }: ArticleE
         onClose={() => setShowAiWrite(false)}
         onInsert={handleAiInsert}
       />
+
+      <SyntaxCheatsheet open={showCheatsheet} onClose={() => setShowCheatsheet(false)} />
     </div>
   );
 }
