@@ -6,6 +6,7 @@ import {
   Check, Save, Plus,
   Image as ImageIcon, X,
 } from "lucide-react";
+import { MediaLibrary } from "../../../components/admin/MediaLibrary";
 
 export default function ThemePage() {
   const { setTheme: setGlobalTheme } = useThemeConfig();
@@ -16,6 +17,7 @@ export default function ThemePage() {
   const [themeEffect, setThemeEffect] = useState("ink");
   const [themeSaved, setThemeSaved] = useState(false);
   const [bgImageHistory, setBgImageHistory] = useState<string[]>([]);
+  const [tab, setTab] = useState<"theme" | "media">("theme");
 
   // Load theme
   useEffect(() => {
@@ -73,7 +75,26 @@ export default function ThemePage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
-      <h1 className="text-2xl font-bold mb-6">主题设置</h1>
+      <h1 className="text-2xl font-bold mb-6">主题与媒体</h1>
+      <div className="flex gap-1 mb-6 border-b border-[var(--card-border)]">
+        {([["theme", "主题设置"], ["media", "媒体库"]] as const).map(([k, label]) => (
+          <button
+            key={k}
+            onClick={() => setTab(k)}
+            className={`px-4 py-2 text-sm -mb-px border-b-2 transition-colors ${
+              tab === k
+                ? "border-[var(--primary)] text-[var(--primary)]"
+                : "border-transparent text-[var(--muted)] hover:text-[var(--foreground)]"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {tab === "media" && <MediaLibrary />}
+
+      {tab === "theme" && (
       <div className="space-y-8">
         <div className="glass rounded-xl p-6">
           <h2 className="text-lg font-semibold mb-4">背景设置</h2>
@@ -188,6 +209,7 @@ export default function ThemePage() {
           {themeSaved ? "已保存" : "保存主题"}
         </button>
       </div>
+      )}
     </div>
   );
 }

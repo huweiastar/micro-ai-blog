@@ -22,7 +22,8 @@ function topDir(dir: string): string {
   return dir.split("/")[0] || "根目录";
 }
 
-export default function MediaPage() {
+/** 媒体库内容（不含外层页面边距，由调用方包裹）。 */
+export function MediaLibrary() {
   const [items, setItems] = useState<MediaItem[] | null>(null);
   const [filter, setFilter] = useState("all");
   const [copied, setCopied] = useState<string | null>(null);
@@ -89,23 +90,18 @@ export default function MediaPage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
-      <header className="mb-6 flex items-center justify-between gap-3 flex-wrap">
-        <div>
-          <h1 className="text-xl font-semibold">媒体库</h1>
-          <p className="text-sm text-[var(--muted)] mt-1">
-            {items === null
-              ? "加载中…"
-              : `共 ${items.length} 张图片 · ${formatBytes(totalSize)}`}
-          </p>
-        </div>
+    <div>
+      <div className="mb-4 flex items-center justify-between gap-3 flex-wrap">
+        <p className="text-sm text-[var(--muted)]">
+          {items === null ? "加载中…" : `共 ${items.length} 张图片 · ${formatBytes(totalSize)}`}
+        </p>
         <button
           onClick={load}
           className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[var(--card-border)] text-sm text-[var(--muted)] hover:text-[var(--primary)] transition-colors"
         >
           <RefreshCw className="w-4 h-4" />刷新
         </button>
-      </header>
+      </div>
 
       {/* 目录筛选 */}
       {groups.length > 1 && (
@@ -144,12 +140,7 @@ export default function MediaPage() {
             >
               <div className="aspect-video bg-black/20 overflow-hidden">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={item.url}
-                  alt={item.name}
-                  loading="lazy"
-                  className="w-full h-full object-cover"
-                />
+                <img src={item.url} alt={item.name} loading="lazy" className="w-full h-full object-cover" />
               </div>
               <div className="p-2.5">
                 <p className="text-xs text-[var(--foreground)] truncate" title={item.name}>
@@ -172,11 +163,7 @@ export default function MediaPage() {
                     className="inline-flex items-center justify-center px-2 py-1 rounded border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-50"
                     title="删除"
                   >
-                    {deleting === item.url ? (
-                      <Loader2 className="w-3 h-3 animate-spin" />
-                    ) : (
-                      <Trash2 className="w-3 h-3" />
-                    )}
+                    {deleting === item.url ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
                   </button>
                 </div>
               </div>
