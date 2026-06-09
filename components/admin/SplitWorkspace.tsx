@@ -10,6 +10,7 @@ export interface SplitWorkspaceProps<T extends { id: string }> {
   renderRow: (item: T, isActive: boolean) => React.ReactNode;
   searchPredicate?: (item: T, q: string) => boolean;
   filters?: Array<{ key: string; label: string; predicate: (i: T) => boolean }>;
+  sorts?: Array<{ key: string; label: string; compare: (a: T, b: T) => number }>;
   newButtonLabel?: string;
   onNew?: () => void;
   emptyState?: React.ReactNode;
@@ -23,6 +24,7 @@ export function SplitWorkspace<T extends { id: string }>({
   renderRow,
   searchPredicate,
   filters,
+  sorts,
   newButtonLabel = "新建",
   onNew,
   emptyState,
@@ -30,6 +32,7 @@ export function SplitWorkspace<T extends { id: string }>({
 }: SplitWorkspaceProps<T>) {
   const [q, setQ] = useState("");
   const [filterKey, setFilterKey] = useState<string>("all");
+  const [sortKey, setSortKey] = useState<string>(sorts?.[0]?.key ?? "");
 
   const filtered = useMemo(() => {
     let out = items;
@@ -38,8 +41,10 @@ export function SplitWorkspace<T extends { id: string }>({
       if (f) out = out.filter(f.predicate);
     }
     if (q.trim() && searchPredicate) out = out.filter((i) => searchPredicate(i, q.trim().toLowerCase()));
+    const sorter = sorts?.find((s) => s.key === sortKey);
+    if (sorter) out = [...out].sort(sorter.compare);
     return out;
-  }, [items, filterKey, filters, q, searchPredicate]);
+  }, [items, filterKey, filters, q, searchPredicate, sorts, sortKey]);
 
   return (
     <div className="flex h-[calc(100vh-3.5rem)]">
@@ -81,6 +86,20 @@ export function SplitWorkspace<T extends { id: string }>({
                 </button>
               ))}
             </div>
+          )}
+          {sorts && sorts.length > 0 && (
+            <select
+              value={sortKey}
+              onChange={(e) => setSortKey(e.target.value)}
+              className="w-full px-2 py-1 text-xs rounded-lg border border-[var(--card-border)] bg-[var(--card)] text-[var(--muted)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/40"
+              aria-label="排序方式"
+            >
+              {sorts.map((s) => (
+                <option key={s.key} value={s.key}>
+                  {s.label}
+                </option>
+              ))}
+            </select>
           )}
         </div>
         <ul className="flex-1 overflow-y-auto">

@@ -92,6 +92,12 @@ function ArticlesPageInner() {
         { key: "draft", label: "草稿", predicate: (a) => a.draft },
         { key: "published", label: "已发布", predicate: (a) => !a.draft },
       ]}
+      sorts={[
+        { key: "date-desc", label: "最新发布", compare: (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime() },
+        { key: "date-asc", label: "最早发布", compare: (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime() },
+        { key: "words-desc", label: "字数多→少", compare: (a, b) => b.wordCount - a.wordCount },
+        { key: "title-asc", label: "标题 A→Z", compare: (a, b) => a.title.localeCompare(b.title, "zh-CN") },
+      ]}
       renderRow={(a) => (
         <div>
           <div className="flex items-center gap-2 mb-1">
