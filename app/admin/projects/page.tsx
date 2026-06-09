@@ -211,7 +211,7 @@ function ProjectEditor({ slug, isNew, onSaved, onDeleted }: {
   }
 
   return (
-    <div className="flex h-[calc(100vh-3.5rem)] flex-col">
+    <div className="flex h-full min-h-0 flex-col">
       <div className="flex items-center justify-between gap-2 px-4 sm:px-6 h-14 border-b border-[var(--card-border)] shrink-0">
         <h2 className="text-base font-semibold shrink-0 truncate">{isNew ? "新建项目" : `编辑：${projName || slug}`}</h2>
         <div className="flex items-center gap-2">

@@ -466,7 +466,7 @@ function ArticleEditor({ slug, isNew, categories, onSaved, onDeleted }: ArticleE
   const metricTone = (ok: boolean) => (ok ? "text-[var(--muted)]" : "text-amber-400");
 
   return (
-    <div className="flex h-[calc(100vh-3.5rem)] flex-col">
+    <div className="flex h-full min-h-0 flex-col">
       <div className="flex items-center justify-between gap-2 px-4 sm:px-6 h-14 border-b border-[var(--card-border)] shrink-0">
         <h2 className="text-base font-semibold shrink-0">{isNew ? "写新文章" : "编辑文章"}</h2>
         <div className="flex items-center gap-2 flex-wrap justify-end">

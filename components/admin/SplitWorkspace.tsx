@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Search, Plus } from "lucide-react";
+import { Search, Plus, ChevronLeft } from "lucide-react";
 
 export interface SplitWorkspaceProps<T extends { id: string }> {
   items: T[];
@@ -46,10 +46,12 @@ export function SplitWorkspace<T extends { id: string }>({
     return out;
   }, [items, filterKey, filters, q, searchPredicate, sorts, sortKey]);
 
+  const hasDetail = Boolean(children);
+
   return (
     <div className="flex h-[calc(100vh-3.5rem)]">
-      {/* Left: list */}
-      <div className="w-80 shrink-0 border-r border-[var(--card-border)] flex flex-col">
+      {/* Left: list — 移动端选中后让位给编辑区 */}
+      <div className={`w-full md:w-80 shrink-0 border-r border-[var(--card-border)] flex-col ${hasDetail ? "hidden md:flex" : "flex"}`}>
         <div className="p-3 space-y-2 border-b border-[var(--card-border)]">
           {onNew && (
             <button
@@ -123,14 +125,25 @@ export function SplitWorkspace<T extends { id: string }>({
       </div>
 
       {/* Right: editor / detail */}
-      <div className="flex-1 min-w-0 overflow-y-auto">
-        {selectedId === null && !children
-          ? emptyState ?? (
-              <div className="h-full flex items-center justify-center text-[var(--muted)]">
-                从左侧选择一项，或点「新建」
-              </div>
-            )
-          : children}
+      <div className={`flex-1 min-w-0 flex-col overflow-hidden ${hasDetail ? "flex" : "hidden md:flex"}`}>
+        {hasDetail && (
+          <button
+            type="button"
+            onClick={() => onSelect(null)}
+            className="md:hidden shrink-0 flex items-center gap-1 px-4 h-10 text-sm text-[var(--muted)] hover:text-[var(--primary)] border-b border-[var(--card-border)]"
+          >
+            <ChevronLeft className="w-4 h-4" /> 返回列表
+          </button>
+        )}
+        <div className="flex-1 min-h-0 overflow-y-auto">
+          {selectedId === null && !children
+            ? emptyState ?? (
+                <div className="h-full flex items-center justify-center text-[var(--muted)]">
+                  从左侧选择一项，或点「新建」
+                </div>
+              )
+            : children}
+        </div>
       </div>
     </div>
   );
