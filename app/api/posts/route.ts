@@ -71,21 +71,23 @@ function buildFrontmatter(opts: {
   category: string;
   draft: boolean;
   cover?: string;
+  publish?: string;
   content: string;
 }): string {
-  const { title, date, summary, tags, category, draft, cover, content } = opts;
-  return `---
-title: "${yamlEscape(title)}"
-date: "${yamlEscape(date)}"
-summary: "${yamlEscape(summary || title)}"
-tags: [${tags.map((t) => `"${yamlEscape(t)}"`).join(", ")}]
-category: "${yamlEscape(category)}"
-draft: ${draft ? "true" : "false"}
-${cover ? `cover: "${yamlEscape(cover)}"` : ""}
----
-
-${content}
-`;
+  const { title, date, summary, tags, category, draft, cover, publish, content } = opts;
+  const lines = [
+    "---",
+    `title: "${yamlEscape(title)}"`,
+    `date: "${yamlEscape(date)}"`,
+    `summary: "${yamlEscape(summary || title)}"`,
+    `tags: [${tags.map((t) => `"${yamlEscape(t)}"`).join(", ")}]`,
+    `category: "${yamlEscape(category)}"`,
+    `draft: ${draft ? "true" : "false"}`,
+  ];
+  if (publish) lines.push(`publish: "${yamlEscape(publish)}"`);
+  if (cover) lines.push(`cover: "${yamlEscape(cover)}"`);
+  lines.push("---", "", content, "");
+  return lines.join("\n");
 }
 
 export async function GET(req: NextRequest) {
@@ -110,6 +112,7 @@ export async function GET(req: NextRequest) {
         tags: (data.tags as string[]) || [],
         category: (data.category as string) || "",
         draft: (data.draft as boolean) || false,
+        publish: (data.publish as string) || undefined,
         content,
         cover: (data.cover as string) || undefined,
       });
@@ -136,6 +139,7 @@ export async function GET(req: NextRequest) {
         tags: (data.tags as string[]) || [],
         category: (data.category as string) || "",
         draft: (data.draft as boolean) || false,
+        publish: (data.publish as string) || undefined,
         wordCount: calculateWordCount(content),
         cover: (data.cover as string) || undefined,
       };
@@ -193,6 +197,7 @@ export async function POST(req: NextRequest) {
       category: String(category || ""),
       draft: isDraft,
       cover: body.cover ? String(body.cover) : undefined,
+      publish: body.publish ? String(body.publish) : undefined,
       content: String(content ?? ""),
     });
 
@@ -253,6 +258,7 @@ export async function PUT(req: NextRequest) {
       category: String(category || ""),
       draft: isDraft,
       cover: body.cover ? String(body.cover) : undefined,
+      publish: body.publish ? String(body.publish) : undefined,
       content: String(content ?? ""),
     });
 

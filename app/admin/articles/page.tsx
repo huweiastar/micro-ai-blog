@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState, useEffect, useCallback } from "react";
+import { Suspense, useState, useEffect, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Loader2,
@@ -13,6 +13,8 @@ import {
   ChevronUp,
   Tag,
   FolderOpen,
+  CalendarDays,
+  Clock,
   X,
 } from "lucide-react";
 import { AiWriteModal } from "../../../components/admin/ai-write-modal";
@@ -29,6 +31,7 @@ type Article = {
   tags: string[];
   category: string;
   draft: boolean;
+  publish?: string;
   wordCount: number;
   cover?: string;
 };
@@ -100,6 +103,11 @@ function ArticlesPageInner() {
                 草稿
               </span>
             )}
+            {!a.draft && a.publish && new Date(a.publish).getTime() > Date.now() && (
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-400">
+                定时
+              </span>
+            )}
           </div>
           <div className="text-xs text-[var(--muted)]">
             {a.date} · {a.wordCount} 字 · {a.category}
@@ -139,6 +147,37 @@ interface ArticleEditorProps {
   onDeleted: (slug: string) => void;
 }
 
+// —— 写作反馈阈值（与后台「内容体检」保持一致）——
+const TITLE_MAX = 60;
+const SUMMARY_MIN = 20;
+const SUMMARY_MAX = 160;
+const CONTENT_MIN = 150;
+
+function todayStr(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+/** datetime-local 格式（本地时区）YYYY-MM-DDTHH:mm */
+function toDatetimeLocal(d: Date): string {
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+/** 默认定时时间：次日同一时刻。 */
+function defaultScheduleStr(): string {
+  const d = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  return toDatetimeLocal(d);
+}
+
+/** 统计字数：中文按字 + 英文按词。 */
+function countWords(md: string): number {
+  const text = md.replace(/[#*`~\-[\]!()>]/g, "").trim();
+  const cn = (text.match(/[一-鿿]/g) || []).length;
+  const en = (text.replace(/[一-鿿]/g, "").match(/\b\w+\b/g) || []).length;
+  return cn + en;
+}
+
 function ArticleEditor({ slug, isNew, categories, onSaved, onDeleted }: ArticleEditorProps) {
   const [articleTitle, setArticleTitle] = useState("");
   const [articleSummary, setArticleSummary] = useState("");
@@ -146,10 +185,14 @@ function ArticleEditor({ slug, isNew, categories, onSaved, onDeleted }: ArticleE
   const [articleCategory, setArticleCategory] = useState("");
   const [articleTags, setArticleTags] = useState("");
   const [articleContent, setArticleContent] = useState("");
+  const [articleDate, setArticleDate] = useState(todayStr());
+  const [scheduled, setScheduled] = useState(false);
+  const [publishAt, setPublishAt] = useState(defaultScheduleStr());
   const [draft, setDraft] = useState(false);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveResult, setSaveResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [lastSavedAt, setLastSavedAt] = useState<number | null>(null);
   const [metaExpanded, setMetaExpanded] = useState(false);
 
   const [showFeishuImport, setShowFeishuImport] = useState(false);
@@ -183,6 +226,14 @@ function ArticleEditor({ slug, isNew, categories, onSaved, onDeleted }: ArticleE
           setArticleTags(Array.isArray(post.tags) ? post.tags.join(", ") : post.tags || "");
           setArticleContent(post.content || "");
           setDraft(Boolean(post.draft));
+          if (post.date) setArticleDate(String(post.date));
+          if (post.publish) {
+            const d = new Date(String(post.publish));
+            if (!Number.isNaN(d.getTime())) {
+              setScheduled(true);
+              setPublishAt(toDatetimeLocal(d));
+            }
+          }
         }
       })
       .catch(() => {})
@@ -210,13 +261,14 @@ function ArticleEditor({ slug, isNew, categories, onSaved, onDeleted }: ArticleE
     const payload = {
       slug: isEdit ? slug : undefined,
       title: articleTitle,
-      date: new Date().toISOString().split("T")[0],
+      date: articleDate || todayStr(),
       summary: articleSummary || articleTitle,
       cover: articleCover || undefined,
       tags: articleTags,
       category: articleCategory,
       content: articleContent,
       draft: saveAsDraft,
+      publish: scheduled && publishAt ? publishAt : undefined,
     };
     try {
       const method = isEdit ? "PUT" : "POST";
@@ -229,6 +281,7 @@ function ArticleEditor({ slug, isNew, categories, onSaved, onDeleted }: ArticleE
       if (data.success) {
         if (typeof window !== "undefined") window.localStorage.removeItem(draftKey);
         if (saveAsDraft) setDraft(true);
+        setLastSavedAt(Date.now());
         setSaveResult({
           success: true,
           message: saveAsDraft ? "草稿已保存" : isEdit ? "文章已更新" : "文章已发布",
@@ -248,6 +301,24 @@ function ArticleEditor({ slug, isNew, categories, onSaved, onDeleted }: ArticleE
       setSaving(false);
     }
   };
+
+  // 键盘快捷键：⌘/Ctrl+S 保存草稿，⌘/Ctrl+Enter 按当前状态保存/发布。
+  const saveRef = useRef(saveArticle);
+  saveRef.current = saveArticle;
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!(e.metaKey || e.ctrlKey)) return;
+      if (e.key === "s" || e.key === "S") {
+        e.preventDefault();
+        saveRef.current(true);
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        saveRef.current();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   const deleteArticle = async () => {
     if (!slug) return;
@@ -310,6 +381,28 @@ function ArticleEditor({ slug, isNew, categories, onSaved, onDeleted }: ArticleE
   const inputCls =
     "w-full px-3 py-2 rounded-lg border border-[var(--card-border)] bg-[var(--card)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50 text-sm placeholder:text-[var(--muted)]/50";
   const labelCls = "block text-xs text-[var(--muted)] mb-1";
+
+  // —— 实时写作反馈 ——
+  const wordCount = countWords(articleContent);
+  const readMinutes = Math.max(1, Math.round(wordCount / 300));
+  const titleLen = articleTitle.trim().length;
+  const summaryLen = articleSummary.trim().length;
+  const tagCount = articleTags.split(/[,，]/).map((s) => s.trim()).filter(Boolean).length;
+  const qualityChecks = [
+    titleLen > 0 && titleLen <= TITLE_MAX,
+    summaryLen >= SUMMARY_MIN && summaryLen <= SUMMARY_MAX,
+    tagCount >= 1,
+    !!articleCover,
+    wordCount >= CONTENT_MIN,
+  ];
+  const qualityScore = qualityChecks.filter(Boolean).length;
+  const quality =
+    qualityScore >= 5
+      ? { label: "优秀", cls: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20" }
+      : qualityScore >= 3
+        ? { label: "良好", cls: "text-amber-400 bg-amber-500/10 border-amber-500/20" }
+        : { label: "待完善", cls: "text-red-400 bg-red-500/10 border-red-500/20" };
+  const metricTone = (ok: boolean) => (ok ? "text-[var(--muted)]" : "text-amber-400");
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6">
@@ -476,10 +569,67 @@ function ArticleEditor({ slug, isNew, categories, onSaved, onDeleted }: ArticleE
                     className={inputCls}
                   />
                 </div>
+                <div>
+                  <label className={labelCls}>
+                    <CalendarDays className="w-3 h-3 inline mr-1" />发布日期
+                  </label>
+                  <input
+                    type="date"
+                    value={articleDate}
+                    onChange={(e) => setArticleDate(e.target.value)}
+                    className={inputCls}
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="inline-flex items-center gap-2 text-xs text-[var(--muted)] cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={scheduled}
+                      onChange={(e) => setScheduled(e.target.checked)}
+                      className="accent-[var(--primary)]"
+                    />
+                    <Clock className="w-3 h-3" />定时发布（到点前对访客隐藏）
+                  </label>
+                  {scheduled && (
+                    <div className="mt-2">
+                      <input
+                        type="datetime-local"
+                        value={publishAt}
+                        onChange={(e) => setPublishAt(e.target.value)}
+                        className={inputCls}
+                      />
+                      <p className="mt-1 text-[11px] text-[var(--muted)]">
+                        定时文章需在该时间后重新部署才会出现在列表；按 URL 直达会在到点后自动可见。
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>
 
+          <div className="px-6 pb-2">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-[var(--muted)] border-t border-[var(--card-border)] pt-3">
+              <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded border ${quality.cls}`}>
+                质量 {quality.label} · {qualityScore}/5
+              </span>
+              <span>{wordCount} 字</span>
+              <span>约 {readMinutes} 分钟阅读</span>
+              <span className={metricTone(titleLen > 0 && titleLen <= TITLE_MAX)}>
+                标题 {titleLen}/{TITLE_MAX}
+              </span>
+              <span className={metricTone(summaryLen >= SUMMARY_MIN && summaryLen <= SUMMARY_MAX)}>
+                摘要 {summaryLen}（建议 {SUMMARY_MIN}–{SUMMARY_MAX}）
+              </span>
+              <span className={metricTone(tagCount >= 1)}>标签 {tagCount}</span>
+              <span className={metricTone(!!articleCover)}>{articleCover ? "有封面" : "无封面"}</span>
+              <span className="ml-auto text-[var(--muted)]/70">
+                {lastSavedAt
+                  ? `上次保存 ${new Date(lastSavedAt).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}`
+                  : "⌘S 存草稿 · ⌘↵ 发布"}
+              </span>
+            </div>
+          </div>
           <div className="px-6 pb-6">
             <MarkdownEditor
               value={articleContent}
