@@ -19,6 +19,13 @@ const WRITE_API_PATHS = [
 
 const READ_ONLY_METHODS = ["GET", "HEAD", "OPTIONS"];
 
+// 这些接口连读取也要鉴权：仅后台使用，且会暴露草稿/未上线内容或后台计数。
+const READ_PROTECTED_API_PATHS = [
+  "/api/posts",
+  "/api/admin/overview",
+  "/api/admin/media",
+];
+
 const encoder = new TextEncoder();
 
 function bytesToHex(buf: ArrayBuffer): string {
@@ -109,6 +116,16 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(loginUrl);
     }
 
+    return NextResponse.next();
+  }
+
+  // Fully-protected read APIs：任何方法都需登录（避免泄露草稿/未上线内容）。
+  if (
+    READ_PROTECTED_API_PATHS.some((p) => pathname === p || pathname.startsWith(p + "/"))
+  ) {
+    if (!isAuthenticated) {
+      return NextResponse.json({ error: "未授权访问，请先登录" }, { status: 401 });
+    }
     return NextResponse.next();
   }
 
