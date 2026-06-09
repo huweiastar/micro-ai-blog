@@ -8,12 +8,10 @@ const labels: Record<string, string> = {
   "/admin": "概览",
   "/admin/articles": "文章管理",
   "/admin/content-health": "内容体检",
-  "/admin/media": "媒体库",
   "/admin/categories": "专栏管理",
   "/admin/projects": "项目管理",
   "/admin/about": "关于我",
-  "/admin/theme": "主题设置",
-  "/admin/stats": "访问统计",
+  "/admin/theme": "主题与媒体",
 };
 
 export function Topbar({ onMenu }: { onMenu?: () => void }) {

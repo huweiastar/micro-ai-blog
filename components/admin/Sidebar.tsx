@@ -4,7 +4,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FileText, FolderOpen, Rocket, User, Palette, BarChart3, Stethoscope } from "lucide-react";
+import { FileText, FolderOpen, Rocket, User, Palette, Stethoscope } from "lucide-react";
 import { NewMenu } from "./NewMenu";
 
 type BadgeKey = "drafts" | "healthIssues";
@@ -27,7 +27,6 @@ const groups: {
       { href: "/admin/about", label: "关于我", Icon: User },
       { href: "/admin/theme", label: "主题与媒体", Icon: Palette },
       { href: "/admin/content-health", label: "内容体检", Icon: Stethoscope, badge: "healthIssues", badgeTone: "bg-red-500/15 text-red-400" },
-      { href: "/admin/stats", label: "统计", Icon: BarChart3 },
     ],
   },
 ];

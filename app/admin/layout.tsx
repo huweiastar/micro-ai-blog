@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { AdminShell } from "../../components/admin/AdminShell";
+import { ToastProvider } from "../../components/admin/Toast";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -15,8 +16,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       .catch(() => {});
   }, []);
 
-  // 登录页与全屏编辑页（/admin/*/edit）脱离后台外壳，独占整屏。
-  const bare = pathname === "/admin/login" || (pathname?.endsWith("/edit") ?? false);
-  if (bare) return <>{children}</>;
+  if (pathname === "/admin/login") return <>{children}</>;
+
+  // 全屏编辑页（/admin/*/edit）脱离后台侧栏，独占整屏，
+  // 但仍需 ToastProvider（编辑器用 useToast 提示保存结果）。
+  if (pathname?.endsWith("/edit")) {
+    return <ToastProvider>{children}</ToastProvider>;
+  }
+
   return <AdminShell theme={theme}>{children}</AdminShell>;
 }
