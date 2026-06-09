@@ -56,12 +56,14 @@ export const metadata: Metadata = {
     siteName,
     locale: "zh_CN",
     type: "website",
+    images: [{ url: `${siteUrl}/og?title=${encodeURIComponent(siteName + " · 个人技术博客")}`, width: 1200, height: 630 }],
   },
   twitter: {
     card: "summary_large_image",
     title: `${siteName} | 个人技术博客`,
     description:
       `${siteName}的个人技术博客，专注大数据开发、大模型数据工程、大模型基础架构与应用工程。`,
+    images: [`${siteUrl}/og?title=${encodeURIComponent(siteName + " · 个人技术博客")}`],
   },
   robots: {
     index: true,

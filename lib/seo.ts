@@ -5,17 +5,36 @@ export function getSiteUrl(): string {
   return siteConfig.url;
 }
 
+/**
+ * 构建动态 OG 分享图地址（由 /og 路由用 next/og 实时渲染品牌化卡片）。
+ */
+export function buildOgImageUrl(opts: {
+  title: string;
+  category?: string;
+  label?: string;
+}): string {
+  const params = new URLSearchParams({ title: opts.title });
+  if (opts.category) params.set("category", opts.category);
+  if (opts.label) params.set("label", opts.label);
+  return `${siteConfig.url}/og?${params.toString()}`;
+}
+
 export function generatePageMetadata(meta: {
   title: string;
   description: string;
   keywords?: string;
   url?: string;
   image?: string;
+  /** 文章/页面所属分类，用于动态 OG 图的配色与标签。 */
+  category?: string;
   type?: "website" | "article";
 }) {
   const profile = getAboutProfile();
   const url = meta.url || siteConfig.url;
-  const image = meta.image || undefined;
+  // 优先使用显式封面，否则回退到动态生成的品牌化 OG 图。
+  const image =
+    meta.image || buildOgImageUrl({ title: meta.title, category: meta.category });
+  const ogImage = { url: image, width: 1200, height: 630 };
 
   return {
     title: meta.title,
@@ -30,17 +49,26 @@ export function generatePageMetadata(meta: {
       description: meta.description,
       url,
       siteName: profile.name,
-      ...(image && { images: [image] }),
+      images: [ogImage],
       type: meta.type || "website",
-    } as any,
+    } as OpenGraphMeta,
     twitter: {
-      card: "summary_large_image",
+      card: "summary_large_image" as const,
       title: meta.title,
       description: meta.description,
-      ...(image && { images: [image] }),
+      images: [image],
     },
   };
 }
+
+type OpenGraphMeta = {
+  title: string;
+  description: string;
+  url: string;
+  siteName: string;
+  images: { url: string; width: number; height: number }[];
+  type: "website" | "article";
+};
 
 /**
  * Generate JSON-LD structured data for search engines.

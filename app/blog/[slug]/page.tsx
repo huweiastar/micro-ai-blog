@@ -43,6 +43,7 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
     keywords: post.tags.join(", "),
     type: "article",
     url: postUrl,
+    category: post.category,
     image: post.cover ? `${siteUrl}${post.cover}` : undefined,
   });
 }
