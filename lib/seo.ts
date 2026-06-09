@@ -128,6 +128,25 @@ export function generateArticleStructuredData(
 }
 
 /**
+ * 生成面包屑（BreadcrumbList）结构化数据，帮助搜索引擎展示层级导航。
+ * items 按从根到当前页的顺序排列。
+ */
+export function generateBreadcrumbStructuredData(
+  items: { name: string; url: string }[]
+): Record<string, unknown> {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.name,
+      item: item.url,
+    })),
+  };
+}
+
+/**
  * Generate Website structured data for the homepage.
  */
 export function generateWebsiteStructuredData(): Record<string, unknown> {

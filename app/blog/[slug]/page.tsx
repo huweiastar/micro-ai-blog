@@ -10,7 +10,7 @@ import { BackToTop } from "../../../components/ui/BackToTop";
 import { ReadingProgress } from "../../../components/ui/ReadingProgress";
 import { ViewCount } from "../../../components/ViewCount";
 import { formatShortDate } from "../../../lib/utils";
-import { generatePageMetadata, generateArticleStructuredData, getSiteUrl } from "../../../lib/seo";
+import { generatePageMetadata, generateArticleStructuredData, generateBreadcrumbStructuredData, getSiteUrl } from "../../../lib/seo";
 import { StructuredData } from "../../../components/StructuredData";
 import { ArticleLayout } from "../../../components/ArticleLayout";
 import SeriesNav from "../../../components/blog/SeriesNav";
@@ -59,11 +59,20 @@ export default async function PostPage({ params }: PostPageProps) {
   const siteUrl = getSiteUrl();
   const postUrl = `${siteUrl}/blog/${post.slug}`;
   const structuredData = generateArticleStructuredData(post, postUrl);
+  const breadcrumbData = generateBreadcrumbStructuredData([
+    { name: "首页", url: siteUrl },
+    { name: "博客", url: `${siteUrl}/blog` },
+    ...(post.category
+      ? [{ name: post.category, url: `${siteUrl}/categories/${encodeURIComponent(post.category)}` }]
+      : []),
+    { name: post.title, url: postUrl },
+  ]);
   const currentPath = `/blog/${post.slug}`;
 
   return (
     <>
       <StructuredData data={structuredData} />
+      <StructuredData data={breadcrumbData} />
       <ReadingProgress />
       <ReadingPosition slug={post.slug} />
       <Container className="py-12">

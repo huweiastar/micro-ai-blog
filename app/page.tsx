@@ -2,12 +2,13 @@ import { getAllPostsSync } from "../lib/posts";
 import { getProjects } from "../lib/projects";
 import { getAllCategories } from "../lib/categories";
 import { getAnalytics } from "../lib/analytics";
-import { generatePageMetadata, getSiteUrl } from "../lib/seo";
+import { generatePageMetadata, generateWebsiteStructuredData, getSiteUrl } from "../lib/seo";
 import { getAboutProfile } from "../lib/about";
 import { HomeClient } from "./page.client";
 import { BlogCard } from "../components/BlogCard";
 import { ProjectCard } from "../components/ProjectCard";
 import { Section } from "../components/ui/Section";
+import { StructuredData } from "../components/StructuredData";
 import type { Metadata } from "next";
 
 const profile = getAboutProfile();
@@ -45,6 +46,7 @@ export default function HomePage() {
 
   return (
     <div className="relative">
+      <StructuredData data={generateWebsiteStructuredData()} />
       <HomeClient stats={stats} columns={columns} initialVisits={initialVisits} />
 
       {/* Latest Posts */}
