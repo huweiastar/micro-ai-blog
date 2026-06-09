@@ -85,9 +85,9 @@ export function HomeClient({ stats, columns, initialVisits }: HomeClientProps) {
 
   const statItems = [
     { icon: FileText, value: `${stats.postCount}`, label: "文章" },
-    { icon: BookOpen, value: wordsDisplay, label: "字数" },
     { icon: Layers, value: `${stats.columnCount}`, label: "专栏" },
     { icon: FolderGit2, value: `${stats.projectCount}`, label: "项目" },
+    { icon: BookOpen, value: wordsDisplay, label: "字数" },
     { icon: Eye, value: visitStats.pv.toLocaleString(), label: "访问量" },
     { icon: Users, value: visitStats.uv.toLocaleString(), label: "访客" },
   ];

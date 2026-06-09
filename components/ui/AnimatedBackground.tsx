@@ -25,18 +25,6 @@ export function AnimatedBackground() {
         <div className="animate-blob animation-delay-4000 absolute bottom-0 left-1/3 h-[30rem] w-[30rem] rounded-full bg-fuchsia-500/[0.04] blur-[110px] dark:bg-fuchsia-500/10" />
       </div>
 
-      {/* Fine technical grid — masked to fade toward the edges for a focal effect */}
-      <div
-        className="absolute inset-0 opacity-50 dark:opacity-[0.35]"
-        style={{
-          backgroundImage:
-            "linear-gradient(to right, var(--card-border) 1px, transparent 1px), linear-gradient(to bottom, var(--card-border) 1px, transparent 1px)",
-          backgroundSize: "46px 46px",
-          maskImage: "radial-gradient(ellipse 75% 60% at 50% 30%, black, transparent 85%)",
-          WebkitMaskImage: "radial-gradient(ellipse 75% 60% at 50% 30%, black, transparent 85%)",
-        }}
-      />
-
       {/* Edge vignette to settle content against the background */}
       <div
         className="absolute inset-0"
