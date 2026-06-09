@@ -14,6 +14,8 @@ import { generatePageMetadata, generateArticleStructuredData, getSiteUrl } from 
 import { StructuredData } from "../../../components/StructuredData";
 import { ArticleLayout } from "../../../components/ArticleLayout";
 import SeriesNav from "../../../components/blog/SeriesNav";
+import { BookmarkButton } from "../../../components/blog/BookmarkButton";
+import { ReadingPosition } from "../../../components/blog/ReadingPosition";
 import { Container } from "../../../components/ui/Container";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
@@ -61,6 +63,7 @@ export default async function PostPage({ params }: PostPageProps) {
     <>
       <StructuredData data={structuredData} />
       <ReadingProgress />
+      <ReadingPosition slug={post.slug} />
       <Container className="py-12">
         <ArticleLayout
           tocItems={post.toc}
@@ -105,7 +108,14 @@ export default async function PostPage({ params }: PostPageProps) {
               ))}
             </div>
 
-            <div className="mt-4">
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              <BookmarkButton
+                slug={post.slug}
+                title={post.title}
+                date={post.date}
+                summary={post.summary}
+                category={post.category}
+              />
               <ShareButtons />
             </div>
           </header>
