@@ -22,6 +22,8 @@ export type BlogPost = {
   tags: string[];
   category: string;
   draft: boolean;
+  /** 定时发布时间（ISO 字符串）。未到该时间则前台不可见；缺省时回退到 date。 */
+  publish?: string;
   readingTime: string;
   wordCount: number;
   cover?: string;
@@ -82,35 +84,53 @@ export function generateToc(content: string): TocItem[] {
   });
 }
 
+function parsePostFile(file: string): BlogPost {
+  const filePath = path.join(postsDirectory, file);
+  const source = fs.readFileSync(filePath, "utf-8");
+  const { data, content } = matter(source);
+
+  return {
+    slug: getSlug(file),
+    title: data.title || "",
+    date: data.date || "",
+    updated: data.updated,
+    publish: data.publish,
+    summary: data.summary || "",
+    tags: data.tags || [],
+    category: data.category || "",
+    draft: data.draft || false,
+    content,
+    readingTime: calculateReadingTime(content),
+    wordCount: calculateWordCount(content),
+    toc: generateToc(content),
+    cover: data.cover,
+  };
+}
+
+/** 读取并解析全部文章文件（不做任何可见性过滤）。 */
+function readAllPostFiles(): BlogPost[] {
+  return fs
+    .readdirSync(postsDirectory)
+    .filter((file) => file.endsWith(".md") || file.endsWith(".mdx"))
+    .map(parsePostFile);
+}
+
+/** 文章生效的发布时间（毫秒）：优先 publish 字段，否则回退 date；解析失败按 0。 */
+export function getPublishTime(post: { publish?: string; date: string }): number {
+  const t = new Date(post.publish || post.date).getTime();
+  return Number.isNaN(t) ? 0 : t;
+}
+
+/** 是否已对访客可见：非草稿且已到发布时间。 */
+export function isPublished(post: BlogPost, now: number = Date.now()): boolean {
+  if (post.draft) return false;
+  return getPublishTime(post) <= now;
+}
+
 export async function getAllPosts(): Promise<BlogPost[]> {
-  const files = fs.readdirSync(postsDirectory).filter((file) => {
-    return file.endsWith(".md") || file.endsWith(".mdx");
-  });
-
-  const posts = files.map((file) => {
-    const filePath = path.join(postsDirectory, file);
-    const source = fs.readFileSync(filePath, "utf-8");
-    const { data, content } = matter(source);
-
-    return {
-      slug: getSlug(file),
-      title: data.title || "",
-      date: data.date || "",
-      updated: data.updated,
-      summary: data.summary || "",
-      tags: data.tags || [],
-      category: data.category || "",
-      draft: data.draft || false,
-      content,
-      readingTime: calculateReadingTime(content),
-      wordCount: calculateWordCount(content),
-      toc: generateToc(content),
-      cover: data.cover,
-    };
-  });
-
-  return posts
-    .filter((post) => !post.draft)
+  const now = Date.now();
+  return readAllPostFiles()
+    .filter((post) => isPublished(post, now))
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 }
 
@@ -155,35 +175,28 @@ export function getAllCategories(): { name: string; count: number }[] {
 }
 
 export function getAllPostsSync(): BlogPost[] {
-  const files = fs.readdirSync(postsDirectory).filter((file) => {
-    return file.endsWith(".md") || file.endsWith(".mdx");
-  });
-
-  const posts = files.map((file) => {
-    const filePath = path.join(postsDirectory, file);
-    const source = fs.readFileSync(filePath, "utf-8");
-    const { data, content } = matter(source);
-
-    return {
-      slug: getSlug(file),
-      title: data.title || "",
-      date: data.date || "",
-      updated: data.updated,
-      summary: data.summary || "",
-      tags: data.tags || [],
-      category: data.category || "",
-      draft: data.draft || false,
-      content,
-      readingTime: calculateReadingTime(content),
-      wordCount: calculateWordCount(content),
-      toc: generateToc(content),
-      cover: data.cover,
-    };
-  });
-
-  return posts
-    .filter((post) => !post.draft)
+  const now = Date.now();
+  return readAllPostFiles()
+    .filter((post) => isPublished(post, now))
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+}
+
+/**
+ * 读取全部文章（含草稿与未到点的定时文章），并标注调度状态。
+ * 仅供后台/作者视角使用，切勿用于前台渲染。
+ */
+export function getAllPostsForAdmin(): (BlogPost & {
+  scheduled: boolean;
+  publishTime: number;
+})[] {
+  const now = Date.now();
+  return readAllPostFiles()
+    .map((post) => ({
+      ...post,
+      publishTime: getPublishTime(post),
+      scheduled: !post.draft && getPublishTime(post) > now,
+    }))
+    .sort((a, b) => b.publishTime - a.publishTime);
 }
 
 export function getPostsByTag(tag: string): BlogPost[] {
