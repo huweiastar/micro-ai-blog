@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { AiWriteModal } from "../../../components/admin/ai-write-modal";
 import { SyntaxCheatsheet } from "../../../components/admin/SyntaxCheatsheet";
+import { useToast } from "../../../components/admin/Toast";
 import { MarkdownEditor } from "../../../components/admin/MarkdownEditor";
 import { renderMarkdownPreview as renderPreview } from "../../../lib/markdown/render";
 import { SplitWorkspace } from "../../../components/admin/SplitWorkspace";
@@ -200,8 +201,8 @@ function ArticleEditor({ slug, isNew, categories, onSaved, onDeleted }: ArticleE
   const [draft, setDraft] = useState(false);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [saveResult, setSaveResult] = useState<{ success: boolean; message: string } | null>(null);
   const [lastSavedAt, setLastSavedAt] = useState<number | null>(null);
+  const toast = useToast();
   const [metaExpanded, setMetaExpanded] = useState(false);
 
   const [showFeishuImport, setShowFeishuImport] = useState(false);
@@ -258,18 +259,15 @@ function ArticleEditor({ slug, isNew, categories, onSaved, onDeleted }: ArticleE
   const saveArticle = async (asDraft?: boolean) => {
     const saveAsDraft = asDraft ?? draft;
     if (!articleTitle.trim()) {
-      setSaveResult({ success: false, message: "请输入文章标题" });
-      setTimeout(() => setSaveResult(null), 2000);
+      toast.show("请输入文章标题", "error");
       return;
     }
     if (!saveAsDraft && !articleContent.trim()) {
-      setSaveResult({ success: false, message: "请输入文章内容" });
-      setTimeout(() => setSaveResult(null), 2000);
+      toast.show("请输入文章内容", "error");
       return;
     }
 
     setSaving(true);
-    setSaveResult(null);
     const payload = {
       slug: isEdit ? slug : undefined,
       title: articleTitle,
@@ -294,21 +292,17 @@ function ArticleEditor({ slug, isNew, categories, onSaved, onDeleted }: ArticleE
         if (typeof window !== "undefined") window.localStorage.removeItem(draftKey);
         if (saveAsDraft) setDraft(true);
         setLastSavedAt(Date.now());
-        setSaveResult({
-          success: true,
-          message: saveAsDraft ? "草稿已保存" : isEdit ? "文章已更新" : "文章已发布",
-        });
+        toast.show(saveAsDraft ? "草稿已保存" : isEdit ? "文章已更新" : "文章已发布", "success");
         const savedSlug: string = data.slug ?? slug ?? "";
         onSaved(savedSlug);
-        setTimeout(() => setSaveResult(null), 2000);
       } else {
-        setSaveResult({
-          success: false,
-          message: data.error || (saveAsDraft ? "草稿保存失败" : isEdit ? "更新失败" : "发布失败"),
-        });
+        toast.show(
+          data.error || (saveAsDraft ? "草稿保存失败" : isEdit ? "更新失败" : "发布失败"),
+          "error"
+        );
       }
     } catch {
-      setSaveResult({ success: false, message: "网络错误" });
+      toast.show("网络错误", "error");
     } finally {
       setSaving(false);
     }
@@ -699,18 +693,6 @@ function ArticleEditor({ slug, isNew, categories, onSaved, onDeleted }: ArticleE
               draftKey={draftKey}
             />
           </div>
-
-          {saveResult && (
-            <div
-              className={`p-3 text-sm text-center ${
-                saveResult.success
-                  ? "bg-green-500/10 text-green-400 border-t border-green-500/20"
-                  : "bg-red-500/10 text-red-400 border-t border-red-500/20"
-              }`}
-            >
-              {saveResult.message}
-            </div>
-          )}
         </div>
       )}
 
