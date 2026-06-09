@@ -3,6 +3,7 @@ import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
 import { refreshAfterContentChange } from "../../../lib/regenerate";
+import { snapshotPost } from "../../../lib/revisions";
 
 const postsDirectory = path.join(process.cwd(), "content/blog");
 
@@ -246,6 +247,8 @@ export async function PUT(req: NextRequest) {
     // Preserve original date unless explicitly overridden.
     const existingSource = fs.readFileSync(filePath, "utf-8");
     const { data: existingData } = matter(existingSource);
+    // 覆盖前为旧版本留快照，便于历史回溯。
+    snapshotPost(slug, existingSource);
     const date = body.date
       ? String(body.date)
       : (existingData.date as string) || todayDate();
@@ -293,6 +296,12 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "文章不存在" }, { status: 404 });
     }
 
+    // 删除前留快照，避免误删无法找回。
+    try {
+      snapshotPost(slug, fs.readFileSync(filePath, "utf-8"));
+    } catch {
+      /* 快照失败不阻断删除 */
+    }
     fs.unlinkSync(filePath);
 
     refreshAfterContentChange(slug);

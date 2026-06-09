@@ -17,6 +17,7 @@ import {
   Clock,
   Share2,
   BookOpen,
+  History,
   X,
 } from "lucide-react";
 import { AiWriteModal } from "../../../components/admin/ai-write-modal";
@@ -41,6 +42,8 @@ type Article = {
 };
 
 type CategoryConfig = { name: string; description: string };
+
+type RevisionRow = { id: string; savedAt: number; size: number; title: string };
 
 export default function ArticlesPage() {
   return (
@@ -213,6 +216,8 @@ function ArticleEditor({ slug, isNew, categories, onSaved, onDeleted }: ArticleE
   const [showOg, setShowOg] = useState(false);
   const [ogUrl, setOgUrl] = useState("");
   const [showCheatsheet, setShowCheatsheet] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [revisions, setRevisions] = useState<RevisionRow[] | null>(null);
 
   const isEdit = !isNew && !!slug;
   const draftKey = `draft:articles:${slug ?? "new"}`;
@@ -341,6 +346,43 @@ function ArticleEditor({ slug, isNew, categories, onSaved, onDeleted }: ArticleE
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
+  const openHistory = async () => {
+    if (!slug) return;
+    setShowHistory(true);
+    setRevisions(null);
+    try {
+      const res = await fetch(`/api/admin/revisions?slug=${encodeURIComponent(slug)}`);
+      const data = await res.json();
+      setRevisions(Array.isArray(data) ? data : []);
+    } catch {
+      setRevisions([]);
+    }
+  };
+
+  const loadRevision = async (id: string) => {
+    if (!slug) return;
+    try {
+      const res = await fetch(`/api/admin/revisions?slug=${encodeURIComponent(slug)}&id=${id}`);
+      const post = await res.json();
+      if (!res.ok || !post) {
+        toast.show("载入失败", "error");
+        return;
+      }
+      setArticleTitle(post.title || "");
+      setArticleSummary(post.summary || "");
+      setArticleCover(post.cover || "");
+      setArticleCategory(post.category || categories[0]?.name || "");
+      setArticleTags(Array.isArray(post.tags) ? post.tags.join(", ") : post.tags || "");
+      setArticleContent(post.content || "");
+      setDraft(Boolean(post.draft));
+      if (post.date) setArticleDate(String(post.date));
+      setShowHistory(false);
+      toast.show("已载入历史版本，确认后点「更新」保存", "info");
+    } catch {
+      toast.show("网络错误", "error");
+    }
+  };
+
   const deleteArticle = async () => {
     if (!slug) return;
     if (!confirm(`删除文章「${articleTitle}」？`)) return;
@@ -459,6 +501,14 @@ function ArticleEditor({ slug, isNew, categories, onSaved, onDeleted }: ArticleE
           >
             <Eraser className="w-3 h-3 inline mr-1" />清除
           </button>
+          {isEdit && (
+            <button
+              onClick={openHistory}
+              className="inline-flex items-center gap-1 text-xs px-2 py-1.5 rounded-lg border border-[var(--card-border)] text-[var(--muted)] hover:text-[var(--primary)] transition-colors"
+            >
+              <History className="w-3 h-3" />历史
+            </button>
+          )}
           {isEdit && (
             <button
               onClick={deleteArticle}
@@ -754,6 +804,71 @@ function ArticleEditor({ slug, isNew, categories, onSaved, onDeleted }: ArticleE
       />
 
       <SyntaxCheatsheet open={showCheatsheet} onClose={() => setShowCheatsheet(false)} />
+
+      {/* 修订历史 */}
+      {showHistory && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onClick={() => setShowHistory(false)}
+        >
+          <div
+            className="glass rounded-2xl w-full max-w-lg max-h-[80vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-5 h-14 border-b border-[var(--card-border)] shrink-0">
+              <h3 className="text-sm font-semibold flex items-center gap-2">
+                <History className="w-4 h-4" />修订历史
+                <span className="text-xs font-normal text-[var(--muted)]">最多保留最近 20 版</span>
+              </h3>
+              <button
+                onClick={() => setShowHistory(false)}
+                className="p-1 rounded text-[var(--muted)] hover:text-[var(--foreground)]"
+                aria-label="关闭"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-3">
+              {revisions === null ? (
+                <div className="flex items-center justify-center py-10 text-[var(--muted)]">
+                  <Loader2 className="w-5 h-5 animate-spin mr-2" />加载中…
+                </div>
+              ) : revisions.length === 0 ? (
+                <p className="text-center py-10 text-sm text-[var(--muted)]">
+                  暂无历史版本。每次保存/更新会自动留存上一版。
+                </p>
+              ) : (
+                <ul className="space-y-1.5">
+                  {revisions.map((r) => (
+                    <li
+                      key={r.id}
+                      className="flex items-center justify-between gap-3 p-2.5 rounded-lg border border-[var(--card-border)] bg-[var(--card)]"
+                    >
+                      <div className="min-w-0">
+                        <div className="text-sm text-[var(--foreground)] line-clamp-1">
+                          {r.title || "（无标题）"}
+                        </div>
+                        <div className="text-xs text-[var(--muted)]">
+                          {new Date(r.savedAt).toLocaleString("zh-CN")} · {(r.size / 1024).toFixed(1)} KB
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => loadRevision(r.id)}
+                        className="shrink-0 text-xs px-2.5 py-1 rounded-lg border border-[var(--primary)]/30 text-[var(--primary)] hover:bg-[var(--primary)]/10 transition-colors"
+                      >
+                        载入
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <p className="px-5 py-2.5 text-[11px] text-[var(--muted)] border-t border-[var(--card-border)] shrink-0">
+              「载入」会把该版本内容填回编辑器，确认后点「更新」即恢复（当前版本会自动留作新快照）。
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

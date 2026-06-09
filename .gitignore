@@ -47,3 +47,6 @@ next-env.d.ts
 
 # runtime data (likes counts persisted at runtime)
 /data/likes.json
+
+# 文章修订快照（运行时生成）
+/data/revisions/
