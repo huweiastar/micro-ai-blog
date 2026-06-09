@@ -18,7 +18,8 @@ function read(): Layout | null {
       v.viewMode === "edit" || v.viewMode === "split" || v.viewMode === "preview"
         ? v.viewMode
         : "split";
-    return { viewMode, inspectorOpen: v.inspectorOpen !== false };
+    // 检视器默认收起（避免在含后台侧栏的窄屏上挤压写作区），仅当用户显式开过才展开。
+    return { viewMode, inspectorOpen: v.inspectorOpen === true };
   } catch {
     return null;
   }
@@ -27,7 +28,7 @@ function read(): Layout | null {
 /** 记忆编辑器视图模式与检视器开合，跨文章共享，存 localStorage。 */
 export function useEditorLayout() {
   const [viewMode, setViewMode] = useState<ViewMode>("split");
-  const [inspectorOpen, setInspectorOpen] = useState(true);
+  const [inspectorOpen, setInspectorOpen] = useState(false);
 
   useEffect(() => {
     const saved = read();

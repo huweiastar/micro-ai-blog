@@ -51,7 +51,7 @@ export function SplitWorkspace<T extends { id: string }>({
   return (
     <div className="flex h-[calc(100vh-3.5rem)]">
       {/* Left: list — 移动端选中后让位给编辑区 */}
-      <div className={`w-full md:w-80 shrink-0 border-r border-[var(--card-border)] flex-col ${hasDetail ? "hidden md:flex" : "flex"}`}>
+      <div className={`w-full md:w-72 shrink-0 border-r border-[var(--card-border)] flex-col ${hasDetail ? "hidden md:flex" : "flex"}`}>
         <div className="p-3 space-y-2 border-b border-[var(--card-border)]">
           {onNew && (
             <button

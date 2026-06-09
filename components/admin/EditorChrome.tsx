@@ -38,7 +38,7 @@ export function EditorChrome({ inspectorOpen, onToggleInspector, inspector, chil
       {/* xl 常驻栏（可收起宽度） */}
       <aside
         className={`hidden shrink-0 overflow-y-auto border-l border-[var(--card-border)] bg-[var(--card)]/40 backdrop-blur transition-[width] xl:block ${
-          inspectorOpen ? "w-[300px]" : "w-0"
+          inspectorOpen ? "w-[280px]" : "w-0"
         }`}
       >
         {inspectorOpen && inspector}

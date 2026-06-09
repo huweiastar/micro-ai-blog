@@ -633,13 +633,13 @@ function ArticleEditor({ slug, isNew, categories, onSaved, onDeleted }: ArticleE
             </EditorInspector>
           }
         >
-          <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 pr-14">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
             <input
               type="text"
               value={articleTitle}
               onChange={(e) => setArticleTitle(e.target.value)}
               placeholder="文章标题"
-              className="w-full text-2xl font-bold bg-transparent text-[var(--foreground)] placeholder:text-[var(--muted)]/30 focus:outline-none border-none mb-4"
+              className="w-full text-2xl font-bold bg-transparent text-[var(--foreground)] placeholder:text-[var(--muted)]/30 focus:outline-none border-none mb-4 pr-20"
             />
             <MarkdownEditor
               value={articleContent}

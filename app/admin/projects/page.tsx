@@ -277,13 +277,13 @@ function ProjectEditor({ slug, isNew, onSaved, onDeleted }: {
           </EditorInspector>
         }
       >
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 pr-14">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
           <input
             type="text"
             value={projName}
             onChange={(e) => setProjName(e.target.value)}
             placeholder="项目名称"
-            className="w-full text-2xl font-bold bg-transparent text-[var(--foreground)] placeholder:text-[var(--muted)]/30 focus:outline-none border-none mb-4"
+            className="w-full text-2xl font-bold bg-transparent text-[var(--foreground)] placeholder:text-[var(--muted)]/30 focus:outline-none border-none mb-4 pr-20"
           />
           <MarkdownEditor
             value={projContent}
