@@ -2,12 +2,13 @@
 
 import { useRef, useState } from "react";
 import { Toolbar } from "./Toolbar";
-import { Preview } from "./Preview";
 import { useMarkdownInsert } from "./hooks/useMarkdownInsert";
 import { useFullscreen } from "./hooks/useFullscreen";
 import { useImageUpload } from "./hooks/useImageUpload";
 import { useDraftAutosave } from "./hooks/useDraftAutosave";
+import { usePreviewRender } from "./hooks/usePreviewRender";
 import { ImageDialog } from "./dialogs/ImageDialog";
+import type { ViewMode } from "../hooks/useEditorLayout";
 
 export interface MarkdownEditorProps {
   value: string;
@@ -20,8 +21,9 @@ export interface MarkdownEditorProps {
     typography?: boolean;
   };
   fullscreen?: boolean;
-  preview?: boolean;
-  renderPreview?: (md: string) => { __html: string };
+  /** 受控视图模式；不传则内部自管，默认 edit。 */
+  viewMode?: ViewMode;
+  onViewModeChange?: (m: ViewMode) => void;
   className?: string;
   uploadEndpoint?: string;
   uploadMeta?: { type?: string; category?: string; articleTitle?: string };
@@ -34,8 +36,8 @@ export function MarkdownEditor({
   placeholder = "在此输入 Markdown 内容...",
   toolbar,
   fullscreen = true,
-  preview = true,
-  renderPreview,
+  viewMode,
+  onViewModeChange,
   className,
   uploadEndpoint,
   uploadMeta,
@@ -43,9 +45,14 @@ export function MarkdownEditor({
 }: MarkdownEditorProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const previewRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const [showPreview, setShowPreview] = useState(false);
+  const [innerMode, setInnerMode] = useState<ViewMode>("edit");
+  const mode = viewMode ?? innerMode;
+  const setMode = onViewModeChange ?? setInnerMode;
+  const previewOn = mode === "split" || mode === "preview";
+
   const [pendingImageUrl, setPendingImageUrl] = useState<string | null>(null);
 
   const { wrap, insert, insertTable, insertCodeBlock, insertHeading } =
@@ -53,6 +60,7 @@ export function MarkdownEditor({
   const { isFullscreen, toggle } = useFullscreen(wrapRef);
   const { upload } = useImageUpload(uploadEndpoint);
   const { detectedDraft, restore, discard } = useDraftAutosave(draftKey, value);
+  const { html: previewHtml } = usePreviewRender(value, previewOn);
 
   const handleRestore = () => {
     const v = restore();
@@ -67,8 +75,21 @@ export function MarkdownEditor({
     if (result?.url) setPendingImageUrl(result.url);
   };
 
+  // 分屏下源码滚动按比例联动预览。
+  const syncScroll = () => {
+    const ta = textareaRef.current;
+    const pv = previewRef.current;
+    if (!ta || !pv) return;
+    const denom = ta.scrollHeight - ta.clientHeight || 1;
+    const ratio = ta.scrollTop / denom;
+    pv.scrollTop = ratio * (pv.scrollHeight - pv.clientHeight);
+  };
+
   return (
-    <div ref={wrapRef} className={`flex flex-col gap-2 ${isFullscreen ? "h-screen bg-[var(--background)] p-4" : ""} ${className ?? ""}`}>
+    <div
+      ref={wrapRef}
+      className={`flex flex-col gap-2 ${isFullscreen ? "h-screen bg-[var(--background)] p-4" : ""} ${className ?? ""}`}
+    >
       {detectedDraft && (
         <div className="flex items-center justify-between gap-3 px-3 py-2 rounded-lg border border-amber-500/30 bg-amber-500/5 text-sm text-amber-300">
           <span>检测到未保存的草稿（{Math.max(1, Math.round((Date.now() - detectedDraft.updatedAt) / 60000))} 分钟前）</span>
@@ -87,8 +108,8 @@ export function MarkdownEditor({
         onPickImage={() => fileRef.current?.click()}
         isFullscreen={isFullscreen}
         onToggleFullscreen={fullscreen ? toggle : () => {}}
-        onTogglePreview={preview ? () => setShowPreview((v) => !v) : undefined}
-        previewActive={showPreview}
+        viewMode={mode}
+        onViewMode={setMode}
         toolbar={toolbar}
       />
 
@@ -100,20 +121,27 @@ export function MarkdownEditor({
         onChange={handleFile}
       />
 
-      {showPreview && (
-        <Preview
-          markdown={value}
-          render={renderPreview}
-          className={`flex-1 min-h-[400px] border border-[var(--card-border)] rounded-lg ${isFullscreen ? "overflow-auto" : ""}`}
-        />
-      )}
-      <textarea
-        ref={textareaRef}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        className={`w-full px-4 py-3 rounded-lg border border-[var(--card-border)] bg-[var(--card)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50 resize-none text-sm leading-relaxed font-mono ${isFullscreen ? "flex-1 min-h-0" : "min-h-[400px]"} ${showPreview ? "hidden" : ""}`}
-      />
+      <div className={`flex gap-3 ${isFullscreen ? "flex-1 min-h-0" : ""}`}>
+        {mode !== "preview" && (
+          <textarea
+            ref={textareaRef}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            onScroll={mode === "split" ? syncScroll : undefined}
+            placeholder={placeholder}
+            className={`px-4 py-3 rounded-lg border border-[var(--card-border)] bg-[var(--card)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50 resize-none text-sm leading-relaxed font-mono ${isFullscreen ? "flex-1 min-h-0" : "min-h-[400px]"} ${mode === "split" ? "w-1/2" : "w-full"}`}
+          />
+        )}
+        {previewOn && (
+          <div
+            ref={previewRef}
+            className={`prose-custom overflow-auto rounded-lg border border-[var(--card-border)] bg-[var(--card)] px-4 py-3 ${isFullscreen ? "flex-1 min-h-0" : "min-h-[400px]"} ${mode === "split" ? "w-1/2" : "w-full"}`}
+            dangerouslySetInnerHTML={{
+              __html: previewHtml || '<span class="text-[var(--muted)] text-sm">开始输入以预览…</span>',
+            }}
+          />
+        )}
+      </div>
 
       {pendingImageUrl !== null && (
         <ImageDialog

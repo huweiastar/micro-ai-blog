@@ -9,13 +9,10 @@ import {
   Import,
   Sparkles,
   Eraser,
-  ChevronDown,
-  ChevronUp,
   Tag,
   FolderOpen,
   CalendarDays,
   Clock,
-  Share2,
   BookOpen,
   History,
   X,
@@ -24,8 +21,11 @@ import { AiWriteModal } from "../../../components/admin/ai-write-modal";
 import { SyntaxCheatsheet } from "../../../components/admin/SyntaxCheatsheet";
 import { useToast } from "../../../components/admin/Toast";
 import { MarkdownEditor } from "../../../components/admin/MarkdownEditor";
-import { renderMarkdownPreview as renderPreview } from "../../../lib/markdown/render";
 import { SplitWorkspace } from "../../../components/admin/SplitWorkspace";
+import { EditorChrome } from "../../../components/admin/EditorChrome";
+import { EditorInspector } from "../../../components/admin/inspector/EditorInspector";
+import { InspectorSection } from "../../../components/admin/inspector/InspectorSection";
+import { useEditorLayout } from "../../../components/admin/hooks/useEditorLayout";
 
 type Article = {
   id: string;
@@ -206,14 +206,13 @@ function ArticleEditor({ slug, isNew, categories, onSaved, onDeleted }: ArticleE
   const [saving, setSaving] = useState(false);
   const [lastSavedAt, setLastSavedAt] = useState<number | null>(null);
   const toast = useToast();
-  const [metaExpanded, setMetaExpanded] = useState(false);
+  const { viewMode, setViewMode, inspectorOpen, setInspectorOpen } = useEditorLayout();
 
   const [showFeishuImport, setShowFeishuImport] = useState(false);
   const [feishuUrl, setFeishuUrl] = useState("");
   const [feishuLoading, setFeishuLoading] = useState(false);
   const [feishuError, setFeishuError] = useState("");
   const [showAiWrite, setShowAiWrite] = useState(false);
-  const [showOg, setShowOg] = useState(false);
   const [ogUrl, setOgUrl] = useState("");
   const [showCheatsheet, setShowCheatsheet] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
@@ -313,9 +312,8 @@ function ArticleEditor({ slug, isNew, categories, onSaved, onDeleted }: ArticleE
     }
   };
 
-  // OG 分享卡实时预览：防抖构建 /og 地址，仅在展开时请求。
+  // OG 分享卡地址：防抖构建 /og 地址（图片仅在检视器 OG 分组展开时才加载）。
   useEffect(() => {
-    if (!showOg) return;
     const t = setTimeout(() => {
       if (!articleTitle.trim()) {
         setOgUrl("");
@@ -326,7 +324,7 @@ function ArticleEditor({ slug, isNew, categories, onSaved, onDeleted }: ArticleE
       setOgUrl(`/og?${params.toString()}`);
     }, 600);
     return () => clearTimeout(t);
-  }, [showOg, articleTitle, articleCategory]);
+  }, [articleTitle, articleCategory]);
 
   // 键盘快捷键：⌘/Ctrl+S 保存草稿，⌘/Ctrl+Enter 按当前状态保存/发布。
   const saveRef = useRef(saveArticle);
@@ -468,10 +466,10 @@ function ArticleEditor({ slug, isNew, categories, onSaved, onDeleted }: ArticleE
   const metricTone = (ok: boolean) => (ok ? "text-[var(--muted)]" : "text-amber-400");
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6">
-      <div className="flex items-center justify-between mb-4 gap-2">
-        <h2 className="text-xl font-semibold">{isNew ? "写新文章" : "编辑文章"}</h2>
-        <div className="flex items-center gap-2 flex-wrap">
+    <div className="flex h-[calc(100vh-3.5rem)] flex-col">
+      <div className="flex items-center justify-between gap-2 px-4 sm:px-6 h-14 border-b border-[var(--card-border)] shrink-0">
+        <h2 className="text-base font-semibold shrink-0">{isNew ? "写新文章" : "编辑文章"}</h2>
+        <div className="flex items-center gap-2 flex-wrap justify-end">
           <button
             onClick={() => setShowFeishuImport(true)}
             className="inline-flex items-center gap-1 text-xs px-2 py-1.5 rounded-lg border border-[var(--card-border)] text-[var(--muted)] hover:text-[var(--primary)] transition-colors"
@@ -536,193 +534,128 @@ function ArticleEditor({ slug, isNew, categories, onSaved, onDeleted }: ArticleE
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center py-20 text-[var(--muted)]">
+        <div className="flex-1 flex items-center justify-center text-[var(--muted)]">
           <Loader2 className="w-5 h-5 animate-spin mr-2" />加载中...
         </div>
       ) : (
-        <div className="rounded-xl border border-[var(--card-border)] bg-[var(--card)] overflow-hidden">
-          <input
-            type="text"
-            value={articleTitle}
-            onChange={(e) => setArticleTitle(e.target.value)}
-            placeholder="文章标题"
-            className="w-full text-2xl font-bold bg-transparent text-[var(--foreground)] placeholder:text-[var(--muted)]/30 focus:outline-none border-none px-6 pt-6 pb-2"
-          />
-          <input
-            type="text"
-            value={articleSummary}
-            onChange={(e) => setArticleSummary(e.target.value)}
-            placeholder="一句话概括这篇文章..."
-            className="w-full text-base bg-transparent text-[var(--muted)] placeholder:text-[var(--muted)]/30 focus:outline-none border-none px-6 pb-4"
-          />
-
-          {/* Cover Image */}
-          <div className="px-6 pb-4">
-            <label className="block text-xs text-[var(--muted)] mb-1">封面图片</label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={articleCover}
-                onChange={(e) => setArticleCover(e.target.value)}
-                placeholder="/images/covers/cover.png"
-                className="w-full px-3 py-2 rounded-lg border border-[var(--card-border)] bg-[var(--card)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50 text-sm placeholder:text-[var(--muted)]/50"
-              />
-              <input
-                type="file"
-                accept="image/*"
-                onChange={async (e) => {
-                  const file = e.target.files?.[0];
-                  e.target.value = "";
-                  if (!file) return;
-                  const fd = new FormData();
-                  fd.append("file", file);
-                  fd.append("type", "blog");
-                  const res = await fetch("/api/upload", { method: "POST", body: fd });
-                  const data = await res.json();
-                  if (data.success && data.url) setArticleCover(data.url);
-                }}
-                className="hidden"
-                id="article-cover-upload"
-              />
-              <label
-                htmlFor="article-cover-upload"
-                className="px-3 py-2 rounded-lg border border-[var(--card-border)] bg-[var(--card)] text-sm text-[var(--muted)] hover:text-[var(--primary)] cursor-pointer shrink-0"
-              >
-                上传
-              </label>
-            </div>
-          </div>
-
-          <div className="px-6 pb-3">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setMetaExpanded(!metaExpanded)}
-                className="inline-flex items-center gap-2 text-xs text-[var(--muted)] hover:text-[var(--primary)] transition-colors"
-              >
-                {metaExpanded ? (
-                  <ChevronUp className="w-3.5 h-3.5" />
-                ) : (
-                  <ChevronDown className="w-3.5 h-3.5" />
-                )}
-                文章信息 {metaExpanded ? "（收起）" : "（展开）"}
-              </button>
-              <label className="inline-flex items-center gap-1 text-xs text-[var(--muted)] cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={draft}
-                  onChange={(e) => setDraft(e.target.checked)}
-                  className="accent-[var(--primary)]"
-                />
-                草稿
-              </label>
-            </div>
-            {metaExpanded && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+        <EditorChrome
+          inspectorOpen={inspectorOpen}
+          onToggleInspector={() => setInspectorOpen(!inspectorOpen)}
+          inspector={
+            <EditorInspector>
+              <InspectorSection id="publish" title="发布">
+                <label className="inline-flex items-center gap-2 text-xs text-[var(--foreground)] cursor-pointer">
+                  <input type="checkbox" checked={draft} onChange={(e) => setDraft(e.target.checked)} className="accent-[var(--primary)]" />
+                  存为草稿（不公开）
+                </label>
                 <div>
-                  <label className={labelCls}>
-                    <FolderOpen className="w-3 h-3 inline mr-1" />分类
-                  </label>
-                  <select
-                    value={articleCategory}
-                    onChange={(e) => setArticleCategory(e.target.value)}
-                    className={inputCls}
-                  >
-                    {categories.map((c) => (
-                      <option key={c.name} value={c.name}>
-                        {c.name}
-                      </option>
-                    ))}
+                  <label className={labelCls}><CalendarDays className="w-3 h-3 inline mr-1" />发布日期</label>
+                  <input type="date" value={articleDate} onChange={(e) => setArticleDate(e.target.value)} className={inputCls} />
+                </div>
+                <label className="inline-flex items-center gap-2 text-xs text-[var(--muted)] cursor-pointer">
+                  <input type="checkbox" checked={scheduled} onChange={(e) => setScheduled(e.target.checked)} className="accent-[var(--primary)]" />
+                  <Clock className="w-3 h-3" />定时发布（到点前隐藏）
+                </label>
+                {scheduled && (
+                  <div>
+                    <input type="datetime-local" value={publishAt} onChange={(e) => setPublishAt(e.target.value)} className={inputCls} />
+                    <p className="mt-1 text-[11px] text-[var(--muted)]">定时文章需在该时间后重新部署才会出现在列表；按 URL 直达会在到点后自动可见。</p>
+                  </div>
+                )}
+              </InspectorSection>
+
+              <InspectorSection id="taxonomy" title="分类与标签">
+                <div>
+                  <label className={labelCls}><FolderOpen className="w-3 h-3 inline mr-1" />分类</label>
+                  <select value={articleCategory} onChange={(e) => setArticleCategory(e.target.value)} className={inputCls}>
+                    {categories.map((c) => (<option key={c.name} value={c.name}>{c.name}</option>))}
                   </select>
                 </div>
                 <div>
-                  <label className={labelCls}>
-                    <Tag className="w-3 h-3 inline mr-1" />标签
-                  </label>
-                  <input
-                    type="text"
-                    value={articleTags}
-                    onChange={(e) => setArticleTags(e.target.value)}
-                    placeholder="Spark, LLM"
-                    className={inputCls}
-                  />
+                  <label className={labelCls}><Tag className="w-3 h-3 inline mr-1" />标签</label>
+                  <input type="text" value={articleTags} onChange={(e) => setArticleTags(e.target.value)} placeholder="Spark, LLM" className={inputCls} />
                 </div>
-                <div>
-                  <label className={labelCls}>
-                    <CalendarDays className="w-3 h-3 inline mr-1" />发布日期
-                  </label>
+              </InspectorSection>
+
+              <InspectorSection id="cover" title="封面">
+                <div className="flex gap-2">
+                  <input type="text" value={articleCover} onChange={(e) => setArticleCover(e.target.value)} placeholder="/images/covers/cover.png" className={inputCls} />
                   <input
-                    type="date"
-                    value={articleDate}
-                    onChange={(e) => setArticleDate(e.target.value)}
-                    className={inputCls}
+                    type="file"
+                    accept="image/*"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      e.target.value = "";
+                      if (!file) return;
+                      const fd = new FormData();
+                      fd.append("file", file);
+                      fd.append("type", "blog");
+                      const res = await fetch("/api/upload", { method: "POST", body: fd });
+                      const data = await res.json();
+                      if (data.success && data.url) setArticleCover(data.url);
+                    }}
+                    className="hidden"
+                    id="article-cover-upload"
                   />
+                  <label htmlFor="article-cover-upload" className="px-3 py-2 rounded-lg border border-[var(--card-border)] bg-[var(--card)] text-sm text-[var(--muted)] hover:text-[var(--primary)] cursor-pointer shrink-0">上传</label>
                 </div>
-                <div className="sm:col-span-2">
-                  <label className="inline-flex items-center gap-2 text-xs text-[var(--muted)] cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={scheduled}
-                      onChange={(e) => setScheduled(e.target.checked)}
-                      className="accent-[var(--primary)]"
-                    />
-                    <Clock className="w-3 h-3" />定时发布（到点前对访客隐藏）
-                  </label>
-                  {scheduled && (
-                    <div className="mt-2">
-                      <input
-                        type="datetime-local"
-                        value={publishAt}
-                        onChange={(e) => setPublishAt(e.target.value)}
-                        className={inputCls}
-                      />
-                      <p className="mt-1 text-[11px] text-[var(--muted)]">
-                        定时文章需在该时间后重新部署才会出现在列表；按 URL 直达会在到点后自动可见。
-                      </p>
-                    </div>
+                {articleCover && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={articleCover} alt="封面预览" className="mt-2 w-full rounded-lg border border-[var(--card-border)] object-cover aspect-video" />
+                )}
+              </InspectorSection>
+
+              <InspectorSection id="summary" title="摘要">
+                <textarea value={articleSummary} onChange={(e) => setArticleSummary(e.target.value)} placeholder="一句话概括这篇文章..." rows={3} className={`${inputCls} resize-none`} />
+              </InspectorSection>
+
+              <InspectorSection id="quality" title="质量与 SEO">
+                <div className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-xs ${quality.cls}`}>质量 {quality.label} · {qualityScore}/5</div>
+                <ul className="mt-1 space-y-1 text-xs">
+                  <li className={metricTone(titleLen > 0 && titleLen <= TITLE_MAX)}>标题 {titleLen}/{TITLE_MAX}</li>
+                  <li className={metricTone(summaryLen >= SUMMARY_MIN && summaryLen <= SUMMARY_MAX)}>摘要 {summaryLen}（建议 {SUMMARY_MIN}–{SUMMARY_MAX}）</li>
+                  <li className={metricTone(tagCount >= 1)}>标签 {tagCount} 个</li>
+                  <li className={metricTone(!!articleCover)}>{articleCover ? "已设封面" : "缺少封面"}</li>
+                  <li className={metricTone(wordCount >= CONTENT_MIN)}>正文 {wordCount} 字（建议 ≥ {CONTENT_MIN}）</li>
+                </ul>
+              </InspectorSection>
+
+              <InspectorSection id="og" title="OG 分享卡" defaultOpen={false}>
+                <div className="rounded-lg border border-[var(--card-border)] overflow-hidden">
+                  {ogUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={ogUrl} alt="OG 分享预览" className="w-full aspect-[1200/630] object-cover" />
+                  ) : (
+                    <div className="aspect-[1200/630] flex items-center justify-center text-xs text-[var(--muted)] bg-[var(--card)]">输入标题后生成预览</div>
                   )}
                 </div>
-              </div>
-            )}
-          </div>
-
-          {/* OG 分享卡预览 */}
-          <div className="px-6 pb-3">
-            <button
-              onClick={() => setShowOg((v) => !v)}
-              className="inline-flex items-center gap-2 text-xs text-[var(--muted)] hover:text-[var(--primary)] transition-colors"
-            >
-              {showOg ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-              <Share2 className="w-3 h-3" />分享预览（OG 卡片）
-            </button>
-            {showOg && (
-              <div className="mt-2 rounded-lg border border-[var(--card-border)] overflow-hidden max-w-md">
-                {ogUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={ogUrl} alt="OG 分享预览" className="w-full aspect-[1200/630] object-cover" />
-                ) : (
-                  <div className="aspect-[1200/630] flex items-center justify-center text-xs text-[var(--muted)] bg-[var(--card)]">
-                    输入标题后生成预览
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          <div className="px-6 pb-2">
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-[var(--muted)] border-t border-[var(--card-border)] pt-3">
-              <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded border ${quality.cls}`}>
-                质量 {quality.label} · {qualityScore}/5
-              </span>
+              </InspectorSection>
+            </EditorInspector>
+          }
+        >
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 pr-14">
+            <input
+              type="text"
+              value={articleTitle}
+              onChange={(e) => setArticleTitle(e.target.value)}
+              placeholder="文章标题"
+              className="w-full text-2xl font-bold bg-transparent text-[var(--foreground)] placeholder:text-[var(--muted)]/30 focus:outline-none border-none mb-4"
+            />
+            <MarkdownEditor
+              value={articleContent}
+              onChange={setArticleContent}
+              viewMode={viewMode}
+              onViewModeChange={setViewMode}
+              uploadMeta={{
+                type: "blog",
+                category: articleCategory || "未分类",
+                articleTitle: articleTitle || "草稿",
+              }}
+              draftKey={draftKey}
+            />
+            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-[var(--muted)] border-t border-[var(--card-border)] pt-3">
               <span>{wordCount} 字</span>
               <span>约 {readMinutes} 分钟阅读</span>
-              <span className={metricTone(titleLen > 0 && titleLen <= TITLE_MAX)}>
-                标题 {titleLen}/{TITLE_MAX}
-              </span>
-              <span className={metricTone(summaryLen >= SUMMARY_MIN && summaryLen <= SUMMARY_MAX)}>
-                摘要 {summaryLen}（建议 {SUMMARY_MIN}–{SUMMARY_MAX}）
-              </span>
-              <span className={metricTone(tagCount >= 1)}>标签 {tagCount}</span>
-              <span className={metricTone(!!articleCover)}>{articleCover ? "有封面" : "无封面"}</span>
               <span className="ml-auto text-[var(--muted)]/70">
                 {lastSavedAt
                   ? `上次保存 ${new Date(lastSavedAt).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}`
@@ -730,20 +663,7 @@ function ArticleEditor({ slug, isNew, categories, onSaved, onDeleted }: ArticleE
               </span>
             </div>
           </div>
-          <div className="px-6 pb-6">
-            <MarkdownEditor
-              value={articleContent}
-              onChange={setArticleContent}
-              uploadMeta={{
-                type: "blog",
-                category: articleCategory || "未分类",
-                articleTitle: articleTitle || "草稿",
-              }}
-              renderPreview={renderPreview}
-              draftKey={draftKey}
-            />
-          </div>
-        </div>
+        </EditorChrome>
       )}
 
       {/* Feishu import modal */}

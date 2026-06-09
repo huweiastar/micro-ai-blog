@@ -14,6 +14,7 @@ import { TableDialog } from "./dialogs/TableDialog";
 import { CodeBlockDialog } from "./dialogs/CodeBlockDialog";
 import { LinkDialog } from "./dialogs/LinkDialog";
 import { FontDialog } from "./dialogs/FontDialog";
+import type { ViewMode } from "../hooks/useEditorLayout";
 
 type DialogKind = null | "heading" | "table" | "code" | "link" | "font-family" | "font-size" | "font-color" | "line-height" | "spacing";
 
@@ -61,9 +62,9 @@ export interface ToolbarProps {
   insertHeading: (level: 1 | 2 | 3 | 4 | 5 | 6) => void;
   /** Trigger the file input for image upload. The Image dialog opens AFTER upload completes. */
   onPickImage: () => void;
-  /** Open preview pane. */
-  onTogglePreview?: () => void;
-  previewActive?: boolean;
+  /** 视图模式段控（编辑/分屏/预览）。 */
+  viewMode?: ViewMode;
+  onViewMode?: (m: ViewMode) => void;
   isFullscreen: boolean;
   onToggleFullscreen: () => void;
   toolbar?: {
@@ -136,15 +137,24 @@ export function Toolbar(props: ToolbarProps) {
           {props.isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
         </Btn>
 
-        {props.onTogglePreview && (
-          <button
-            type="button"
-            onClick={props.onTogglePreview}
-            aria-pressed={!!props.previewActive}
-            className={`ml-auto inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded transition-colors ${props.previewActive ? "bg-[var(--primary)]/10 text-[var(--primary)]" : "text-[var(--muted)] hover:text-[var(--primary)]"}`}
-          >
-            {props.previewActive ? "返回编辑" : "预览"}
-          </button>
+        {props.onViewMode && (
+          <div className="ml-auto flex items-center gap-0.5 rounded-lg border border-[var(--card-border)] p-0.5">
+            {(["edit", "split", "preview"] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => props.onViewMode!(m)}
+                aria-pressed={props.viewMode === m}
+                className={`px-2 py-0.5 text-xs rounded transition-colors ${
+                  props.viewMode === m
+                    ? "bg-[var(--primary)]/10 text-[var(--primary)]"
+                    : "text-[var(--muted)] hover:text-[var(--primary)]"
+                }`}
+              >
+                {m === "edit" ? "编辑" : m === "split" ? "分屏" : "预览"}
+              </button>
+            ))}
+          </div>
         )}
       </div>
 

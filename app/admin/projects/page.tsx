@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, Save, Trash2 } from "lucide-react";
 import { SplitWorkspace } from "../../../components/admin/SplitWorkspace";
 import { MarkdownEditor } from "../../../components/admin/MarkdownEditor";
-import { renderMarkdownPreview as renderPreview } from "../../../lib/markdown/render";
 
 type Project = {
   id: string;
@@ -287,7 +286,6 @@ function ProjectEditor({ slug, isNew, onSaved, onDeleted }: {
           value={projContent}
           onChange={setProjContent}
           uploadMeta={{ type: "projects" }}
-          renderPreview={renderPreview}
           draftKey={draftKey}
         />
       </div>
