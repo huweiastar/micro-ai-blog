@@ -25,6 +25,7 @@ const READ_PROTECTED_API_PATHS = [
   "/api/admin/overview",
   "/api/admin/media",
   "/api/admin/revisions",
+  "/api/admin/preview",
 ];
 
 const encoder = new TextEncoder();
