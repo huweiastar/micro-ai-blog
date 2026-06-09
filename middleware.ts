@@ -12,6 +12,7 @@ const WRITE_API_PATHS = [
   "/api/theme",
   "/api/feishu",
   "/api/admin/reindex",
+  "/api/admin/media",
   "/api/about",
   "/api/assistant/write",
 ];
