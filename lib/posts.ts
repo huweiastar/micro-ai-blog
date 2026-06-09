@@ -255,6 +255,44 @@ export function getRelatedPosts(
     .map((item) => item.post);
 }
 
+export type SeriesContext = {
+  category: string;
+  position: number; // 1-based 在本专栏中的序号（按发布时间升序）
+  total: number;
+  prev?: BlogPost; // 专栏内上一篇（更早发布）
+  next?: BlogPost; // 专栏内下一篇（更晚发布）
+};
+
+/**
+ * 计算文章在其所属分类（专栏）中的连载上下文。
+ * 阅读顺序按发布时间升序：第 1 篇为最早发布。
+ * 仅当分类存在且专栏内至少有 2 篇文章时返回，否则返回 null。
+ */
+export function getSeriesContext(
+  posts: BlogPost[],
+  slug: string
+): SeriesContext | null {
+  const current = posts.find((post) => post.slug === slug);
+  if (!current || !current.category) return null;
+
+  const series = posts
+    .filter((post) => post.category === current.category)
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+  if (series.length < 2) return null;
+
+  const index = series.findIndex((post) => post.slug === slug);
+  if (index === -1) return null;
+
+  return {
+    category: current.category,
+    position: index + 1,
+    total: series.length,
+    prev: index > 0 ? series[index - 1] : undefined,
+    next: index < series.length - 1 ? series[index + 1] : undefined,
+  };
+}
+
 export function generateSearchIndex(): SearchItem[] {
   const posts = getAllPostsSync();
   const postItems: SearchItem[] = posts.map((post) => ({

@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { getAllPostsSync, getPostBySlug, getAdjacentPosts, getRelatedPosts } from "../../../lib/posts";
+import { getAllPostsSync, getPostBySlug, getAdjacentPosts, getRelatedPosts, getSeriesContext } from "../../../lib/posts";
 import { renderMarkdownToHtml } from "../../../lib/posts";
 import { Comment } from "../../../components/Comment";
 import { Tag } from "../../../components/Tag";
@@ -13,6 +13,7 @@ import { formatShortDate } from "../../../lib/utils";
 import { generatePageMetadata, generateArticleStructuredData, getSiteUrl } from "../../../lib/seo";
 import { StructuredData } from "../../../components/StructuredData";
 import { ArticleLayout } from "../../../components/ArticleLayout";
+import SeriesNav from "../../../components/blog/SeriesNav";
 import { Container } from "../../../components/ui/Container";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
@@ -50,6 +51,7 @@ export default async function PostPage({ params }: PostPageProps) {
   const html = await renderMarkdownToHtml(post.content);
   const { prev, next } = getAdjacentPosts(getAllPostsSync(), post.slug);
   const relatedPosts = getRelatedPosts(getAllPostsSync(), post.slug);
+  const series = getSeriesContext(getAllPostsSync(), post.slug);
   const siteUrl = getSiteUrl();
   const postUrl = `${siteUrl}/blog/${post.slug}`;
   const structuredData = generateArticleStructuredData(post, postUrl);
@@ -136,6 +138,9 @@ export default async function PostPage({ params }: PostPageProps) {
               </Link>
             )}
           </div>
+
+          {/* Series Navigation */}
+          {series && <SeriesNav series={series} />}
 
           {/* Related Posts */}
           {relatedPosts.length > 0 && (
