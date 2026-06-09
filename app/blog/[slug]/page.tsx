@@ -15,6 +15,7 @@ import { StructuredData } from "../../../components/StructuredData";
 import { ArticleLayout } from "../../../components/ArticleLayout";
 import SeriesNav from "../../../components/blog/SeriesNav";
 import { BookmarkButton } from "../../../components/blog/BookmarkButton";
+import { LikeButton } from "../../../components/blog/LikeButton";
 import { ReadingPosition } from "../../../components/blog/ReadingPosition";
 import { Container } from "../../../components/ui/Container";
 import { ArrowLeft, ArrowRight } from "lucide-react";
@@ -109,6 +110,7 @@ export default async function PostPage({ params }: PostPageProps) {
             </div>
 
             <div className="mt-4 flex flex-wrap items-center gap-3">
+              <LikeButton slug={post.slug} />
               <BookmarkButton
                 slug={post.slug}
                 title={post.title}

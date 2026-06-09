@@ -44,3 +44,6 @@ next-env.d.ts
 
 # Playwright MCP screenshots/snapshots
 .playwright-mcp/
+
+# runtime data (likes counts persisted at runtime)
+/data/likes.json
