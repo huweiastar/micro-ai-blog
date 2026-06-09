@@ -118,7 +118,7 @@ export default function AdminDashboard() {
         </div>
         <div className="flex items-center gap-2">
           <Link
-            href="/admin/articles?new=1"
+            href="/admin/articles/edit?new=1"
             className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[var(--primary)] text-white text-sm font-medium hover:opacity-90"
           >
             <Plus className="w-4 h-4" />写文章
@@ -186,7 +186,7 @@ export default function AdminDashboard() {
             {recent.map((p) => (
               <li key={p.slug}>
                 <Link
-                  href={`/admin/articles?id=${p.slug}`}
+                  href={`/admin/articles/edit?id=${p.slug}`}
                   className="flex items-center justify-between gap-3 p-3 hover:bg-[var(--card)]/60 transition-colors"
                 >
                   <span className="min-w-0">
@@ -240,7 +240,7 @@ export default function AdminDashboard() {
       <section className="mt-6">
         <h2 className="text-sm font-semibold mb-3">快捷操作</h2>
         <div className="flex flex-wrap gap-2">
-          <Link href="/admin/articles?new=1" className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[var(--card-border)] text-sm text-[var(--muted)] hover:text-[var(--primary)] hover:border-[var(--primary)]/50 transition-colors">
+          <Link href="/admin/articles/edit?new=1" className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[var(--card-border)] text-sm text-[var(--muted)] hover:text-[var(--primary)] hover:border-[var(--primary)]/50 transition-colors">
             <Plus className="w-4 h-4" />写文章
           </Link>
           <Link href="/admin/content-health" className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[var(--card-border)] text-sm text-[var(--muted)] hover:text-[var(--primary)] hover:border-[var(--primary)]/50 transition-colors">

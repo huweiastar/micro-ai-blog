@@ -15,6 +15,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       .catch(() => {});
   }, []);
 
-  if (pathname === "/admin/login") return <>{children}</>;
+  // 登录页与全屏编辑页（/admin/*/edit）脱离后台外壳，独占整屏。
+  const bare = pathname === "/admin/login" || (pathname?.endsWith("/edit") ?? false);
+  if (bare) return <>{children}</>;
   return <AdminShell theme={theme}>{children}</AdminShell>;
 }

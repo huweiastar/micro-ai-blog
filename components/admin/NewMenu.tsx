@@ -44,8 +44,8 @@ export function NewMenu({ onPicked }: { onPicked?: () => void }) {
       </button>
       {open && (
         <div className="absolute left-0 right-0 top-full mt-1 z-20 rounded-lg border border-[var(--card-border)] bg-[var(--card)] shadow-lg overflow-hidden">
-          {item("/admin/articles?new=1", "新文章", FileText)}
-          {item("/admin/projects?new=1", "新项目", Rocket)}
+          {item("/admin/articles/edit?new=1", "新文章", FileText)}
+          {item("/admin/projects/edit?new=1", "新项目", Rocket)}
           {item("/admin/categories?new=1", "新专栏", FolderOpen)}
         </div>
       )}

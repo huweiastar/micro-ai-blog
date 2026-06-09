@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
 export default function Page() {
-  redirect("/admin/articles?new=1");
+  redirect("/admin/articles/edit?new=1");
 }

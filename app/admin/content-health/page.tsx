@@ -129,7 +129,7 @@ export default function ContentHealthPage() {
               <div className="flex items-start justify-between gap-3 mb-2">
                 <div className="min-w-0">
                   <Link
-                    href={`/admin/articles?id=${post.slug}`}
+                    href={`/admin/articles/edit?id=${post.slug}`}
                     className="font-medium text-[var(--foreground)] hover:text-[var(--primary)] transition-colors line-clamp-1"
                   >
                     {post.title || "（无标题）"}
