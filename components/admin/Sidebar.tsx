@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FileText, FolderOpen, Rocket, User, Palette, BarChart3 } from "lucide-react";
+import { FileText, FolderOpen, Rocket, User, Palette, BarChart3, Stethoscope } from "lucide-react";
 import { NewMenu } from "./NewMenu";
 
 const groups = [
@@ -11,6 +11,7 @@ const groups = [
     label: "内容",
     items: [
       { href: "/admin/articles", label: "文章", Icon: FileText },
+      { href: "/admin/content-health", label: "内容体检", Icon: Stethoscope },
       { href: "/admin/categories", label: "专栏", Icon: FolderOpen },
       { href: "/admin/projects", label: "项目", Icon: Rocket },
     ],
