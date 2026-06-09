@@ -58,8 +58,42 @@ export default function AdminDashboard() {
   const needsFix = health.totals.errors + health.totals.warnings;
   const recent = posts.slice(0, 6);
 
-  // 热门页面：取 PV 最高的几条，slug 化展示。
-  const topPaths = analytics.paths.filter((p) => p.path !== "/").slice(0, 5);
+  // 热门页面：把访问路径解析成可读的作品标题，排除后台/接口。
+  const postTitle = new Map(posts.map((p) => [p.slug, p.title]));
+  const projectTitle = new Map(projects.map((p) => [p.slug, p.name]));
+  const STATIC_LABELS: Record<string, string> = {
+    "/": "首页",
+    "/blog": "博客列表",
+    "/projects": "项目",
+    "/about": "关于我",
+    "/archive": "归档",
+    "/tags": "标签",
+    "/categories": "分类",
+    "/search": "搜索",
+    "/footprint": "足迹",
+    "/bookmarks": "收藏",
+  };
+  const resolveTitle = (rawPath: string): string | null => {
+    if (rawPath.startsWith("/admin") || rawPath.startsWith("/api")) return null;
+    let path = rawPath;
+    try {
+      path = decodeURIComponent(rawPath);
+    } catch {
+      /* 保留原始路径 */
+    }
+    if (STATIC_LABELS[path]) return STATIC_LABELS[path];
+    const blog = path.match(/^\/blog\/(.+)$/);
+    if (blog) return postTitle.get(blog[1]) ?? `博客 · ${blog[1]}`;
+    const proj = path.match(/^\/projects\/(.+)$/);
+    if (proj) return projectTitle.get(proj[1]) ?? `项目 · ${proj[1]}`;
+    if (path.startsWith("/tags/")) return `标签 · ${path.slice(6)}`;
+    if (path.startsWith("/categories/")) return `分类 · ${path.slice(12)}`;
+    return path;
+  };
+  const topPaths = analytics.paths
+    .map((p) => ({ ...p, title: resolveTitle(p.path) }))
+    .filter((p): p is typeof p & { title: string } => p.title !== null)
+    .slice(0, 6);
 
   const todos = [
     drafts.length > 0
@@ -181,12 +215,21 @@ export default function AdminDashboard() {
             {topPaths.length === 0 && (
               <li className="p-4 text-sm text-[var(--muted)]">暂无访问数据。</li>
             )}
-            {topPaths.map((p) => (
-              <li key={p.path} className="flex items-center justify-between gap-3 p-3">
-                <span className="min-w-0 text-sm text-[var(--foreground)] line-clamp-1">{p.path}</span>
-                <span className="shrink-0 text-xs text-[var(--muted)] tabular-nums">
-                  {p.pv} PV · {p.uv} UV
-                </span>
+            {topPaths.map((p, i) => (
+              <li key={p.path}>
+                <Link
+                  href={p.path}
+                  target="_blank"
+                  className="flex items-center justify-between gap-3 p-3 hover:bg-[var(--card)]/60 transition-colors"
+                >
+                  <span className="min-w-0 flex items-center gap-2">
+                    <span className="shrink-0 text-xs text-[var(--muted)] tabular-nums w-4">{i + 1}</span>
+                    <span className="text-sm text-[var(--foreground)] line-clamp-1">{p.title}</span>
+                  </span>
+                  <span className="shrink-0 text-xs text-[var(--muted)] tabular-nums">
+                    {p.pv} PV · {p.uv} UV
+                  </span>
+                </Link>
               </li>
             ))}
           </ul>
