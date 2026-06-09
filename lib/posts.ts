@@ -292,8 +292,7 @@ export function getSeriesContext(
     .filter((post) => post.category === current.category)
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-  if (series.length < 2) return null;
-
+  // 即便专栏内只有 1 篇，也展示专栏归属框（无上一/下一篇）。
   const index = series.findIndex((post) => post.slug === slug);
   if (index === -1) return null;
 

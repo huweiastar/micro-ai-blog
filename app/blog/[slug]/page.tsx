@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { getAllPostsSync, getPostBySlug, getAdjacentPosts, getRelatedPosts, getSeriesContext } from "../../../lib/posts";
+import { getAllPostsSync, getPostBySlug, getAdjacentPosts, getSeriesContext } from "../../../lib/posts";
 import { renderMarkdownToHtml } from "../../../lib/posts";
 import { Comment } from "../../../components/Comment";
 import { Tag } from "../../../components/Tag";
@@ -9,7 +9,6 @@ import { PostMeta } from "../../../components/blog/PostMeta";
 import { BackToTop } from "../../../components/ui/BackToTop";
 import { ReadingProgress } from "../../../components/ui/ReadingProgress";
 import { ViewCount } from "../../../components/ViewCount";
-import { formatShortDate } from "../../../lib/utils";
 import { generatePageMetadata, generateArticleStructuredData, generateBreadcrumbStructuredData, getSiteUrl } from "../../../lib/seo";
 import { StructuredData } from "../../../components/StructuredData";
 import { ArticleLayout } from "../../../components/ArticleLayout";
@@ -54,7 +53,6 @@ export default async function PostPage({ params }: PostPageProps) {
 
   const html = await renderMarkdownToHtml(post.content);
   const { prev, next } = getAdjacentPosts(getAllPostsSync(), post.slug);
-  const relatedPosts = getRelatedPosts(getAllPostsSync(), post.slug);
   const series = getSeriesContext(getAllPostsSync(), post.slug);
   const siteUrl = getSiteUrl();
   const postUrl = `${siteUrl}/blog/${post.slug}`;
@@ -163,27 +161,6 @@ export default async function PostPage({ params }: PostPageProps) {
 
           {/* Series Navigation */}
           {series && <SeriesNav series={series} />}
-
-          {/* Related Posts */}
-          {relatedPosts.length > 0 && (
-            <section className="mt-12">
-              <h2 className="text-xl font-bold mb-4">相关文章</h2>
-              <div className="grid gap-4 md:grid-cols-2">
-                {relatedPosts.map((rp) => (
-                  <Link
-                    key={rp.slug}
-                    href={`/blog/${rp.slug}`}
-                    className="group p-4 rounded-xl border border-[var(--card-border)] bg-[var(--card)] transition-all duration-300 hover:border-[var(--primary)]/50 hover:-translate-y-0.5 hover:shadow-[var(--shadow-md)]"
-                  >
-                    <h3 className="font-medium text-sm mb-1 line-clamp-2 group-hover:text-[var(--primary)] transition-colors">
-                      {rp.title}
-                    </h3>
-                    <p className="text-xs text-[var(--muted)]">{formatShortDate(rp.date)}</p>
-                  </Link>
-                ))}
-              </div>
-            </section>
-          )}
 
           {/* Comments */}
           <Comment slug={post.slug} title={post.title} />
