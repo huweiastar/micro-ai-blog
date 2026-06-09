@@ -5,6 +5,11 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, Save, Trash2 } from "lucide-react";
 import { SplitWorkspace } from "../../../components/admin/SplitWorkspace";
 import { MarkdownEditor } from "../../../components/admin/MarkdownEditor";
+import { useToast } from "../../../components/admin/Toast";
+import { EditorChrome } from "../../../components/admin/EditorChrome";
+import { EditorInspector } from "../../../components/admin/inspector/EditorInspector";
+import { InspectorSection } from "../../../components/admin/inspector/InspectorSection";
+import { useEditorLayout } from "../../../components/admin/hooks/useEditorLayout";
 
 type Project = {
   id: string;
@@ -103,7 +108,8 @@ function ProjectEditor({ slug, isNew, onSaved, onDeleted }: {
   const [projContent, setProjContent] = useState("");
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [saveResult, setSaveResult] = useState<{ success: boolean; message: string } | null>(null);
+  const toast = useToast();
+  const { viewMode, setViewMode, inspectorOpen, setInspectorOpen } = useEditorLayout();
 
   const isEdit = !isNew && !!slug;
   const draftKey = `draft:projects:${slug ?? "new"}`;
@@ -133,10 +139,10 @@ function ProjectEditor({ slug, isNew, onSaved, onDeleted }: {
   }, [slug, isEdit]);
 
   const saveProject = async () => {
-    if (!projName.trim()) { setSaveResult({ success: false, message: "请输入项目名称" }); return; }
-    if (!projContent.trim()) { setSaveResult({ success: false, message: "请输入项目内容" }); return; }
+    if (!projName.trim()) { toast.show("请输入项目名称", "error"); return; }
+    if (!projContent.trim()) { toast.show("请输入项目内容", "error"); return; }
 
-    setSaving(true); setSaveResult(null);
+    setSaving(true);
     const techStack = projTechStack.split(/[,，]/).map((t) => t.trim()).filter(Boolean);
     const highlights = projHighlights.split("\n").map((h) => h.trim()).filter(Boolean);
 
@@ -158,26 +164,24 @@ function ProjectEditor({ slug, isNew, onSaved, onDeleted }: {
         const data = await res.json();
         if (data.success) {
           if (typeof window !== "undefined") window.localStorage.removeItem(draftKey);
-          setSaveResult({ success: true, message: "更新成功" });
+          toast.show("更新成功", "success");
           onSaved(data.slug ?? slug ?? "");
-          setTimeout(() => setSaveResult(null), 2000);
         } else {
-          setSaveResult({ success: false, message: data.error || "更新失败" });
+          toast.show(data.error || "更新失败", "error");
         }
       } else {
         const res = await fetch("/api/projects", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
         const data = await res.json();
         if (data.success) {
           if (typeof window !== "undefined") window.localStorage.removeItem(draftKey);
-          setSaveResult({ success: true, message: "创建成功" });
+          toast.show("创建成功", "success");
           onSaved(data.slug ?? "");
-          setTimeout(() => setSaveResult(null), 2000);
         } else {
-          setSaveResult({ success: false, message: data.error || "创建失败" });
+          toast.show(data.error || "创建失败", "error");
         }
       }
     } catch {
-      setSaveResult({ success: false, message: "网络错误" });
+      toast.show("网络错误", "error");
     } finally {
       setSaving(false);
     }
@@ -207,9 +211,9 @@ function ProjectEditor({ slug, isNew, onSaved, onDeleted }: {
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">{isNew ? "新建项目" : `编辑：${projName || slug}`}</h1>
+    <div className="flex h-[calc(100vh-3.5rem)] flex-col">
+      <div className="flex items-center justify-between gap-2 px-4 sm:px-6 h-14 border-b border-[var(--card-border)] shrink-0">
+        <h2 className="text-base font-semibold shrink-0 truncate">{isNew ? "新建项目" : `编辑：${projName || slug}`}</h2>
         <div className="flex items-center gap-2">
           {!isNew && (
             <button onClick={deleteProject} className="px-3 py-1.5 rounded-lg border border-[var(--card-border)] text-sm text-[var(--muted)] hover:text-red-400 hover:border-red-500/30 inline-flex items-center gap-1">
@@ -220,8 +224,7 @@ function ProjectEditor({ slug, isNew, onSaved, onDeleted }: {
               if (typeof window !== "undefined") {
                 window.localStorage.setItem(draftKey, JSON.stringify({ html: projContent, updatedAt: Date.now() }));
               }
-              setSaveResult({ success: true, message: "草稿已保存" });
-              setTimeout(() => setSaveResult(null), 2000);
+              toast.show("草稿已保存", "success");
             }} className="px-3 py-1.5 rounded-lg border border-[var(--card-border)] text-sm text-[var(--muted)] hover:text-[var(--primary)] transition-colors inline-flex items-center gap-1">
             <Save className="w-3.5 h-3.5" /> 草稿
           </button>
@@ -232,63 +235,66 @@ function ProjectEditor({ slug, isNew, onSaved, onDeleted }: {
         </div>
       </div>
 
-      {saveResult && (
-        <div className={`px-3 py-2 rounded text-sm ${saveResult.success ? "bg-emerald-500/10 text-emerald-400" : "bg-red-500/10 text-red-400"}`}>
-          {saveResult.message}
-        </div>
-      )}
+      <EditorChrome
+        inspectorOpen={inspectorOpen}
+        onToggleInspector={() => setInspectorOpen(!inspectorOpen)}
+        inspector={
+          <EditorInspector>
+            <InspectorSection id="proj-basic" title="基本信息">
+              <div>
+                <label className={labelCls}>项目描述</label>
+                <input type="text" value={projDesc} onChange={(e) => setProjDesc(e.target.value)} placeholder="一句话概括" className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>技术栈（逗号分隔）</label>
+                <input type="text" value={projTechStack} onChange={(e) => setProjTechStack(e.target.value)} placeholder="Python, Spark, Hive" className={inputCls} />
+              </div>
+            </InspectorSection>
 
-      {/* Meta fields */}
-      <div className="space-y-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className={labelCls}>项目名称 <span className="text-red-400">*</span></label>
-            <input type="text" value={projName} onChange={(e) => setProjName(e.target.value)} placeholder="项目名称" className={inputCls} />
-          </div>
-          <div>
-            <label className={labelCls}>项目描述</label>
-            <input type="text" value={projDesc} onChange={(e) => setProjDesc(e.target.value)} placeholder="一句话概括" className={inputCls} />
-          </div>
-        </div>
+            <InspectorSection id="proj-cover" title="封面">
+              <input type="text" value={projCover} onChange={(e) => setProjCover(e.target.value)} placeholder="/images/projects/cover.png" className={inputCls} />
+              {projCover && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={projCover} alt="封面预览" className="mt-2 w-full rounded-lg border border-[var(--card-border)] object-cover aspect-video" />
+              )}
+            </InspectorSection>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className={labelCls}>技术栈（逗号分隔）</label>
-            <input type="text" value={projTechStack} onChange={(e) => setProjTechStack(e.target.value)} placeholder="Python, Spark, Hive" className={inputCls} />
-          </div>
-          <div>
-            <label className={labelCls}>封面图片 URL</label>
-            <input type="text" value={projCover} onChange={(e) => setProjCover(e.target.value)} placeholder="/images/projects/cover.png" className={inputCls} />
-          </div>
-        </div>
+            <InspectorSection id="proj-links" title="链接">
+              <div>
+                <label className={labelCls}>GitHub 地址</label>
+                <input type="text" value={projGithub} onChange={(e) => setProjGithub(e.target.value)} placeholder="https://github.com/..." className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>在线演示地址</label>
+                <input type="text" value={projDemo} onChange={(e) => setProjDemo(e.target.value)} placeholder="https://demo.example.com" className={inputCls} />
+              </div>
+            </InspectorSection>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className={labelCls}>GitHub 地址</label>
-            <input type="text" value={projGithub} onChange={(e) => setProjGithub(e.target.value)} placeholder="https://github.com/..." className={inputCls} />
-          </div>
-          <div>
-            <label className={labelCls}>在线演示地址</label>
-            <input type="text" value={projDemo} onChange={(e) => setProjDemo(e.target.value)} placeholder="https://demo.example.com" className={inputCls} />
-          </div>
+            <InspectorSection id="proj-highlights" title="项目亮点">
+              <textarea value={projHighlights} onChange={(e) => setProjHighlights(e.target.value)} placeholder={"支持亿级数据去重\n实现文档级和段落级去重"} rows={4} className={`${inputCls} resize-none`} />
+              <p className="text-[11px] text-[var(--muted)]">每行一个亮点。</p>
+            </InspectorSection>
+          </EditorInspector>
+        }
+      >
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 pr-14">
+          <input
+            type="text"
+            value={projName}
+            onChange={(e) => setProjName(e.target.value)}
+            placeholder="项目名称"
+            className="w-full text-2xl font-bold bg-transparent text-[var(--foreground)] placeholder:text-[var(--muted)]/30 focus:outline-none border-none mb-4"
+          />
+          <MarkdownEditor
+            value={projContent}
+            onChange={setProjContent}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+            uploadMeta={{ type: "projects" }}
+            draftKey={draftKey}
+          />
         </div>
-
-        <div>
-          <label className={labelCls}>项目亮点（每行一个）</label>
-          <textarea value={projHighlights} onChange={(e) => setProjHighlights(e.target.value)} placeholder={"支持亿级数据去重\n实现文档级和段落级去重"} rows={2} className={`${inputCls} resize-none`} />
-        </div>
-      </div>
-
-      {/* Markdown editor */}
-      <div>
-        <label className="block text-sm text-[var(--muted)] mb-2">项目内容 <span className="text-red-400">*</span></label>
-        <MarkdownEditor
-          value={projContent}
-          onChange={setProjContent}
-          uploadMeta={{ type: "projects" }}
-          draftKey={draftKey}
-        />
-      </div>
+      </EditorChrome>
     </div>
   );
 }

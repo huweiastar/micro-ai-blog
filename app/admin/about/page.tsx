@@ -5,7 +5,7 @@ import {
   Camera, Check, Save, Plus, Trash2,
   X, Edit3,
 } from "lucide-react";
-import { BioEditor } from "../../../components/BioEditor";
+import { MarkdownEditor } from "../../../components/admin/MarkdownEditor";
 import { useToast } from "../../../components/admin/Toast";
 
 type SkillGroup = { title: string; items: string[] };
@@ -167,10 +167,11 @@ export default function AboutPage() {
         {/* Bio */}
         <div className="glass rounded-xl p-6">
           <h2 className="text-lg font-semibold mb-4">个人简介</h2>
-          <BioEditor
-            label="简介内容（支持 Markdown）"
+          <p className="text-sm text-[var(--muted)] mb-2">简介内容（支持 Markdown，可分屏实时预览）</p>
+          <MarkdownEditor
             value={aboutBio}
             onChange={setAboutBio}
+            uploadMeta={{ type: "uploads" }}
           />
         </div>
 
