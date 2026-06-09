@@ -4,6 +4,9 @@ import path from "path";
 import yaml from "js-yaml";
 import { refreshAfterContentChange } from "../../../lib/regenerate";
 
+// 后台保存后立即生效：禁止 GET 被静态缓存成旧值。
+export const dynamic = "force-dynamic";
+
 const projectsPath = path.join(process.cwd(), "content/projects/projects.yaml");
 
 function readProjects() {

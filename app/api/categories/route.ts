@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCategoryConfigs, saveCategoryConfigs } from "../../../lib/categories";
 
+// 后台保存后立即生效：禁止 GET 被静态缓存成旧值。
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const categories = getCategoryConfigs();
   return NextResponse.json(categories);

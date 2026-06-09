@@ -4,6 +4,9 @@ import path from "path";
 
 const themePath = path.join(process.cwd(), "config/theme.json");
 
+// 主题保存后需立即生效：禁止把 GET 静态缓存成构建期的旧值。
+export const dynamic = "force-dynamic";
+
 function readTheme() {
   try {
     const content = fs.readFileSync(themePath, "utf-8");

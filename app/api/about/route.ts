@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAboutProfile, saveAboutProfile } from "../../../lib/about";
 import type { AboutProfile } from "../../../types/about";
 
+// 后台保存后立即生效：禁止 GET 被静态缓存成旧值。
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   return NextResponse.json(getAboutProfile());
 }
