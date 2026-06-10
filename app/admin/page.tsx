@@ -4,7 +4,6 @@ import {
   PenLine,
   Clock,
   Type,
-  Stethoscope,
   ArrowRight,
   ExternalLink,
   Plus,
@@ -12,7 +11,6 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { getAllPostsForAdmin } from "../../lib/posts";
-import { getAllProjects } from "../../lib/projects";
 import { analyzeContentHealth } from "../../lib/content-health";
 
 // 仪表盘实时聚合统计/内容/访问数据，禁止静态缓存。
@@ -44,7 +42,6 @@ function StatCard({
 
 export default function AdminDashboard() {
   const posts = getAllPostsForAdmin();
-  const projects = getAllProjects();
   const health = analyzeContentHealth();
 
   const live = posts.filter((p) => !p.draft && !p.scheduled);
@@ -157,21 +154,6 @@ export default function AdminDashboard() {
         </ul>
       </section>
 
-      {/* 快捷操作 */}
-      <section className="mt-6">
-        <h2 className="text-sm font-semibold mb-3">快捷操作</h2>
-        <div className="flex flex-wrap gap-2">
-          <Link href="/admin/articles/edit?new=1" className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[var(--card-border)] text-sm text-[var(--muted)] hover:text-[var(--primary)] hover:border-[var(--primary)]/50 transition-colors">
-            <Plus className="w-4 h-4" />写文章
-          </Link>
-          <Link href="/admin/content-health" className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[var(--card-border)] text-sm text-[var(--muted)] hover:text-[var(--primary)] hover:border-[var(--primary)]/50 transition-colors">
-            <Stethoscope className="w-4 h-4" />内容体检
-          </Link>
-          <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[var(--card-border)] text-sm text-[var(--muted)]">
-            <FileText className="w-4 h-4" />{projects.length} 个项目
-          </span>
-        </div>
-      </section>
     </div>
   );
 }
