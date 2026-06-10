@@ -129,13 +129,13 @@ export function MarkdownEditor({
             onChange={(e) => onChange(e.target.value)}
             onScroll={mode === "split" ? syncScroll : undefined}
             placeholder={placeholder}
-            className={`px-4 py-3 rounded-lg border border-[var(--card-border)] bg-[var(--card)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50 resize-none text-sm leading-relaxed font-mono ${isFullscreen ? "flex-1 min-h-0" : "min-h-[400px]"} ${mode === "split" ? "w-1/2" : "w-full"}`}
+            className={`px-4 py-3 rounded-lg border border-[var(--card-border)] bg-[var(--card)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50 resize-none text-sm leading-relaxed font-mono ${isFullscreen ? "flex-1 min-h-0" : "min-h-[65vh]"} ${mode === "split" ? "w-1/2" : "w-full"}`}
           />
         )}
         {previewOn && (
           <div
             ref={previewRef}
-            className={`prose-custom overflow-auto rounded-lg border border-[var(--card-border)] bg-[var(--card)] px-4 py-3 ${isFullscreen ? "flex-1 min-h-0" : "min-h-[400px]"} ${mode === "split" ? "w-1/2" : "w-full"}`}
+            className={`prose-custom overflow-auto rounded-lg border border-[var(--card-border)] bg-[var(--card)] px-4 py-3 ${isFullscreen ? "flex-1 min-h-0" : "min-h-[65vh]"} ${mode === "split" ? "w-1/2" : "w-full"}`}
             dangerouslySetInnerHTML={{
               __html: previewHtml || '<span class="text-[var(--muted)] text-sm">开始输入以预览…</span>',
             }}

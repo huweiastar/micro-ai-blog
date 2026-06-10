@@ -204,7 +204,7 @@ export function ProjectEditor({ slug, isNew, onSaved, onDeleted, onBack }: {
           </EditorInspector>
         }
       >
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
+        <div className="w-full max-w-[1700px] mx-auto px-4 sm:px-8 2xl:px-12 py-6">
           <input
             type="text"
             value={projName}
