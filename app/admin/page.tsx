@@ -71,9 +71,7 @@ export default function AdminDashboard() {
       <header className="mb-6 flex items-center justify-between gap-3 flex-wrap">
         <div>
           <h1 className="text-xl font-semibold">概览</h1>
-          <p className="text-sm text-[var(--muted)] mt-1">
-            站点内容一览。数据实时统计。
-          </p>
+          <p className="text-sm text-[var(--muted)] mt-1">站点内容总览。</p>
         </div>
         <div className="flex items-center gap-2">
           <Link
