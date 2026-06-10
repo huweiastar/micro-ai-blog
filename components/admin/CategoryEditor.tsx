@@ -17,6 +17,7 @@ export type Category = {
   bgOpacity?: number;
   description_long?: string;
   cover?: string;
+  draft?: boolean;
 };
 
 const BG_PRESETS = ["gradient-1", "gradient-2", "gradient-3", "gradient-4", "gradient-5", "gradient-6"];
@@ -42,6 +43,7 @@ export function CategoryEditor({
   const [formOpacity, setFormOpacity] = useState(existing?.bgOpacity ?? 15);
   const [formCover, setFormCover] = useState(existing?.cover ?? "");
   const [formLongDesc, setFormLongDesc] = useState(existing?.description_long ?? "");
+  const [formDraft, setFormDraft] = useState(existing?.draft ?? false);
   const [saving, setSaving] = useState(false);
   const toast = useToast();
   const { viewMode, setViewMode, inspectorOpen, setInspectorOpen } = useEditorLayout();
@@ -52,11 +54,13 @@ export function CategoryEditor({
     "w-full px-3 py-2 rounded-lg border border-[var(--card-border)] bg-[var(--card)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50 text-sm";
   const labelCls = "block text-xs text-[var(--muted)] mb-1";
 
-  const save = async () => {
+  const save = async (asDraft?: boolean) => {
+    const saveAsDraft = asDraft ?? formDraft;
     if (!formName.trim()) {
       toast.show("名称不能为空", "error");
       return;
     }
+    setFormDraft(saveAsDraft);
     setSaving(true);
     const payload = {
       name: formName.trim(),
@@ -65,6 +69,7 @@ export function CategoryEditor({
       bgOpacity: formOpacity,
       description_long: formLongDesc || undefined,
       cover: formCover || undefined,
+      draft: saveAsDraft,
     };
     const res = await fetch("/api/categories", {
       method: isEdit ? "PUT" : "POST",
@@ -75,7 +80,7 @@ export function CategoryEditor({
     setSaving(false);
     if (data.success) {
       if (typeof window !== "undefined") window.localStorage.removeItem(draftKey);
-      toast.show("已保存", "success");
+      toast.show(saveAsDraft ? "草稿已保存" : "已发布", "success");
       onSaved(payload.name);
     } else {
       toast.show(data.error || "保存失败", "error");
@@ -112,19 +117,15 @@ export function CategoryEditor({
             </button>
           )}
           <button
-            onClick={() => {
-              if (typeof window !== "undefined") {
-                window.localStorage.setItem(draftKey, JSON.stringify({ html: formLongDesc, updatedAt: Date.now() }));
-              }
-              toast.show("草稿已保存", "success");
-            }}
-            className="px-3 py-1.5 rounded-lg border border-[var(--card-border)] text-sm text-[var(--muted)] hover:text-[var(--primary)] transition-colors inline-flex items-center gap-1"
+            onClick={() => save(true)}
+            disabled={saving}
+            className="px-3 py-1.5 rounded-lg border border-[var(--card-border)] text-sm text-[var(--muted)] hover:text-[var(--primary)] transition-colors inline-flex items-center gap-1 disabled:opacity-50"
           >
-            <Save className="w-3.5 h-3.5" /> 草稿
+            <Save className="w-3.5 h-3.5" /> 保存草稿
           </button>
-          <button onClick={save} disabled={saving} className="px-4 py-1.5 rounded-lg bg-[var(--primary)] text-white text-sm font-medium hover:opacity-90 disabled:opacity-50 inline-flex items-center gap-1">
+          <button onClick={() => save(formDraft)} disabled={saving} className="px-4 py-1.5 rounded-lg bg-[var(--primary)] text-white text-sm font-medium hover:opacity-90 disabled:opacity-50 inline-flex items-center gap-1">
             {saving && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-            保存
+            {saving ? "保存中..." : formDraft ? "保存草稿" : isEdit ? "更新" : "发布"}
           </button>
         </div>
       </div>
@@ -134,6 +135,13 @@ export function CategoryEditor({
         onToggleInspector={() => setInspectorOpen(!inspectorOpen)}
         inspector={
           <EditorInspector>
+            <InspectorSection id="cat-publish" title="发布">
+              <label className="flex items-center gap-2 text-sm text-[var(--foreground)]">
+                <input type="checkbox" checked={formDraft} onChange={(e) => setFormDraft(e.target.checked)} className="accent-[var(--primary)]" />
+                存为草稿（不公开）
+              </label>
+              <p className="text-[11px] text-[var(--muted)]">草稿不会出现在专栏列表与专栏详情页，仅后台可见。</p>
+            </InspectorSection>
             <InspectorSection id="cat-desc" title="短描述">
               <textarea rows={3} value={formDesc} onChange={(e) => setFormDesc(e.target.value)} className={`${inputCls} resize-none`} placeholder="一句话介绍这个专栏" />
             </InspectorSection>

@@ -21,7 +21,7 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: ProjectPageProps): Promise<Metadata> {
   const project = getProjectBySlug(params.slug);
-  if (!project) return { title: "项目未找到" };
+  if (!project || project.draft) return { title: "项目未找到" };
 
   return generatePageMetadata({
     title: `${project.name} | 项目`,
@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: ProjectPageProps): Promise<Me
 
 export default async function ProjectDetailPage({ params }: ProjectPageProps) {
   const project = getProjectBySlug(params.slug);
-  if (!project) notFound();
+  if (!project || project.draft) notFound();
 
   // Fetch related posts
   const relatedPosts = await Promise.all(

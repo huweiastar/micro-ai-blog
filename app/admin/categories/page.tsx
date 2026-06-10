@@ -11,6 +11,7 @@ type Category = {
   bgOpacity?: number;
   description_long?: string;
   cover?: string;
+  draft?: boolean;
 };
 
 export default function CategoriesPage() {
@@ -84,7 +85,10 @@ export default function CategoriesPage() {
                 className="w-full text-left rounded-xl border border-[var(--card-border)] bg-[var(--card)] p-4 transition-all hover:border-[var(--primary)]/50 hover:-translate-y-0.5"
               >
                 <div className="flex items-center justify-between gap-2 mb-1">
-                  <span className="font-medium text-sm line-clamp-1">{c.name}</span>
+                  <span className="flex items-center gap-1.5 min-w-0">
+                    <span className="font-medium text-sm line-clamp-1">{c.name}</span>
+                    {c.draft && <span className="shrink-0 text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400">草稿</span>}
+                  </span>
                   <span className="shrink-0 text-xs text-[var(--muted)]">{counts[c.name] ?? 0} 篇</span>
                 </div>
                 {c.description && <p className="text-xs text-[var(--muted)] line-clamp-2">{c.description}</p>}

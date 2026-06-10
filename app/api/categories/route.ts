@@ -12,7 +12,7 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { name, description, background, bgOpacity, description_long, cover } = body;
+    const { name, description, background, bgOpacity, description_long, cover, draft } = body;
 
     if (!name) {
       return NextResponse.json({ error: "专栏名称不能为空" }, { status: 400 });
@@ -31,6 +31,7 @@ export async function POST(req: NextRequest) {
       bgOpacity,
       description_long: description_long || undefined,
       cover: cover || undefined,
+      draft: draft || undefined,
     });
     saveCategoryConfigs(categories);
 
@@ -43,7 +44,7 @@ export async function POST(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   try {
     const body = await req.json();
-    const { oldName, name, description, background, bgOpacity, description_long, cover } = body;
+    const { oldName, name, description, background, bgOpacity, description_long, cover, draft } = body;
 
     if (!oldName || !name) {
       return NextResponse.json({ error: "参数不完整" }, { status: 400 });
@@ -62,6 +63,7 @@ export async function PUT(req: NextRequest) {
       bgOpacity,
       description_long: description_long || undefined,
       cover: cover || undefined,
+      draft: draft || undefined,
     };
     saveCategoryConfigs(categories);
 

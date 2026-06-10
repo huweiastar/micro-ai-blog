@@ -26,6 +26,7 @@ export function ProjectEditor({ slug, isNew, onSaved, onDeleted, onBack }: {
   const [projDemo, setProjDemo] = useState("");
   const [projCover, setProjCover] = useState("");
   const [projContent, setProjContent] = useState("");
+  const [projDraft, setProjDraft] = useState(false);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(false);
   const toast = useToast();
@@ -51,6 +52,7 @@ export function ProjectEditor({ slug, isNew, onSaved, onDeleted, onBack }: {
           setProjDemo(p.demoUrl || "");
           setProjCover(p.cover || p.image || "");
           setProjContent(p.content || "");
+          setProjDraft(Boolean(p.draft));
         }
       })
       .catch(() => {})
@@ -58,10 +60,14 @@ export function ProjectEditor({ slug, isNew, onSaved, onDeleted, onBack }: {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug, isEdit]);
 
-  const saveProject = async () => {
+  // asDraft 显式指定保存为草稿（不传则沿用当前草稿开关状态）。
+  // 草稿仅需项目名称即可入库；正式发布才要求正文非空。
+  const saveProject = async (asDraft?: boolean) => {
+    const saveAsDraft = asDraft ?? projDraft;
     if (!projName.trim()) { toast.show("请输入项目名称", "error"); return; }
-    if (!projContent.trim()) { toast.show("请输入项目内容", "error"); return; }
+    if (!saveAsDraft && !projContent.trim()) { toast.show("请输入项目内容", "error"); return; }
 
+    setProjDraft(saveAsDraft);
     setSaving(true);
     const techStack = projTechStack.split(/[,，]/).map((t) => t.trim()).filter(Boolean);
     const highlights = projHighlights.split("\n").map((h) => h.trim()).filter(Boolean);
@@ -69,6 +75,7 @@ export function ProjectEditor({ slug, isNew, onSaved, onDeleted, onBack }: {
     const payload: Record<string, unknown> = {
       name: projName,
       description: projDesc,
+      draft: saveAsDraft,
       techStack,
       highlights,
       githubUrl: projGithub,
@@ -84,7 +91,7 @@ export function ProjectEditor({ slug, isNew, onSaved, onDeleted, onBack }: {
         const data = await res.json();
         if (data.success) {
           if (typeof window !== "undefined") window.localStorage.removeItem(draftKey);
-          toast.show("更新成功", "success");
+          toast.show(saveAsDraft ? "草稿已保存" : "已发布", "success");
           onSaved(data.slug ?? slug ?? "");
         } else {
           toast.show(data.error || "更新失败", "error");
@@ -94,7 +101,7 @@ export function ProjectEditor({ slug, isNew, onSaved, onDeleted, onBack }: {
         const data = await res.json();
         if (data.success) {
           if (typeof window !== "undefined") window.localStorage.removeItem(draftKey);
-          toast.show("创建成功", "success");
+          toast.show(saveAsDraft ? "草稿已保存" : "已发布", "success");
           onSaved(data.slug ?? "");
         } else {
           toast.show(data.error || "创建失败", "error");
@@ -147,17 +154,12 @@ export function ProjectEditor({ slug, isNew, onSaved, onDeleted, onBack }: {
               <Trash2 className="w-3.5 h-3.5" /> 删除
             </button>
           )}
-          <button onClick={() => {
-              if (typeof window !== "undefined") {
-                window.localStorage.setItem(draftKey, JSON.stringify({ html: projContent, updatedAt: Date.now() }));
-              }
-              toast.show("草稿已保存", "success");
-            }} className="px-3 py-1.5 rounded-lg border border-[var(--card-border)] text-sm text-[var(--muted)] hover:text-[var(--primary)] transition-colors inline-flex items-center gap-1">
-            <Save className="w-3.5 h-3.5" /> 草稿
+          <button onClick={() => saveProject(true)} disabled={saving} className="px-3 py-1.5 rounded-lg border border-[var(--card-border)] text-sm text-[var(--muted)] hover:text-[var(--primary)] transition-colors inline-flex items-center gap-1 disabled:opacity-50">
+            <Save className="w-3.5 h-3.5" /> 保存草稿
           </button>
-          <button onClick={saveProject} disabled={saving} className="px-4 py-1.5 rounded-lg bg-[var(--primary)] text-white text-sm font-medium hover:opacity-90 disabled:opacity-50 inline-flex items-center gap-1">
+          <button onClick={() => saveProject(projDraft)} disabled={saving} className="px-4 py-1.5 rounded-lg bg-[var(--primary)] text-white text-sm font-medium hover:opacity-90 disabled:opacity-50 inline-flex items-center gap-1">
             {saving && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-            {saving ? "保存中..." : "保存"}
+            {saving ? "保存中..." : projDraft ? "保存草稿" : isEdit ? "更新" : "发布"}
           </button>
         </div>
       </div>
@@ -167,6 +169,13 @@ export function ProjectEditor({ slug, isNew, onSaved, onDeleted, onBack }: {
         onToggleInspector={() => setInspectorOpen(!inspectorOpen)}
         inspector={
           <EditorInspector>
+            <InspectorSection id="proj-publish" title="发布">
+              <label className="flex items-center gap-2 text-sm text-[var(--foreground)]">
+                <input type="checkbox" checked={projDraft} onChange={(e) => setProjDraft(e.target.checked)} className="accent-[var(--primary)]" />
+                存为草稿（不公开）
+              </label>
+              <p className="text-[11px] text-[var(--muted)]">草稿不会出现在项目列表、首页与搜索中，仅后台可见。</p>
+            </InspectorSection>
             <InspectorSection id="proj-basic" title="基本信息">
               <div>
                 <label className={labelCls}>项目描述</label>

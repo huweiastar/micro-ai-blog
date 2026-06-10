@@ -12,7 +12,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { getAllPostsForAdmin } from "../../lib/posts";
-import { getProjects } from "../../lib/projects";
+import { getAllProjects } from "../../lib/projects";
 import { analyzeContentHealth } from "../../lib/content-health";
 
 // 仪表盘实时聚合统计/内容/访问数据，禁止静态缓存。
@@ -44,7 +44,7 @@ function StatCard({
 
 export default function AdminDashboard() {
   const posts = getAllPostsForAdmin();
-  const projects = getProjects();
+  const projects = getAllProjects();
   const health = analyzeContentHealth();
 
   const live = posts.filter((p) => !p.draft && !p.scheduled);

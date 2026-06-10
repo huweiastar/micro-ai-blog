@@ -19,6 +19,7 @@ export type Project = {
   slug: string;
   name: string;
   description: string;
+  draft?: boolean;          // 草稿：仅后台可见，不在公开页面展示
   cover?: string;
   image?: string;
   techStack: string[];

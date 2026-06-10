@@ -14,6 +14,7 @@ type Project = {
   githubUrl?: string;
   demoUrl?: string;
   content?: string;
+  draft?: boolean;
 };
 
 export default function ProjectsPage() {
@@ -82,7 +83,10 @@ export default function ProjectsPage() {
                   <img src={p.cover} alt="" className="w-full aspect-video object-cover" />
                 )}
                 <div className="p-3">
-                  <div className="font-medium text-sm line-clamp-1">{p.name || "（未命名）"}</div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-medium text-sm line-clamp-1">{p.name || "（未命名）"}</span>
+                    {p.draft && <span className="shrink-0 text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400">草稿</span>}
+                  </div>
                   {p.description && <p className="text-xs text-[var(--muted)] line-clamp-2 mt-1">{p.description}</p>}
                   {p.techStack.length > 0 && (
                     <div className="text-[11px] text-[var(--muted)] line-clamp-1 mt-1.5">

@@ -22,6 +22,8 @@ const READ_ONLY_METHODS = ["GET", "HEAD", "OPTIONS"];
 // 这些接口连读取也要鉴权：仅后台使用，且会暴露草稿/未上线内容或后台计数。
 const READ_PROTECTED_API_PATHS = [
   "/api/posts",
+  "/api/projects",
+  "/api/categories",
   "/api/admin/overview",
   "/api/admin/media",
   "/api/admin/revisions",

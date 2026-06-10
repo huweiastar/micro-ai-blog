@@ -48,6 +48,7 @@ export async function POST(req: NextRequest) {
       slug,
       name: body.name,
       description: body.description || "",
+      draft: body.draft || false,
       techStack: body.techStack || [],
       highlights: body.highlights || [],
       githubUrl: body.githubUrl || "",
@@ -70,7 +71,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-const ALLOWED_PROJECT_KEYS = ["name", "description", "techStack", "highlights", "githubUrl", "demoUrl", "image", "cover", "content", "details", "relatedPosts"];
+const ALLOWED_PROJECT_KEYS = ["name", "description", "draft", "techStack", "highlights", "githubUrl", "demoUrl", "image", "cover", "content", "details", "relatedPosts"];
 
 export async function PUT(req: NextRequest) {
   try {
