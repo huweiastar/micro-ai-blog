@@ -90,7 +90,8 @@ function parsePostFile(file: string): BlogPost {
   const { data, content } = matter(source);
 
   return {
-    slug: getSlug(file),
+    // 优先使用 frontmatter 自定义 slug（让 URL 与文件名解耦，中文标题也能有干净链接）
+    slug: (typeof data.slug === "string" && data.slug) || getSlug(file),
     title: data.title || "",
     date: data.date || "",
     updated: data.updated,

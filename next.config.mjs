@@ -15,6 +15,16 @@ const nextConfig = {
       { protocol: "https", hostname: "**.githubusercontent.com" },
     ],
   },
+  // 文章 slug 改名后，旧链接 301 跳到新链接，避免已分享的链接失效。
+  async redirects() {
+    return [
+      {
+        source: "/blog/大模型演进史-从规模法则到通用人工智能的破局之路",
+        destination: "/blog/llm-evolution-history",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

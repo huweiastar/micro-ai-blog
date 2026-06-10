@@ -11,8 +11,16 @@ const postsDirectory = path.join(process.cwd(), "content/blog");
 // to prevent path traversal.
 const SLUG_PATTERN = /^[\w一-龥-]+$/;
 
+// 自定义 slug 仅允许小写字母/数字/连字符，保证链接干净且 URL 安全。
+const CUSTOM_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
 function getSlug(filename: string): string {
   return filename.replace(/\.(md|mdx)$/, "");
+}
+
+// 一篇文章的规范 slug：优先 frontmatter.slug，否则取文件名。
+function canonicalSlug(data: Record<string, unknown>, file: string): string {
+  return typeof data.slug === "string" && data.slug ? data.slug : getSlug(file);
 }
 
 function calculateWordCount(content: string): number {
@@ -40,10 +48,12 @@ function normalizeTags(tags: unknown): string[] {
   return [];
 }
 
+// 从标题派生 ascii slug；中文等非 ascii 字符会被剔除，
+// 若结果为空（如纯中文标题）则回退到时间戳，避免再产生中文文件名/链接。
 function deriveSlug(title: string): string {
   const slug = title
     .toLowerCase()
-    .replace(/[^\w一-龥]+/g, "-")
+    .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
   return slug || `article-${Date.now()}`;
 }
@@ -56,12 +66,30 @@ function todayDate(): string {
   return `${yyyy}-${mm}-${dd}`;
 }
 
+// 按规范 slug 定位文件：先扫描 frontmatter.slug，再回退文件名匹配。
 function findPostFile(slug: string): string | null {
-  const mdPath = path.join(postsDirectory, `${slug}.md`);
-  if (fs.existsSync(mdPath)) return mdPath;
-  const mdxPath = path.join(postsDirectory, `${slug}.mdx`);
-  if (fs.existsSync(mdxPath)) return mdxPath;
+  if (!fs.existsSync(postsDirectory)) return null;
+  const files = fs.readdirSync(postsDirectory).filter((f) => f.endsWith(".md") || f.endsWith(".mdx"));
+  // 优先匹配自定义 slug
+  for (const file of files) {
+    const filePath = path.join(postsDirectory, file);
+    const { data } = matter(fs.readFileSync(filePath, "utf-8"));
+    if (typeof data.slug === "string" && data.slug === slug) return filePath;
+  }
+  // 回退：文件名匹配，但需排除「该文件名已被其它 frontmatter.slug 覆盖」的情况
+  for (const file of files) {
+    if (getSlug(file) !== slug) continue;
+    const filePath = path.join(postsDirectory, file);
+    const { data } = matter(fs.readFileSync(filePath, "utf-8"));
+    if (typeof data.slug === "string" && data.slug && data.slug !== slug) continue;
+    return filePath;
+  }
   return null;
+}
+
+// 检查某个 slug 是否已被占用（用于新建/改名查重）。
+function slugExists(slug: string): boolean {
+  return findPostFile(slug) !== null;
 }
 
 function buildFrontmatter(opts: {
@@ -73,9 +101,10 @@ function buildFrontmatter(opts: {
   draft: boolean;
   cover?: string;
   publish?: string;
+  slug?: string;
   content: string;
 }): string {
-  const { title, date, summary, tags, category, draft, cover, publish, content } = opts;
+  const { title, date, summary, tags, category, draft, cover, publish, slug, content } = opts;
   const lines = [
     "---",
     `title: "${yamlEscape(title)}"`,
@@ -85,6 +114,8 @@ function buildFrontmatter(opts: {
     `category: "${yamlEscape(category)}"`,
     `draft: ${draft ? "true" : "false"}`,
   ];
+  // 仅当自定义 slug 与文件名不一致时才写入 frontmatter，保持文件整洁。
+  if (slug) lines.push(`slug: "${yamlEscape(slug)}"`);
   if (publish) lines.push(`publish: "${yamlEscape(publish)}"`);
   if (cover) lines.push(`cover: "${yamlEscape(cover)}"`);
   lines.push("---", "", content, "");
@@ -133,7 +164,7 @@ export async function GET(req: NextRequest) {
       const { data, content } = matter(source);
 
       return {
-        slug: getSlug(file),
+        slug: canonicalSlug(data, file),
         title: (data.title as string) || "",
         date: (data.date as string) || "",
         summary: (data.summary as string) || "",
@@ -170,7 +201,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "正文不能为空" }, { status: 400 });
     }
 
-    const baseSlug = deriveSlug(String(title));
+    // 优先使用作者自定义的干净 slug；非法或留空时从标题派生。
+    const customSlug = typeof body.slug === "string" ? body.slug.trim().toLowerCase() : "";
+    if (customSlug && !CUSTOM_SLUG_PATTERN.test(customSlug)) {
+      return NextResponse.json({ error: "链接仅能包含小写字母、数字和连字符" }, { status: 400 });
+    }
+    const baseSlug = customSlug || deriveSlug(String(title));
 
     if (!fs.existsSync(postsDirectory)) {
       fs.mkdirSync(postsDirectory, { recursive: true });
@@ -179,10 +215,7 @@ export async function POST(req: NextRequest) {
     // Disambiguate slug if duplicate exists.
     let finalSlug = baseSlug;
     let counter = 1;
-    while (
-      fs.existsSync(path.join(postsDirectory, `${finalSlug}.md`)) ||
-      fs.existsSync(path.join(postsDirectory, `${finalSlug}.mdx`))
-    ) {
+    while (slugExists(finalSlug)) {
       finalSlug = `${baseSlug}-${counter}`;
       counter++;
     }
@@ -223,7 +256,7 @@ export async function POST(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   try {
     const body = await req.json();
-    const { slug, title, summary, category, tags, content, draft } = body;
+    const { slug, newSlug, title, summary, category, tags, content, draft } = body;
     const isDraft = Boolean(draft);
 
     if (!slug || typeof slug !== "string") {
@@ -244,6 +277,19 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "文章不存在" }, { status: 404 });
     }
 
+    // 解析目标 slug：作者改了「链接」字段时生效，校验为干净 ascii 且不与他文冲突。
+    const desiredSlug = typeof newSlug === "string" ? newSlug.trim().toLowerCase() : "";
+    let finalSlug = slug;
+    if (desiredSlug && desiredSlug !== slug) {
+      if (!CUSTOM_SLUG_PATTERN.test(desiredSlug)) {
+        return NextResponse.json({ error: "链接仅能包含小写字母、数字和连字符" }, { status: 400 });
+      }
+      if (slugExists(desiredSlug)) {
+        return NextResponse.json({ error: "该链接已被占用" }, { status: 400 });
+      }
+      finalSlug = desiredSlug;
+    }
+
     // Preserve original date unless explicitly overridden.
     const existingSource = fs.readFileSync(filePath, "utf-8");
     const { data: existingData } = matter(existingSource);
@@ -252,6 +298,10 @@ export async function PUT(req: NextRequest) {
     const date = body.date
       ? String(body.date)
       : (existingData.date as string) || todayDate();
+
+    // 仅当 slug 与文件名不一致时写入 frontmatter.slug；一致则省略保持整洁。
+    const fileBaseSlug = getSlug(path.basename(filePath));
+    const frontmatterSlug = finalSlug === fileBaseSlug ? undefined : finalSlug;
 
     const mdContent = buildFrontmatter({
       title: String(title),
@@ -262,14 +312,15 @@ export async function PUT(req: NextRequest) {
       draft: isDraft,
       cover: body.cover ? String(body.cover) : undefined,
       publish: body.publish ? String(body.publish) : undefined,
+      slug: frontmatterSlug,
       content: String(content ?? ""),
     });
 
     fs.writeFileSync(filePath, mdContent, "utf-8");
 
-    refreshAfterContentChange(slug);
+    refreshAfterContentChange(finalSlug);
 
-    return NextResponse.json({ success: true, slug });
+    return NextResponse.json({ success: true, slug: finalSlug });
   } catch (error) {
     console.error("Update post error:", error);
     return NextResponse.json(

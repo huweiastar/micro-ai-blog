@@ -12,6 +12,7 @@ import {
   FolderOpen,
   CalendarDays,
   Clock,
+  Link2 as LinkIcon,
   BookOpen,
   History,
   ArrowLeft,
@@ -78,6 +79,7 @@ export function ArticleEditor({ slug, isNew, categories, onSaved, onDeleted, onB
   const [articleTags, setArticleTags] = useState("");
   const [articleContent, setArticleContent] = useState("");
   const [articleDate, setArticleDate] = useState(todayStr());
+  const [articleSlug, setArticleSlug] = useState(slug ?? "");
   const [scheduled, setScheduled] = useState(false);
   const [publishAt, setPublishAt] = useState(defaultScheduleStr());
   const [draft, setDraft] = useState(false);
@@ -122,6 +124,7 @@ export function ArticleEditor({ slug, isNew, categories, onSaved, onDeleted, onB
           setArticleTags(Array.isArray(post.tags) ? post.tags.join(", ") : post.tags || "");
           setArticleContent(post.content || "");
           setDraft(Boolean(post.draft));
+          if (post.slug) setArticleSlug(String(post.slug));
           if (post.date) setArticleDate(String(post.date));
           if (post.publish) {
             const d = new Date(String(post.publish));
@@ -151,8 +154,11 @@ export function ArticleEditor({ slug, isNew, categories, onSaved, onDeleted, onB
     }
 
     setSaving(true);
+    const trimmedSlug = articleSlug.trim().toLowerCase();
     const payload = {
-      slug: isEdit ? slug : undefined,
+      slug: isEdit ? slug : trimmedSlug || undefined,
+      // 编辑态下若改了「链接」字段，用 newSlug 重命名（旧链接自动失效）
+      newSlug: isEdit ? trimmedSlug || undefined : undefined,
       title: articleTitle,
       date: articleDate || todayStr(),
       summary: articleSummary || articleTitle,
@@ -437,6 +443,19 @@ export function ArticleEditor({ slug, isNew, categories, onSaved, onDeleted, onB
                   <input type="checkbox" checked={draft} onChange={(e) => setDraft(e.target.checked)} className="accent-[var(--primary)]" />
                   存为草稿（不公开）
                 </label>
+                <div>
+                  <label className={labelCls}><LinkIcon className="w-3 h-3 inline mr-1" />链接（slug）</label>
+                  <input
+                    type="text"
+                    value={articleSlug}
+                    onChange={(e) => setArticleSlug(e.target.value)}
+                    placeholder={articleTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "例如 my-first-post"}
+                    className={inputCls}
+                  />
+                  <p className="mt-1 text-[11px] text-[var(--muted)]">
+                    决定页面网址 /blog/<span className="text-[var(--foreground)]">{articleSlug.trim() || "…"}</span>。仅小写字母、数字、连字符；中文标题请手动填英文，留空将自动生成。{isEdit && "改动后旧链接会自动失效。"}
+                  </p>
+                </div>
                 <div>
                   <label className={labelCls}><CalendarDays className="w-3 h-3 inline mr-1" />发布日期</label>
                   <input type="date" value={articleDate} onChange={(e) => setArticleDate(e.target.value)} className={inputCls} />
