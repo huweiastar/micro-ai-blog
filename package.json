@@ -16,7 +16,8 @@
     "generate:knowledge": "tsx scripts/generate-knowledge-index.ts",
     "prebuild": "npm run generate:knowledge && npm run generate:search && npm run generate:sitemap && npm run generate:rss",
     "test": "vitest run",
-    "migrate:db": "tsx scripts/migrate-json-to-sqlite.ts"
+    "migrate:db": "tsx scripts/migrate-json-to-sqlite.ts",
+    "migrate:images": "tsx scripts/migrate-images-to-s3.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1066.0",

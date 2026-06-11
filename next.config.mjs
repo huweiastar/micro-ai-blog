@@ -12,6 +12,11 @@ function loadRedirects() {
   }
 }
 
+// 对象存储 CDN 域名（Next 加载配置前已注入 .env.local；未配置时为 null，不影响本地模式）
+const s3Host = process.env.S3_PUBLIC_BASE_URL
+  ? new URL(process.env.S3_PUBLIC_BASE_URL).hostname
+  : null;
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
@@ -30,6 +35,7 @@ const nextConfig = {
       { protocol: "https", hostname: "**.feishucdn.com" },
       { protocol: "https", hostname: "**.larksuitecdn.com" },
       { protocol: "https", hostname: "**.githubusercontent.com" },
+      ...(s3Host ? [{ protocol: "https", hostname: s3Host }] : []),
     ],
   },
   // 文章 slug 改名后，旧链接 301 跳到新链接，避免已分享的链接失效。
