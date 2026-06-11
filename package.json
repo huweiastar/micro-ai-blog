@@ -14,12 +14,15 @@
     "check:content": "tsx scripts/check-content.ts",
     "format": "prettier --write .",
     "generate:knowledge": "tsx scripts/generate-knowledge-index.ts",
-    "prebuild": "npm run generate:knowledge && npm run generate:search && npm run generate:sitemap && npm run generate:rss"
+    "prebuild": "npm run generate:knowledge && npm run generate:search && npm run generate:sitemap && npm run generate:rss",
+    "test": "vitest run",
+    "migrate:db": "tsx scripts/migrate-json-to-sqlite.ts"
   },
   "dependencies": {
     "@mdx-js/loader": "^3.1.1",
     "@mdx-js/react": "^3.1.1",
     "@vercel/analytics": "^2.0.1",
+    "better-sqlite3": "^12.10.0",
     "clsx": "^2.1.1",
     "fuse.js": "^7.0.0",
     "github-slugger": "^2.0.0",
@@ -44,6 +47,7 @@
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.19",
+    "@types/better-sqlite3": "^7.6.13",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^20.12.0",
     "@types/prettier": "^3.0.0",
@@ -58,6 +62,7 @@
     "prettier-plugin-tailwindcss": "^0.5.0",
     "tailwindcss": "^3.4.0",
     "tsx": "^4.7.0",
-    "typescript": "^5.4.0"
+    "typescript": "^5.4.0",
+    "vitest": "^4.1.8"
   }
 }
