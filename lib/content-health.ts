@@ -1,3 +1,4 @@
+import { findMissingPostImages } from "./content-media";
 import { getAllPostsForAdmin } from "./posts";
 
 export type IssueSeverity = "error" | "warning" | "info";
@@ -61,6 +62,12 @@ function isValidDate(value: string): boolean {
  */
 export function analyzeContentHealth(): HealthReport {
   const posts = getAllPostsForAdmin();
+  const missingImagesBySlug = new Map<string, string[]>();
+  for (const item of findMissingPostImages()) {
+    const list = missingImagesBySlug.get(item.slug) || [];
+    list.push(item.field ? item.field + ": " + item.url : item.url);
+    missingImagesBySlug.set(item.slug, list);
+  }
 
   // 统计标签全站引用次数，用于识别孤立标签。
   const tagFreq = new Map<string, number>();
@@ -134,6 +141,15 @@ export function analyzeContentHealth(): HealthReport {
 
     if (!post.cover) {
       issues.push({ code: "cover-missing", severity: "info", message: "缺少封面图" });
+    }
+
+    const missingImages = missingImagesBySlug.get(post.slug) || [];
+    if (missingImages.length > 0) {
+      issues.push({
+        code: "image-missing",
+        severity: "error",
+        message: "图片文件缺失：" + missingImages.join("、"),
+      });
     }
 
     if (post.wordCount < CONTENT_MIN) {

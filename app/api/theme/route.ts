@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import { atomicWriteFile } from "../../../lib/atomic-file";
 
 const themePath = path.join(process.cwd(), "config/theme.json");
 
@@ -34,7 +35,7 @@ export async function PUT(req: NextRequest) {
       }
     }
     const updated = { ...current, ...sanitized };
-    fs.writeFileSync(themePath, JSON.stringify(updated, null, 2), "utf-8");
+    atomicWriteFile(themePath, JSON.stringify(updated, null, 2));
     return NextResponse.json({ success: true, message: "主题已更新" });
   } catch {
     return NextResponse.json({ success: false, message: "更新失败" }, { status: 500 });

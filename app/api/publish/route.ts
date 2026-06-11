@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import { atomicWriteFile } from "../../../lib/atomic-file";
 
 export async function POST(req: NextRequest) {
   try {
@@ -61,7 +62,7 @@ ${content}
 `;
 
     // Write file
-    fs.writeFileSync(path.join(blogDir, finalFileName), mdContent, "utf-8");
+    atomicWriteFile(path.join(blogDir, finalFileName), mdContent);
 
     return NextResponse.json({
       success: true,

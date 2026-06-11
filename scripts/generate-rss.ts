@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { atomicWriteFile } from "../lib/atomic-file";
 import RSS from "rss";
 import { getAllPostsSync } from "../lib/posts";
 import { getSiteUrl } from "../lib/seo";
@@ -35,5 +36,5 @@ function generateRSS() {
 const rss = generateRSS();
 const outputPath = path.join(process.cwd(), "public/rss.xml");
 
-fs.writeFileSync(outputPath, rss, "utf-8");
+atomicWriteFile(outputPath, rss);
 console.log(`RSS feed generated: ${outputPath}`);

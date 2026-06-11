@@ -2,10 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
+import { atomicWriteFile } from "../../../lib/atomic-file";
 import { refreshAfterContentChange } from "../../../lib/regenerate";
 import { snapshotPost } from "../../../lib/revisions";
 
 const postsDirectory = path.join(process.cwd(), "content/blog");
+const redirectsFile = path.join(process.cwd(), "config", "redirects.json");
 
 // Only allow alphanumeric, underscore, dash, and CJK characters in slugs
 // to prevent path traversal.
@@ -64,6 +66,44 @@ function todayDate(): string {
   const mm = String(d.getMonth() + 1).padStart(2, "0");
   const dd = String(d.getDate()).padStart(2, "0");
   return `${yyyy}-${mm}-${dd}`;
+}
+
+type RedirectEntry = {
+  source: string;
+  destination: string;
+  permanent: boolean;
+};
+
+function readRedirects(): RedirectEntry[] {
+  try {
+    const raw = fs.readFileSync(redirectsFile, "utf-8");
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeRedirects(entries: RedirectEntry[]): void {
+  fs.mkdirSync(path.dirname(redirectsFile), { recursive: true });
+  atomicWriteFile(redirectsFile, JSON.stringify(entries, null, 2) + "\n");
+}
+
+function redirectSourcesForSlug(slug: string): string[] {
+  const raw = `/blog/${slug}`;
+  const encoded = `/blog/${encodeURIComponent(slug)}`;
+  return raw === encoded ? [raw] : [encoded, raw];
+}
+
+function recordSlugRedirect(fromSlug: string, toSlug: string): void {
+  if (fromSlug === toSlug) return;
+  const destination = `/blog/${toSlug}`;
+  const existing = readRedirects().filter((entry) => entry.destination !== entry.source);
+  const bySource = new Map(existing.map((entry) => [entry.source, entry]));
+  for (const source of redirectSourcesForSlug(fromSlug)) {
+    if (source !== destination) bySource.set(source, { source, destination, permanent: true });
+  }
+  writeRedirects(Array.from(bySource.values()));
 }
 
 // 按规范 slug 定位文件：先扫描 frontmatter.slug，再回退文件名匹配。
@@ -235,7 +275,7 @@ export async function POST(req: NextRequest) {
       content: String(content ?? ""),
     });
 
-    fs.writeFileSync(path.join(postsDirectory, fileName), mdContent, "utf-8");
+    atomicWriteFile(path.join(postsDirectory, fileName), mdContent);
 
     refreshAfterContentChange(finalSlug);
 
@@ -316,7 +356,10 @@ export async function PUT(req: NextRequest) {
       content: String(content ?? ""),
     });
 
-    fs.writeFileSync(filePath, mdContent, "utf-8");
+    atomicWriteFile(filePath, mdContent);
+    if (finalSlug !== slug) {
+      recordSlugRedirect(slug, finalSlug);
+    }
 
     refreshAfterContentChange(finalSlug);
 

@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
+import { extractImageUrls, localImagePath } from "../lib/content-media";
 
 const postsDirectory = path.join(process.cwd(), "content/blog");
 let hasError = false;
@@ -39,7 +40,7 @@ files.forEach((file) => {
   const source = fs.readFileSync(filePath, "utf-8");
 
   try {
-    const { data } = matter(source);
+    const { data, content } = matter(source);
 
     // Check required fields
     if (!data.title || typeof data.title !== "string" || data.title.trim() === "") {
@@ -79,11 +80,20 @@ files.forEach((file) => {
 
     // Check cover image exists
     if (data.cover) {
-      const coverPath = path.join(process.cwd(), "public", data.cover);
+      const coverPath = localImagePath(data.cover) ?? path.join(process.cwd(), "public", data.cover);
       if (!fs.existsSync(coverPath)) {
         error(`${file}: cover image not found at ${data.cover}`);
       }
     }
+
+    // Check local images referenced in Markdown body.
+    const bodyImages = extractImageUrls(content).filter((url) => url.startsWith("/images/"));
+    bodyImages.forEach((url) => {
+      const imagePath = localImagePath(url);
+      if (!imagePath || !fs.existsSync(imagePath)) {
+        error(`${file}: body image not found at ${url}`);
+      }
+    });
   } catch (e) {
     error(`${file}: failed to parse frontmatter - ${e}`);
   }

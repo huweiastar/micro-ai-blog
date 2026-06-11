@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import yaml from "js-yaml";
+import { atomicWriteFile } from "./atomic-file";
 import type { AboutProfile } from "../types/about";
 
 const profilePath = path.join(process.cwd(), "content/about/profile.yaml");
@@ -24,5 +25,5 @@ export function getAboutProfile(): AboutProfile {
 
 export function saveAboutProfile(profile: AboutProfile) {
   const content = yaml.dump(profile, { lineWidth: 1000 });
-  fs.writeFileSync(profilePath, content, "utf-8");
+  atomicWriteFile(profilePath, content);
 }

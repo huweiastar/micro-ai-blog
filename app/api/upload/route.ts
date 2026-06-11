@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import { atomicWriteFile } from "../../../lib/atomic-file";
 
-const ALLOWED_UPLOAD_TYPES = new Set(["uploads", "column-bg", "avatar", "theme-bg", "blog"]);
+const ALLOWED_UPLOAD_TYPES = new Set(["uploads", "column-bg", "avatar", "theme-bg", "blog", "projects", "category"]);
+const ALLOWED_IMAGE_EXTENSIONS = new Set(["png", "jpg", "jpeg", "webp", "gif", "avif", "bmp"]);
 const BLOCKED_EXTENSIONS = new Set(["svg", "svgz", "html", "htm", "xml", "xhtml"]);
 
 /**
@@ -52,6 +54,17 @@ function slugify(text: string): string {
   return converted || "untitled";
 }
 
+function hasImageSignature(buffer: Buffer, ext: string): boolean {
+  const normalized = ext === "jpg" ? "jpeg" : ext;
+  if (normalized === "png") return buffer.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]));
+  if (normalized === "jpeg") return buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff;
+  if (normalized === "gif") return buffer.subarray(0, 4).toString("ascii") === "GIF8";
+  if (normalized === "webp") return buffer.subarray(0, 4).toString("ascii") === "RIFF" && buffer.subarray(8, 12).toString("ascii") === "WEBP";
+  if (normalized === "avif") return buffer.subarray(4, 12).toString("ascii") === "ftypavif" || buffer.subarray(4, 12).toString("ascii") === "ftypavis";
+  if (normalized === "bmp") return buffer.subarray(0, 2).toString("ascii") === "BM";
+  return false;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
@@ -77,9 +90,15 @@ export async function POST(req: NextRequest) {
     const buffer = Buffer.from(await file.arrayBuffer());
     const ext = (file.name.split(".").pop() || "png").toLowerCase();
 
-    // Block dangerous extensions
+    // Block dangerous or unsupported extensions.
     if (BLOCKED_EXTENSIONS.has(ext)) {
       return NextResponse.json({ error: "不支持的文件格式" }, { status: 400 });
+    }
+    if (!ALLOWED_IMAGE_EXTENSIONS.has(ext)) {
+      return NextResponse.json({ error: "仅支持 png、jpg、webp、gif、avif、bmp 图片" }, { status: 400 });
+    }
+    if (!hasImageSignature(buffer, ext)) {
+      return NextResponse.json({ error: "图片内容与文件格式不匹配" }, { status: 400 });
     }
 
     let uploadDir: string;
@@ -93,6 +112,13 @@ export async function POST(req: NextRequest) {
       fileName = `avatar.${ext}`;
     } else if (type === "theme-bg") {
       uploadDir = "theme-bg";
+      fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    } else if (type === "projects") {
+      uploadDir = "projects";
+      fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    } else if (type === "category") {
+      const category = (formData.get("category") as string) || "未命名";
+      uploadDir = path.join("category", slugify(category));
       fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
     } else if (type === "blog") {
       // Blog images: organized by category/article-title
@@ -114,7 +140,7 @@ export async function POST(req: NextRequest) {
     }
 
     const filePath = path.join(dirPath, fileName);
-    fs.writeFileSync(filePath, buffer);
+    atomicWriteFile(filePath, buffer);
 
     // Build URL with forward slashes (handle Windows paths)
     const url = `/images/${uploadDir.split(path.sep).join("/")}/${fileName}`;

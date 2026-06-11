@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { atomicWriteFile } from "../lib/atomic-file";
 import { getAllPostsSync } from "../lib/posts";
 import { getSiteUrl } from "../lib/seo";
 
@@ -41,5 +42,5 @@ ${urls
 const sitemap = generateSitemap();
 const outputPath = path.join(process.cwd(), "public/sitemap.xml");
 
-fs.writeFileSync(outputPath, sitemap, "utf-8");
+atomicWriteFile(outputPath, sitemap);
 console.log(`Sitemap generated: ${outputPath}`);

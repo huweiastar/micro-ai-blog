@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { atomicWriteFile } from "./atomic-file";
 import RSS from "rss";
 import { revalidatePath } from "next/cache";
 import { getAllPostsSync, generateSearchIndex } from "./posts";
@@ -16,10 +17,9 @@ import { saveKnowledgeIndex } from "./assistant/indexer";
  */
 function writeSearchIndex() {
   const searchIndex = generateSearchIndex();
-  fs.writeFileSync(
+  atomicWriteFile(
     path.join(process.cwd(), "public/search-index.json"),
-    JSON.stringify(searchIndex, null, 2),
-    "utf-8"
+    JSON.stringify(searchIndex, null, 2)
   );
 }
 
@@ -55,7 +55,7 @@ ${urls
   .join("\n")}
 </urlset>`;
 
-  fs.writeFileSync(path.join(process.cwd(), "public/sitemap.xml"), xml, "utf-8");
+  atomicWriteFile(path.join(process.cwd(), "public/sitemap.xml"), xml);
 }
 
 function writeRss() {
@@ -82,10 +82,9 @@ function writeRss() {
     });
   });
 
-  fs.writeFileSync(
+  atomicWriteFile(
     path.join(process.cwd(), "public/rss.xml"),
-    feed.xml({ indent: true }),
-    "utf-8"
+    feed.xml({ indent: true })
   );
 }
 

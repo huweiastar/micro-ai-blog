@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import { findMediaReferences } from "../../../../lib/content-media";
 
 export const dynamic = "force-dynamic";
 
@@ -50,7 +51,7 @@ export async function GET() {
 
 export async function DELETE(req: NextRequest) {
   try {
-    const { url } = await req.json();
+    const { url, force } = await req.json();
     if (!url || typeof url !== "string" || !url.startsWith("/images/") || url.includes("..")) {
       return NextResponse.json({ error: "无效的图片路径" }, { status: 400 });
     }
@@ -64,6 +65,16 @@ export async function DELETE(req: NextRequest) {
     }
     if (!fs.existsSync(target)) {
       return NextResponse.json({ error: "文件不存在" }, { status: 404 });
+    }
+    const references = findMediaReferences(url);
+    if (references.length > 0 && !force) {
+      return NextResponse.json(
+        {
+          error: "图片仍被内容引用，不能直接删除",
+          references,
+        },
+        { status: 409 }
+      );
     }
     fs.unlinkSync(target);
     return NextResponse.json({ success: true });

@@ -210,7 +210,16 @@ export function getPostsByCategory(category: string): BlogPost[] {
   return posts.filter((post) => post.category === category);
 }
 
+function sanitizeMarkdownHtml(content: string): string {
+  return content
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "")
+    .replace(/\son[a-z]+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, "")
+    .replace(/(href|src)\s*=\s*(["'])\s*javascript:[\s\S]*?\2/gi, '$1="#"')
+    .replace(/(href|src)\s*=\s*javascript:[^\s>]+/gi, '$1="#"');
+}
+
 export async function renderMarkdownToHtml(content: string): Promise<string> {
+  const safeContent = sanitizeMarkdownHtml(content);
   const result = await remark()
     .use(remarkGfm)
     .use(remarkRehype, { allowDangerousHtml: true })
@@ -226,7 +235,7 @@ export async function renderMarkdownToHtml(content: string): Promise<string> {
       keepBackground: false,
     })
     .use(rehypeStringify, { allowDangerousHtml: true })
-    .process(content);
+    .process(safeContent);
 
   return result.toString();
 }

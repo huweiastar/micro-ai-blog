@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import yaml from "js-yaml";
+import { atomicWriteFile } from "./atomic-file";
 import type { Project } from "../types/project";
 
 const projectsPath = path.join(process.cwd(), "content/projects/projects.yaml");
@@ -25,5 +26,5 @@ export function getProjectBySlug(slug: string): Project | null {
 
 export function saveProjects(projects: Project[]) {
   const content = yaml.dump(projects, { lineWidth: 1000 });
-  fs.writeFileSync(projectsPath, content, "utf-8");
+  atomicWriteFile(projectsPath, content);
 }

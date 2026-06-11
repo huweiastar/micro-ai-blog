@@ -80,7 +80,11 @@ export function MediaLibrary() {
       if (data.success) {
         setItems((prev) => (prev ? prev.filter((i) => i.url !== item.url) : prev));
       } else {
-        alert(data.error || "删除失败");
+        const refs = Array.isArray(data.references)
+          ? data.references.map((ref: { file?: string }) => ref.file).filter(Boolean)
+          : [];
+        const detail = refs.length ? `\n\n引用位置：\n${refs.join("\n")}` : "";
+        alert((data.error || "删除失败") + detail);
       }
     } catch {
       alert("网络错误");

@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { atomicWriteFile } from "../atomic-file";
 import matter from "gray-matter";
 import yaml from "js-yaml";
 import type { KnowledgeChunk, KnowledgeIndex } from "./types";
@@ -212,7 +213,7 @@ export function saveKnowledgeIndex(): string {
     fs.mkdirSync(outputDir, { recursive: true });
   }
 
-  fs.writeFileSync(INDEX_OUTPUT, JSON.stringify(index, null, 2), "utf-8");
+  atomicWriteFile(INDEX_OUTPUT, JSON.stringify(index, null, 2));
   return INDEX_OUTPUT;
 }
 

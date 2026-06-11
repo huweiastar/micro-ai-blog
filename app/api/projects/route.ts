@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 import yaml from "js-yaml";
+import { atomicWriteFile } from "../../../lib/atomic-file";
 import { refreshAfterContentChange } from "../../../lib/regenerate";
 
 // 后台保存后立即生效：禁止 GET 被静态缓存成旧值。
@@ -17,7 +18,7 @@ function readProjects() {
 
 function writeProjects(projects: any[]) {
   const content = yaml.dump(projects, { lineWidth: 1000 });
-  fs.writeFileSync(projectsPath, content, "utf-8");
+  atomicWriteFile(projectsPath, content);
 }
 
 export async function GET(req: NextRequest) {

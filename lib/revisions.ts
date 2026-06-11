@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { atomicWriteFile } from "./atomic-file";
 
 const REV_ROOT = path.join(process.cwd(), "data", "revisions");
 const MAX_REVISIONS = 20;
@@ -17,7 +18,7 @@ export function snapshotPost(slug: string, rawContent: string): void {
   if (!dir || !rawContent) return;
   try {
     fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(path.join(dir, `${Date.now()}.md`), rawContent, "utf-8");
+    atomicWriteFile(path.join(dir, `${Date.now()}.md`), rawContent);
     prune(dir);
   } catch {
     /* 快照失败不应阻断保存主流程 */

@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import yaml from "js-yaml";
+import { atomicWriteFile } from "./atomic-file";
 import { getAllPostsSync } from "./posts";
 
 const categoriesPath = path.join(process.cwd(), "content/categories.yaml");
@@ -48,5 +49,5 @@ export function getCategoryByName(name: string): Category | null {
 
 export function saveCategoryConfigs(configs: CategoryConfig[]) {
   const content = yaml.dump(configs, { lineWidth: 1000 });
-  fs.writeFileSync(categoriesPath, content, "utf-8");
+  atomicWriteFile(categoriesPath, content);
 }
