@@ -13,9 +13,15 @@ STAMP="$(date +%Y%m%d-%H%M%S)"
 
 mkdir -p "$BACKUP_DIR"
 
-# SQLite 正在写入时直接 tar 可能拿到不一致快照，先用 .backup 导出一致副本（文件不存在则跳过）
-if [ -f "$APP_DIR/data/blog.db" ] && command -v sqlite3 >/dev/null; then
-  sqlite3 "$APP_DIR/data/blog.db" ".backup '$APP_DIR/data/blog.db.bak'"
+# SQLite 正在写入时直接 tar 可能拿到不一致快照，先用 .backup 导出一致副本（文件不存在则跳过）。
+# sqlite3 CLI 缺失时退而求其次直接 cp（可能不一致，但好过备份里完全没有数据库）。
+if [ -f "$APP_DIR/data/blog.db" ]; then
+  if command -v sqlite3 >/dev/null; then
+    sqlite3 "$APP_DIR/data/blog.db" ".backup '$APP_DIR/data/blog.db.bak'"
+  else
+    echo "[$(date -Is)] WARNING: sqlite3 CLI 缺失，降级为直接复制 db（快照可能不一致）" >&2
+    cp "$APP_DIR/data/blog.db" "$APP_DIR/data/blog.db.bak"
+  fi
 fi
 
 tar czf "$BACKUP_DIR/blog-$STAMP.tar.gz" \
