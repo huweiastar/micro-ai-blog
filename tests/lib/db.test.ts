@@ -13,6 +13,7 @@ beforeEach(() => {
 
 afterEach(() => {
   closeDb();
+  delete process.env.BLOG_DB_PATH;
   fs.rmSync(tmpDir, { recursive: true, force: true });
 });
 
@@ -26,5 +27,16 @@ describe("getDb", () => {
     for (const t of ["path_stats", "path_visitors", "page_view_events", "likes", "like_voters"]) {
       expect(names).toContain(t);
     }
+  });
+
+  it("返回同一个单例实例", () => {
+    expect(getDb()).toBe(getDb());
+  });
+
+  it("closeDb 后再次 getDb 得到新连接", () => {
+    const a = getDb();
+    closeDb();
+    const b = getDb();
+    expect(a).not.toBe(b);
   });
 });

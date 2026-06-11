@@ -2,7 +2,11 @@ import Database from "better-sqlite3";
 import fs from "fs";
 import path from "path";
 
-let db: Database.Database | null = null;
+// 缓存挂在 globalThis 上：next dev 热重载会重新执行模块，模块级变量会丢失旧连接
+// 导致句柄泄漏，globalThis 跨热重载存活（与 Prisma 官方推荐的单例模式一致）。
+const globalForDb = globalThis as typeof globalThis & {
+  __blogDb?: Database.Database;
+};
 
 /**
  * SQLite 单例连接。所有运行时可变数据（PV/UV、点赞）存放于 data/blog.db，
@@ -10,20 +14,21 @@ let db: Database.Database | null = null;
  * 测试可通过 BLOG_DB_PATH 指向临时库。
  */
 export function getDb(): Database.Database {
-  if (db) return db;
+  if (globalForDb.__blogDb) return globalForDb.__blogDb;
   const dbPath =
     process.env.BLOG_DB_PATH || path.join(process.cwd(), "data", "blog.db");
   fs.mkdirSync(path.dirname(dbPath), { recursive: true });
-  db = new Database(dbPath);
+  const db = new Database(dbPath);
   db.pragma("journal_mode = WAL");
   migrate(db);
+  globalForDb.__blogDb = db;
   return db;
 }
 
 export function closeDb(): void {
-  if (db) {
-    db.close();
-    db = null;
+  if (globalForDb.__blogDb) {
+    globalForDb.__blogDb.close();
+    globalForDb.__blogDb = undefined;
   }
 }
 
