@@ -1,74 +1,13 @@
-import fs from "fs";
-import path from "path";
+import { getDb } from "./db";
 
-const analyticsPath = path.join(process.cwd(), "data", "analytics.json");
+// 全站汇总复用 path_stats 表，用伪路径一行存储，读写逻辑与普通路径一致。
+const GLOBAL_PATH = "__global__";
 
 export type PathAnalytics = {
   pv: number;
   uv: number;
-  visitorIds: string[];
   updatedAt: string;
 };
-
-export type AnalyticsData = {
-  pv: number;
-  uv: number;
-  visitorIds: string[];
-  updatedAt: string;
-  paths: Record<string, PathAnalytics>;
-};
-
-function ensureDataDir() {
-  const dir = path.dirname(analyticsPath);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-}
-
-function readAnalytics(): AnalyticsData {
-  ensureDataDir();
-  if (!fs.existsSync(analyticsPath)) {
-    return { pv: 0, uv: 0, visitorIds: [], updatedAt: new Date().toISOString(), paths: {} };
-  }
-  const content = fs.readFileSync(analyticsPath, "utf-8");
-  const data = JSON.parse(content) as AnalyticsData;
-  // Ensure paths object exists for backward compatibility
-  if (!data.paths) {
-    data.paths = {};
-  }
-  return data;
-}
-
-function writeAnalytics(data: AnalyticsData) {
-  ensureDataDir();
-  fs.writeFileSync(analyticsPath, JSON.stringify(data, null, 2), "utf-8");
-}
-
-function recordPathView(data: AnalyticsData, visitorId: string, pagePath: string): PathAnalytics {
-  if (!data.paths[pagePath]) {
-    data.paths[pagePath] = { pv: 0, uv: 0, visitorIds: [], updatedAt: new Date().toISOString() };
-  }
-
-  const pathData = data.paths[pagePath];
-  pathData.pv += 1;
-
-  const isNewVisitor = !pathData.visitorIds.includes(visitorId);
-  if (isNewVisitor) {
-    pathData.uv += 1;
-    pathData.visitorIds.push(visitorId);
-    if (pathData.visitorIds.length > 10000) {
-      pathData.visitorIds = pathData.visitorIds.slice(-10000);
-    }
-  }
-
-  pathData.updatedAt = new Date().toISOString();
-  return pathData;
-}
-
-export function getAnalytics(): { pv: number; uv: number } {
-  const data = readAnalytics();
-  return { pv: data.pv, uv: data.uv };
-}
 
 export type AnalyticsSummary = {
   pv: number;
@@ -77,50 +16,79 @@ export type AnalyticsSummary = {
   paths: Array<{ path: string; pv: number; uv: number; updatedAt: string }>;
 };
 
-/**
- * 后台仪表盘用：返回全站汇总 + 按 PV 降序的每页明细，
- * 但**不包含** visitorIds（避免泄露访客标识）。
- */
-export function getAnalyticsSummary(): AnalyticsSummary {
-  const data = readAnalytics();
-  const paths = Object.entries(data.paths || {})
-    .map(([path, p]) => ({ path, pv: p.pv, uv: p.uv, updatedAt: p.updatedAt }))
-    .sort((a, b) => b.pv - a.pv);
-  return { pv: data.pv, uv: data.uv, updatedAt: data.updatedAt, paths };
+type StatsRow = { pv: number; uv: number; updated_at: string };
+
+function readStats(p: string): StatsRow | undefined {
+  return getDb()
+    .prepare("SELECT pv, uv, updated_at FROM path_stats WHERE path = ?")
+    .get(p) as StatsRow | undefined;
+}
+
+export function getAnalytics(): { pv: number; uv: number } {
+  const row = readStats(GLOBAL_PATH);
+  return { pv: row?.pv ?? 0, uv: row?.uv ?? 0 };
 }
 
 export function getPathAnalytics(pagePath: string): PathAnalytics {
-  const data = readAnalytics();
-  return (
-    data.paths[pagePath] || { pv: 0, uv: 0, visitorIds: [], updatedAt: new Date().toISOString() }
-  );
+  const row = readStats(pagePath);
+  return {
+    pv: row?.pv ?? 0,
+    uv: row?.uv ?? 0,
+    updatedAt: row?.updated_at ?? new Date().toISOString(),
+  };
+}
+
+export function getAnalyticsSummary(): AnalyticsSummary {
+  const db = getDb();
+  const globalRow = readStats(GLOBAL_PATH);
+  const rows = db
+    .prepare(
+      "SELECT path, pv, uv, updated_at FROM path_stats WHERE path != ? ORDER BY pv DESC"
+    )
+    .all(GLOBAL_PATH) as Array<{
+    path: string;
+    pv: number;
+    uv: number;
+    updated_at: string;
+  }>;
+  return {
+    pv: globalRow?.pv ?? 0,
+    uv: globalRow?.uv ?? 0,
+    updatedAt: globalRow?.updated_at ?? new Date().toISOString(),
+    paths: rows.map((r) => ({
+      path: r.path,
+      pv: r.pv,
+      uv: r.uv,
+      updatedAt: r.updated_at,
+    })),
+  };
+}
+
+function bumpPath(pagePath: string, visitorId: string, now: string): void {
+  const db = getDb();
+  const inserted = db
+    .prepare("INSERT OR IGNORE INTO path_visitors (path, visitor_id) VALUES (?, ?)")
+    .run(pagePath, visitorId);
+  const uvDelta = inserted.changes > 0 ? 1 : 0;
+  db.prepare(
+    `INSERT INTO path_stats (path, pv, uv, updated_at) VALUES (?, 1, ?, ?)
+     ON CONFLICT(path) DO UPDATE SET pv = pv + 1, uv = uv + ?, updated_at = ?`
+  ).run(pagePath, uvDelta, now, uvDelta, now);
 }
 
 export function recordPageView(
   visitorId: string,
   pagePath: string
 ): { global: { pv: number; uv: number }; path: PathAnalytics } {
-  const data = readAnalytics();
-
-  // Record global PV/UV
-  data.pv += 1;
-  const isNewGlobalVisitor = !data.visitorIds.includes(visitorId);
-  if (isNewGlobalVisitor) {
-    data.uv += 1;
-    data.visitorIds.push(visitorId);
-    if (data.visitorIds.length > 10000) {
-      data.visitorIds = data.visitorIds.slice(-10000);
-    }
-  }
-
-  // Record path-specific PV/UV
-  const pathStats = recordPathView(data, visitorId, pagePath);
-
-  data.updatedAt = new Date().toISOString();
-  writeAnalytics(data);
-
-  return {
-    global: { pv: data.pv, uv: data.uv },
-    path: pathStats,
-  };
+  const db = getDb();
+  const now = new Date().toISOString();
+  const txn = db.transaction(() => {
+    db.prepare(
+      "INSERT INTO page_view_events (path, visitor_id, viewed_at) VALUES (?, ?, ?)"
+    ).run(pagePath, visitorId, now);
+    bumpPath(GLOBAL_PATH, visitorId, now);
+    bumpPath(pagePath, visitorId, now);
+  });
+  txn();
+  return { global: getAnalytics(), path: getPathAnalytics(pagePath) };
 }
