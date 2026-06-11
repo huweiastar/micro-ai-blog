@@ -59,3 +59,9 @@ next-env.d.ts
 
 # 已迁移到 SQLite 的旧 JSON（保留磁盘文件作为迁移底档，不再跟踪）
 /data/analytics.json
+
+# 构建/发文时自动生成的产物（prebuild 与 lib/regenerate.ts 负责生成）
+/public/search-index.json
+/public/sitemap.xml
+/public/rss.xml
+/public/knowledge-index.json
