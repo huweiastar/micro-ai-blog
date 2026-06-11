@@ -50,3 +50,12 @@ next-env.d.ts
 
 # 文章修订快照（运行时生成）
 /data/revisions/
+
+# SQLite 运行时数据库（每日备份脚本负责备份）
+/data/blog.db
+/data/blog.db-wal
+/data/blog.db-shm
+/data/blog.db.bak
+
+# 已迁移到 SQLite 的旧 JSON（保留磁盘文件作为迁移底档，不再跟踪）
+/data/analytics.json
