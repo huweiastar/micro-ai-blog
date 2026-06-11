@@ -42,7 +42,14 @@ export default function HomePage() {
     background: c.background,
     bgOpacity: c.bgOpacity,
   }));
-  const initialVisits = getAnalytics();
+  // db 不可用（只读文件系统/权限问题）时兜底为 0，客户端 useEffect 会再拉取，
+  // 不能让统计读取失败拖垮整个首页渲染或构建。
+  let initialVisits = { pv: 0, uv: 0 };
+  try {
+    initialVisits = getAnalytics();
+  } catch {
+    // 保持默认值
+  }
 
   return (
     <div className="relative">

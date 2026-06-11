@@ -53,6 +53,8 @@ function migrate(d: Database.Database): void {
       viewed_at  TEXT NOT NULL
     );
     CREATE INDEX IF NOT EXISTS idx_events_viewed_at ON page_view_events (viewed_at);
+    -- 趋势查询按「路径 + 时间窗」过滤，复合索引避免全表扫描
+    CREATE INDEX IF NOT EXISTS idx_events_path_time ON page_view_events (path, viewed_at);
     CREATE TABLE IF NOT EXISTS likes (
       slug       TEXT PRIMARY KEY,
       count      INTEGER NOT NULL DEFAULT 0,
