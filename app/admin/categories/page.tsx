@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, FolderOpen, BookOpen } from "lucide-react";
+import { ListHero } from "../../../components/admin/ListHero";
 
 type Category = {
   name: string;
@@ -46,20 +47,28 @@ export default function CategoriesPage() {
   const openEditor = (name?: string) =>
     router.push(name ? `/admin/categories/edit?id=${encodeURIComponent(name)}` : "/admin/categories/edit?new=1");
 
+  const totalPosts = items.reduce((s, c) => s + (counts[c.name] ?? 0), 0);
+
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
-      <header className="mb-5 flex items-center justify-between gap-3 flex-wrap">
-        <div>
-          <h1 className="text-xl font-semibold">专栏</h1>
-          <p className="text-sm text-[var(--muted)] mt-1">共 {items.length} 个</p>
-        </div>
-        <button
-          onClick={() => openEditor()}
-          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[var(--primary)] text-white text-sm font-medium hover:opacity-90"
-        >
-          <Plus className="w-4 h-4" />新专栏
-        </button>
-      </header>
+      <ListHero
+        icon={FolderOpen}
+        hue="violet"
+        title="专栏"
+        description="把文章串成系列，构建成体系的知识"
+        stats={[
+          { label: "个专栏", value: items.length },
+          { label: "篇文章", value: totalPosts },
+        ]}
+        action={
+          <button
+            onClick={() => openEditor()}
+            className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-violet-500/25 transition-all hover:shadow-violet-500/40 hover:brightness-110 active:scale-95"
+          >
+            <Plus className="w-4 h-4" />新专栏
+          </button>
+        }
+      />
 
       <div className="relative mb-4 max-w-sm">
         <Search className="w-4 h-4 absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--muted)]" />
@@ -68,30 +77,42 @@ export default function CategoriesPage() {
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="搜索专栏…"
-          className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-[var(--card-border)] bg-[var(--card)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50"
+          className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-[var(--card-border)] bg-[var(--card)] text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50"
         />
       </div>
 
       {filtered.length === 0 ? (
-        <div className="rounded-xl border border-[var(--card-border)] bg-[var(--card)] p-10 text-center text-sm text-[var(--muted)]">
-          没有匹配的专栏。点「新专栏」创建。
+        <div className="rounded-2xl border border-dashed border-[var(--card-border)] p-12 text-center">
+          <FolderOpen className="mx-auto mb-3 h-8 w-8 text-[var(--muted)] opacity-50" />
+          <p className="text-sm text-[var(--muted)]">没有匹配的专栏。点「新专栏」创建。</p>
         </div>
       ) : (
         <ul className="grid gap-3 sm:grid-cols-2">
-          {filtered.map((c) => (
-            <li key={c.name}>
+          {filtered.map((c, i) => (
+            <li key={c.name} className="animate-slide-up" style={{ animationDelay: `${Math.min(i, 8) * 40}ms`, animationFillMode: "backwards" }}>
               <button
                 onClick={() => openEditor(c.name)}
-                className="w-full text-left rounded-xl border border-[var(--card-border)] bg-[var(--card)] p-4 transition-all hover:border-[var(--primary)]/50 hover:-translate-y-0.5"
+                className="group relative w-full overflow-hidden rounded-xl border border-[var(--card-border)] bg-[var(--card)] text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-violet-500/40 hover:shadow-lg hover:shadow-violet-500/10"
               >
-                <div className="flex items-center justify-between gap-2 mb-1">
-                  <span className="flex items-center gap-1.5 min-w-0">
-                    <span className="font-medium text-sm line-clamp-1">{c.name}</span>
-                    {c.draft && <span className="shrink-0 text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400">草稿</span>}
-                  </span>
-                  <span className="shrink-0 text-xs text-[var(--muted)]">{counts[c.name] ?? 0} 篇</span>
+                {c.cover ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={c.cover} alt="" className="h-20 w-full object-cover opacity-90 transition-opacity group-hover:opacity-100" />
+                ) : (
+                  <div aria-hidden className="h-1.5 w-full bg-gradient-to-r from-violet-500/50 via-fuchsia-500/30 to-transparent" />
+                )}
+                <div className="p-4">
+                  <div className="mb-1 flex items-center justify-between gap-2">
+                    <span className="flex min-w-0 items-center gap-1.5">
+                      <span className="line-clamp-1 text-sm font-medium transition-colors group-hover:text-violet-500 dark:group-hover:text-violet-300">{c.name}</span>
+                      {c.draft && <span className="shrink-0 rounded bg-amber-500/10 px-1.5 py-0.5 text-[10px] text-amber-500">草稿</span>}
+                    </span>
+                    <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-violet-500/10 px-2 py-0.5 text-xs text-violet-500 dark:text-violet-300">
+                      <BookOpen className="h-3 w-3" />
+                      {counts[c.name] ?? 0} 篇
+                    </span>
+                  </div>
+                  {c.description && <p className="line-clamp-2 text-xs text-[var(--muted)]">{c.description}</p>}
                 </div>
-                {c.description && <p className="text-xs text-[var(--muted)] line-clamp-2">{c.description}</p>}
               </button>
             </li>
           ))}

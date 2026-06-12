@@ -9,6 +9,9 @@ const config: Config = {
   darkMode: "class",
   theme: {
     extend: {
+      backgroundImage: {
+        "gradient-radial": "radial-gradient(circle, var(--tw-gradient-stops))",
+      },
       typography: {
         DEFAULT: {
           css: {

@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, FileText, CalendarDays, FolderOpen, AlignLeft } from "lucide-react";
+import { ListHero } from "../../../components/admin/ListHero";
 
 type Article = {
   slug: string;
@@ -27,6 +28,10 @@ const SORTS: { key: SortKey; label: string; compare: (a: Article, b: Article) =>
   { key: "words-desc", label: "字数多→少", compare: (a, b) => b.wordCount - a.wordCount },
   { key: "title-asc", label: "标题 A→Z", compare: (a, b) => a.title.localeCompare(b.title, "zh-CN") },
 ];
+
+function isScheduled(a: Article): boolean {
+  return !a.draft && !!a.publish && new Date(a.publish).getTime() > Date.now();
+}
 
 export default function ArticlesPage() {
   const router = useRouter();
@@ -67,20 +72,32 @@ export default function ArticlesPage() {
     { key: "draft", label: "草稿" },
   ];
 
+  const draftCount = articles.filter((a) => a.draft).length;
+  const scheduledCount = articles.filter(isScheduled).length;
+  const totalWords = articles.reduce((s, a) => s + a.wordCount, 0);
+
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
-      <header className="mb-5 flex items-center justify-between gap-3 flex-wrap">
-        <div>
-          <h1 className="text-xl font-semibold">文章</h1>
-          <p className="text-sm text-[var(--muted)] mt-1">共 {articles.length} 篇</p>
-        </div>
-        <button
-          onClick={() => openEditor()}
-          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[var(--primary)] text-white text-sm font-medium hover:opacity-90"
-        >
-          <Plus className="w-4 h-4" />写文章
-        </button>
-      </header>
+      <ListHero
+        icon={FileText}
+        hue="indigo"
+        title="文章"
+        description="正式发布的长文，沉淀你的深度思考"
+        stats={[
+          { label: "篇文章", value: articles.length },
+          { label: "草稿", value: draftCount },
+          ...(scheduledCount > 0 ? [{ label: "定时", value: scheduledCount }] : []),
+          { label: "总字数", value: totalWords.toLocaleString() },
+        ]}
+        action={
+          <button
+            onClick={() => openEditor()}
+            className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-500 to-blue-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-indigo-500/25 transition-all hover:shadow-indigo-500/40 hover:brightness-110 active:scale-95"
+          >
+            <Plus className="w-4 h-4" />写文章
+          </button>
+        }
+      />
 
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <div className="relative flex-1 min-w-[180px]">
@@ -90,17 +107,17 @@ export default function ArticlesPage() {
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="搜索标题或摘要…"
-            className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-[var(--card-border)] bg-[var(--card)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50"
+            className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-[var(--card-border)] bg-[var(--card)] text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
           />
         </div>
-        <div className="flex gap-1">
+        <div className="flex gap-0.5 rounded-lg border border-[var(--card-border)] bg-[var(--card)] p-0.5">
           {FILTERS.map((f) => (
             <button
               key={f.key}
               onClick={() => setFilter(f.key)}
-              className={`px-2.5 py-1.5 text-xs rounded-lg ${
+              className={`px-2.5 py-1 text-xs rounded-md transition-colors ${
                 filter === f.key
-                  ? "bg-[var(--primary)]/10 text-[var(--primary)]"
+                  ? "bg-indigo-500/15 text-indigo-500 dark:text-indigo-300 font-medium"
                   : "text-[var(--muted)] hover:text-[var(--foreground)]"
               }`}
             >
@@ -111,7 +128,7 @@ export default function ArticlesPage() {
         <select
           value={sortKey}
           onChange={(e) => setSortKey(e.target.value as SortKey)}
-          className="px-2 py-1.5 text-xs rounded-lg border border-[var(--card-border)] bg-[var(--card)] text-[var(--muted)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/40"
+          className="px-2 py-1.5 text-xs rounded-lg border border-[var(--card-border)] bg-[var(--card)] text-[var(--muted)] focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
           aria-label="排序方式"
         >
           {SORTS.map((s) => (
@@ -121,26 +138,41 @@ export default function ArticlesPage() {
       </div>
 
       {filtered.length === 0 ? (
-        <div className="rounded-xl border border-[var(--card-border)] bg-[var(--card)] p-10 text-center text-sm text-[var(--muted)]">
-          没有匹配的文章。点「写文章」开始创作。
+        <div className="rounded-2xl border border-dashed border-[var(--card-border)] p-12 text-center">
+          <FileText className="mx-auto mb-3 h-8 w-8 text-[var(--muted)] opacity-50" />
+          <p className="text-sm text-[var(--muted)]">没有匹配的文章。点「写文章」开始创作。</p>
         </div>
       ) : (
         <ul className="grid gap-3 sm:grid-cols-2">
-          {filtered.map((a) => (
-            <li key={a.slug}>
+          {filtered.map((a, i) => (
+            <li key={a.slug} className="animate-slide-up" style={{ animationDelay: `${Math.min(i, 8) * 40}ms`, animationFillMode: "backwards" }}>
               <button
                 onClick={() => openEditor(a.slug)}
-                className="w-full text-left rounded-xl border border-[var(--card-border)] bg-[var(--card)] p-4 transition-all hover:border-[var(--primary)]/50 hover:-translate-y-0.5"
+                className="group relative w-full overflow-hidden rounded-xl border border-[var(--card-border)] bg-[var(--card)] text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-indigo-500/40 hover:shadow-lg hover:shadow-indigo-500/10"
               >
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="font-medium text-[var(--foreground)] text-sm line-clamp-1">{a.title || "（无标题）"}</span>
-                  {a.draft && <span className="shrink-0 text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400">草稿</span>}
-                  {!a.draft && a.publish && new Date(a.publish).getTime() > Date.now() && (
-                    <span className="shrink-0 text-[10px] px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-400">定时</span>
+                {/* 顶部渐变发丝线 */}
+                <span aria-hidden className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-indigo-500/0 via-indigo-500/60 to-blue-500/0 opacity-0 transition-opacity group-hover:opacity-100" />
+                <div className="flex gap-3 p-4">
+                  {a.cover && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={a.cover} alt="" className="h-16 w-24 shrink-0 rounded-lg object-cover ring-1 ring-[var(--card-border)]" />
                   )}
+                  <div className="min-w-0 flex-1">
+                    <div className="mb-1 flex items-center gap-2">
+                      <span className="line-clamp-1 text-sm font-medium text-[var(--foreground)] transition-colors group-hover:text-indigo-500 dark:group-hover:text-indigo-300">
+                        {a.title || "（无标题）"}
+                      </span>
+                      {a.draft && <span className="shrink-0 rounded bg-amber-500/10 px-1.5 py-0.5 text-[10px] text-amber-500">草稿</span>}
+                      {isScheduled(a) && <span className="shrink-0 rounded bg-sky-500/10 px-1.5 py-0.5 text-[10px] text-sky-400">定时</span>}
+                    </div>
+                    {a.summary && <p className="mb-2 line-clamp-2 text-xs text-[var(--muted)]">{a.summary}</p>}
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-[var(--muted)]">
+                      <span className="inline-flex items-center gap-1"><CalendarDays className="h-3 w-3" />{a.date}</span>
+                      <span className="inline-flex items-center gap-1"><AlignLeft className="h-3 w-3" />{a.wordCount} 字</span>
+                      <span className="inline-flex items-center gap-1"><FolderOpen className="h-3 w-3" />{a.category || "未分类"}</span>
+                    </div>
+                  </div>
                 </div>
-                {a.summary && <p className="text-xs text-[var(--muted)] line-clamp-2 mb-2">{a.summary}</p>}
-                <div className="text-[11px] text-[var(--muted)]">{a.date} · {a.wordCount} 字 · {a.category || "未分类"}</div>
               </button>
             </li>
           ))}
