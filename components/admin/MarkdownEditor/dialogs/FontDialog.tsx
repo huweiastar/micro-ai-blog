@@ -12,7 +12,19 @@ interface FontDialogProps {
   onConfirm: (openTag: string, closeTag: string) => void;
 }
 
-const FONTS = ["Arial", "Georgia", "Times New Roman", "Courier New", "Verdana", "PingFang SC", "Microsoft YaHei"];
+// 中文常用字体优先，css 为跨平台回退栈（Windows/macOS 名称都涵盖）
+const FONTS: { label: string; css: string }[] = [
+  { label: "黑体", css: "'SimHei','Heiti SC','Source Han Sans SC','Microsoft YaHei',sans-serif" },
+  { label: "宋体", css: "'SimSun','Songti SC','Source Han Serif SC',serif" },
+  { label: "楷体", css: "'KaiTi','Kaiti SC','STKaiti',serif" },
+  { label: "仿宋", css: "'FangSong','STFangsong','FangSong_GB2312',serif" },
+  { label: "微软雅黑", css: "'Microsoft YaHei','PingFang SC',sans-serif" },
+  { label: "苹方", css: "'PingFang SC','Microsoft YaHei',sans-serif" },
+  { label: "Georgia", css: "Georgia,serif" },
+  { label: "Times New Roman", css: "'Times New Roman',serif" },
+  { label: "Arial", css: "Arial,sans-serif" },
+  { label: "等宽 Courier", css: "'Courier New',monospace" },
+];
 const SIZES = [12, 14, 16, 18, 20, 24, 28, 32, 36];
 const LINE_HEIGHTS = [1, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6];
 const SPACINGS = [4, 8, 12, 16, 20, 24, 32, 40, 48];
@@ -42,12 +54,12 @@ export function FontDialog({ mode, onClose, onConfirm }: FontDialogProps) {
           <div className="grid grid-cols-2 gap-1.5">
             {FONTS.map((f) => (
               <button
-                key={f}
-                onClick={() => close(`font-family: '${f}'`)}
+                key={f.label}
+                onClick={() => close(`font-family: ${f.css.replace(/"/g, "'")}`)}
                 className="text-xs px-2 py-1.5 rounded text-[var(--muted)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10 transition-colors text-left truncate"
-                style={{ fontFamily: f }}
+                style={{ fontFamily: f.css }}
               >
-                {f}
+                {f.label}
               </button>
             ))}
           </div>
