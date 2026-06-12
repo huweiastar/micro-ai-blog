@@ -26,6 +26,8 @@ import { EditorChrome } from "./EditorChrome";
 import { EditorInspector } from "./inspector/EditorInspector";
 import { InspectorSection } from "./inspector/InspectorSection";
 import { useEditorLayout } from "./hooks/useEditorLayout";
+import { useAssistStream } from "./hooks/useAssistStream";
+import type { LinkSuggestion } from "../../lib/assistant/editor-assist";
 
 export type CategoryConfig = { name: string; description: string };
 type RevisionRow = { id: string; savedAt: number; size: number; title: string };
@@ -98,6 +100,59 @@ export function ArticleEditor({ slug, isNew, categories, onSaved, onDeleted, onB
   const [showCheatsheet, setShowCheatsheet] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [revisions, setRevisions] = useState<RevisionRow[] | null>(null);
+
+  // —— AI 摘要：流式写入摘要输入框 ——
+  const summaryAssist = useAssistStream();
+  useEffect(() => {
+    if (summaryAssist.status === "generating" || summaryAssist.status === "done") {
+      setArticleSummary(summaryAssist.output);
+    }
+  }, [summaryAssist.output, summaryAssist.status]);
+  useEffect(() => {
+    if (summaryAssist.status === "error" && summaryAssist.error) {
+      toast.show(summaryAssist.error, "error");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [summaryAssist.status]);
+
+  // —— 内链建议 ——
+  const [linkSuggestions, setLinkSuggestions] = useState<LinkSuggestion[] | null>(null);
+  const [linksLoading, setLinksLoading] = useState(false);
+
+  const fetchLinkSuggestions = async () => {
+    if (!articleContent.trim() && !articleTitle.trim()) {
+      toast.show("先写点正文再获取内链建议", "error");
+      return;
+    }
+    setLinksLoading(true);
+    try {
+      const res = await fetch("/api/assistant/assist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "links",
+          text: `${articleTitle}\n${articleContent.slice(0, 1200)}`,
+          slug: articleSlug || undefined,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "获取失败");
+      setLinkSuggestions(Array.isArray(data.links) ? data.links : []);
+    } catch (error) {
+      toast.show((error as Error).message || "获取内链建议失败", "error");
+    } finally {
+      setLinksLoading(false);
+    }
+  };
+
+  const copyLinkMarkdown = async (link: LinkSuggestion) => {
+    try {
+      await navigator.clipboard.writeText(`[${link.title}](${link.url})`);
+      toast.show("已复制 Markdown 链接，粘贴到正文即可", "success");
+    } catch {
+      toast.show("复制失败，请手动复制", "error");
+    }
+  };
 
   const isEdit = !isNew && !!slug;
   const draftKey = `draft:articles:${slug ?? "new"}`;
@@ -515,6 +570,57 @@ export function ArticleEditor({ slug, isNew, categories, onSaved, onDeleted, onB
 
               <InspectorSection id="summary" title="摘要">
                 <textarea value={articleSummary} onChange={(e) => setArticleSummary(e.target.value)} placeholder="一句话概括这篇文章..." rows={3} className={`${inputCls} resize-none`} />
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!articleContent.trim()) {
+                      toast.show("先写点正文再生成摘要", "error");
+                      return;
+                    }
+                    summaryAssist.start("summarize", articleContent, articleTitle || undefined);
+                  }}
+                  disabled={summaryAssist.status === "generating"}
+                  className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[var(--card-border)] text-xs text-[var(--muted)] hover:text-[var(--primary)] hover:border-[var(--primary)]/50 transition-colors disabled:opacity-50"
+                >
+                  {summaryAssist.status === "generating" ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Sparkles className="w-3.5 h-3.5" />
+                  )}
+                  {summaryAssist.status === "generating" ? "生成中…" : "AI 生成摘要"}
+                </button>
+              </InspectorSection>
+
+              <InspectorSection id="links" title="内链建议" defaultOpen={false}>
+                <button
+                  type="button"
+                  onClick={fetchLinkSuggestions}
+                  disabled={linksLoading}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[var(--card-border)] text-xs text-[var(--muted)] hover:text-[var(--primary)] hover:border-[var(--primary)]/50 transition-colors disabled:opacity-50"
+                >
+                  {linksLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <LinkIcon className="w-3.5 h-3.5" />}
+                  {linksLoading ? "检索中…" : "根据正文找相关文章"}
+                </button>
+                {linkSuggestions !== null && (
+                  linkSuggestions.length === 0 ? (
+                    <p className="mt-2 text-xs text-[var(--muted)]">没有找到相关文章。</p>
+                  ) : (
+                    <ul className="mt-2 space-y-1">
+                      {linkSuggestions.map((link) => (
+                        <li key={link.slug}>
+                          <button
+                            type="button"
+                            onClick={() => copyLinkMarkdown(link)}
+                            title="点击复制 Markdown 链接"
+                            className="w-full text-left px-2 py-1.5 rounded-lg text-xs text-[var(--foreground)] hover:bg-[var(--primary)]/10 hover:text-[var(--primary)] transition-colors truncate"
+                          >
+                            {link.title}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )
+                )}
               </InspectorSection>
 
               <InspectorSection id="quality" title="质量与 SEO">
