@@ -1,7 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import sharp from "sharp";
 import { atomicWriteFile } from "../../../lib/atomic-file";
+import { putImage, s3Configured } from "../../../lib/storage";
+
+const MAX_WIDTH = 1920;
+
+// gif 可能是动图（sharp 默认只取首帧），原样保留；其余统一限宽 1920 并转 webp。
+async function optimizeImage(
+  buffer: Buffer,
+  ext: string
+): Promise<{ buffer: Buffer; ext: string; contentType: string }> {
+  if (ext === "gif") return { buffer, ext: "gif", contentType: "image/gif" };
+  const image = sharp(buffer, { failOn: "none" }).rotate();
+  const meta = await image.metadata();
+  if (meta.width && meta.width > MAX_WIDTH) {
+    image.resize({ width: MAX_WIDTH });
+  }
+  const out = await image.webp({ quality: 82 }).toBuffer();
+  return { buffer: out, ext: "webp", contentType: "image/webp" };
+}
 
 const ALLOWED_UPLOAD_TYPES = new Set(["uploads", "column-bg", "avatar", "theme-bg", "blog", "projects", "category"]);
 const ALLOWED_IMAGE_EXTENSIONS = new Set(["png", "jpg", "jpeg", "webp", "gif", "avif", "bmp"]);
@@ -101,38 +120,53 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "图片内容与文件格式不匹配" }, { status: 400 });
     }
 
+    // Optimize before writing (validation ran on original buffer/ext above)
+    const optimized = await optimizeImage(buffer, ext);
+
     let uploadDir: string;
-    let fileName: string;
+    let baseName: string;
 
     if (type === "column-bg") {
       uploadDir = "column-bg";
-      fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      baseName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     } else if (type === "avatar") {
       uploadDir = "avatar";
-      fileName = `avatar.${ext}`;
+      baseName = "avatar";
     } else if (type === "theme-bg") {
       uploadDir = "theme-bg";
-      fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      baseName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     } else if (type === "projects") {
       uploadDir = "projects";
-      fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      baseName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     } else if (type === "category") {
       const category = (formData.get("category") as string) || "未命名";
-      uploadDir = path.join("category", slugify(category));
-      fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      uploadDir = `category/${slugify(category)}`;
+      baseName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     } else if (type === "blog") {
       // Blog images: organized by category/article-title
       const category = (formData.get("category") as string) || "未分类";
       const articleTitle = (formData.get("articleTitle") as string) || "草稿";
-      const categorySlug = slugify(category);
-      const articleSlug = slugify(articleTitle);
-      uploadDir = path.join("blog", categorySlug, articleSlug);
-      fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      uploadDir = `blog/${slugify(category)}/${slugify(articleTitle)}`;
+      baseName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     } else {
       uploadDir = "uploads";
-      fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      baseName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     }
 
+    const fileName = `${baseName}.${optimized.ext}`;
+
+    // avatar/theme-bg 是站点门面资源（avatar 还是固定文件名，与 CDN 一年缓存冲突），
+    // 始终留在本地 public/；文章图、通用上传、专栏背景在配置了对象存储时上桶。
+    const useS3 =
+      s3Configured() && (type === "blog" || type === "uploads" || type === "column-bg");
+
+    if (useS3) {
+      const key = `images/${uploadDir}/${fileName}`;
+      const url = await putImage(key, optimized.buffer, optimized.contentType);
+      return NextResponse.json({ success: true, url });
+    }
+
+    // Local fallback: write to public/images using atomicWriteFile
     const dirPath = path.join(process.cwd(), "public/images", uploadDir);
 
     if (!fs.existsSync(dirPath)) {
@@ -140,10 +174,9 @@ export async function POST(req: NextRequest) {
     }
 
     const filePath = path.join(dirPath, fileName);
-    atomicWriteFile(filePath, buffer);
+    atomicWriteFile(filePath, optimized.buffer);
 
-    // Build URL with forward slashes (handle Windows paths)
-    const url = `/images/${uploadDir.split(path.sep).join("/")}/${fileName}`;
+    const url = `/images/${uploadDir}/${fileName}`;
     return NextResponse.json({ success: true, url });
   } catch (error) {
     console.error("Upload error:", error);
