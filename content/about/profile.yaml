@@ -17,3 +17,16 @@ skills:
     items: ["Next.js", "React", "Tailwind CSS"]
   - title: "工程化"
     items: ["Git", "GitHub Actions", "Vercel", "Docker"]
+techStack:
+  - name: "Python"
+    icon: "code"
+  - name: "SQL"
+    icon: "database"
+  - name: "Spark"
+    icon: "zap"
+  - name: "LLM"
+    icon: "brain"
+  - name: "RAG"
+    icon: "layers"
+  - name: "多模态"
+    icon: "sparkles"
