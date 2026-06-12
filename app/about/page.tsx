@@ -34,12 +34,12 @@ export default function AboutPage() {
       <section className="mb-12">
         <h2 className="text-xl font-semibold mb-6">技术栈</h2>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {profile.skills.map((group) => (
+          {profile.skills.map((group, i) => (
             <div
               key={group.title}
-              className="p-5 rounded-xl border border-[var(--card-border)] bg-[var(--card)]"
+              className="glass rounded-xl p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-lg)]"
             >
-              <SkillGroup title={group.title} items={group.items} />
+              <SkillGroup title={group.title} items={group.items} hueIndex={i} />
             </div>
           ))}
         </div>
