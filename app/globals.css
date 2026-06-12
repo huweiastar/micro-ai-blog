@@ -145,6 +145,12 @@
     @apply max-w-none;
   }
 
+  /* 随手记整卡可点（stretched-link）：正文内的链接需抬升到卡片链接层之上 */
+  .note-card-content a {
+    position: relative;
+    z-index: 2;
+  }
+
   .prose-custom h1 {
     @apply relative text-3xl font-bold mb-6 scroll-mt-20;
   }

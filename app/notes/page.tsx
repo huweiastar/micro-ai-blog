@@ -1,10 +1,10 @@
-import Link from "next/link";
 import { StickyNote } from "lucide-react";
 import { getAllNotesSync, renderMarkdownToHtml } from "../../lib/posts";
-import { Tag } from "../../components/Tag";
+import { NoteCard } from "../../components/notes/NoteCard";
 import { PageHeader } from "../../components/ui/PageHeader";
 import { Container } from "../../components/ui/Container";
 import { formatDate } from "../../lib/utils";
+import { isGiscusConfigured } from "../../config/comments";
 import { generatePageMetadata, getSiteUrl } from "../../lib/seo";
 import type { Metadata } from "next";
 
@@ -18,6 +18,7 @@ export const metadata: Metadata = generatePageMetadata({
 
 export default async function NotesPage() {
   const notes = getAllNotesSync();
+  const commentsEnabled = isGiscusConfigured();
   const rendered = await Promise.all(
     notes.map(async (note) => ({
       ...note,
@@ -40,27 +41,19 @@ export default async function NotesPage() {
             <p>还没有随手记，第一条碎片想法正在路上。</p>
           </div>
         ) : (
-          <div className="relative border-l border-[var(--card-border)] ml-3 space-y-10">
+          <div className="relative ml-3 space-y-8 border-l border-[var(--card-border)]">
             {rendered.map((note) => (
-              <article key={note.slug} className="relative pl-8">
-                <span className="absolute -left-[5px] top-2 w-2.5 h-2.5 rounded-full bg-[var(--primary)]" />
-                <div className="flex flex-wrap items-center gap-3 mb-3 text-sm text-[var(--muted)]">
-                  <Link
-                    href={`/blog/${note.slug}`}
-                    className="hover:text-[var(--primary)] transition-colors"
-                    title="查看这条随手记"
-                  >
-                    <time dateTime={note.date}>{formatDate(note.date)}</time>
-                  </Link>
-                  {note.tags.map((tag) => (
-                    <Tag key={tag} name={tag} />
-                  ))}
-                </div>
-                <div
-                  className="prose prose-sm sm:prose-base dark:prose-invert max-w-none"
-                  dangerouslySetInnerHTML={{ __html: note.html }}
+              <div key={note.slug} className="relative pl-6 sm:pl-8">
+                <span className="absolute -left-[5px] top-7 h-2.5 w-2.5 rounded-full bg-amber-400 ring-4 ring-[var(--background)]" />
+                <NoteCard
+                  slug={note.slug}
+                  date={note.date}
+                  dateLabel={formatDate(note.date)}
+                  tags={note.tags}
+                  html={note.html}
+                  commentsEnabled={commentsEnabled}
                 />
-              </article>
+              </div>
             ))}
           </div>
         )}
