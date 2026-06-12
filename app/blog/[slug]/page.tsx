@@ -77,9 +77,9 @@ export default async function PostPage({ params }: PostPageProps) {
           tocItems={post.toc}
           backLink={
             <Link
-              href="/blog"
+              href={post.type === "note" ? "/notes" : "/blog"}
               className="inline-flex items-center justify-center w-9 h-9 rounded-full border border-[var(--card-border)] text-[var(--muted)] hover:text-[var(--primary)] hover:border-[var(--primary)]/50 hover:shadow-[var(--primary)]/10 hover:shadow-md transition-all duration-200 group"
-              title="返回博客列表"
+              title={post.type === "note" ? "返回随手记" : "返回博客列表"}
             >
               <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
             </Link>
@@ -98,7 +98,9 @@ export default async function PostPage({ params }: PostPageProps) {
           <header className="mb-8">
             <h1 className="text-3xl sm:text-4xl font-bold mb-4">{post.title}</h1>
 
-            <p className="text-[var(--muted)] mb-6 leading-relaxed">{post.summary}</p>
+            {post.summary && post.summary !== post.title && (
+              <p className="text-[var(--muted)] mb-6 leading-relaxed">{post.summary}</p>
+            )}
 
             <PostMeta
               date={post.date}

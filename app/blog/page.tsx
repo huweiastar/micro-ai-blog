@@ -1,4 +1,4 @@
-import { getAllPostsSync } from "../../lib/posts";
+import { getAllArticlesSync } from "../../lib/posts";
 import { BlogCard } from "../../components/BlogCard";
 import { Pagination } from "../../components/Pagination";
 import { PageHeader } from "../../components/ui/PageHeader";
@@ -21,7 +21,7 @@ interface BlogPageProps {
 }
 
 export default function BlogPage({ searchParams }: BlogPageProps) {
-  const posts = getAllPostsSync();
+  const posts = getAllArticlesSync();
   const currentPage = Number(searchParams.page) || 1;
   const totalPages = Math.ceil(posts.length / POSTS_PER_PAGE);
 

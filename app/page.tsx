@@ -1,4 +1,4 @@
-import { getAllPostsSync } from "../lib/posts";
+import { getAllArticlesSync } from "../lib/posts";
 import { getProjects } from "../lib/projects";
 import { getAllCategories } from "../lib/categories";
 import { getAnalytics } from "../lib/analytics";
@@ -22,7 +22,7 @@ export const metadata: Metadata = generatePageMetadata({
 });
 
 export default function HomePage() {
-  const allPosts = getAllPostsSync();
+  const allPosts = getAllArticlesSync();
   const allProjects = getProjects();
   const allCategories = getAllCategories();
   const posts = allPosts.slice(0, 5);
