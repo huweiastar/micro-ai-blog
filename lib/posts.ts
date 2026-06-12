@@ -14,6 +14,8 @@ import Slugger from "github-slugger";
 
 export type BlogPost = {
   slug: string;
+  /** 内容类型：article 正式文章（默认），note 随手记（短内容，时间线展示）。 */
+  type: "article" | "note";
   title: string;
   date: string;
   updated?: string;
@@ -92,6 +94,7 @@ function parsePostFile(file: string): BlogPost {
   return {
     // 优先使用 frontmatter 自定义 slug（让 URL 与文件名解耦，中文标题也能有干净链接）
     slug: (typeof data.slug === "string" && data.slug) || getSlug(file),
+    type: data.type === "note" ? "note" : "article",
     title: data.title || "",
     date: data.date || "",
     updated: data.updated,
@@ -180,6 +183,16 @@ export function getAllPostsSync(): BlogPost[] {
   return readAllPostFiles()
     .filter((post) => isPublished(post, now))
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+}
+
+/** 已发布的正式文章（排除随手记），用于博客列表/首页等。 */
+export function getAllArticlesSync(): BlogPost[] {
+  return getAllPostsSync().filter((post) => post.type === "article");
+}
+
+/** 已发布的随手记（时间线展示用）。 */
+export function getAllNotesSync(): BlogPost[] {
+  return getAllPostsSync().filter((post) => post.type === "note");
 }
 
 /**
