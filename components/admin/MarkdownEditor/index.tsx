@@ -8,7 +8,9 @@ import { useImageUpload } from "./hooks/useImageUpload";
 import { useDraftAutosave } from "./hooks/useDraftAutosave";
 import { usePreviewRender } from "./hooks/usePreviewRender";
 import { ImageDialog } from "./dialogs/ImageDialog";
+import { AIAssistDialog } from "./dialogs/AIAssistDialog";
 import type { ViewMode } from "../hooks/useEditorLayout";
+import type { AssistAction } from "../../../lib/assistant/editor-assist";
 
 export interface MarkdownEditorProps {
   value: string;
@@ -54,6 +56,13 @@ export function MarkdownEditor({
   const previewOn = mode === "split" || mode === "preview";
 
   const [pendingImageUrl, setPendingImageUrl] = useState<string | null>(null);
+  const [aiDialog, setAiDialog] = useState<{
+    action: AssistAction;
+    text: string;
+    start: number;
+    end: number;
+  } | null>(null);
+  const [aiHint, setAiHint] = useState(false);
 
   const { wrap, insert, insertTable, insertCodeBlock, insertHeading } =
     useMarkdownInsert(textareaRef, value, onChange);
@@ -73,6 +82,26 @@ export function MarkdownEditor({
     if (!file) return;
     const result = await upload(file, uploadMeta);
     if (result?.url) setPendingImageUrl(result.url);
+  };
+
+  // 选区 AI 动作：textarea 失焦后选区信息仍保留在 selectionStart/End 上。
+  const handleAiAction = (action: AssistAction) => {
+    const ta = textareaRef.current;
+    if (!ta) return;
+    const start = ta.selectionStart;
+    const end = ta.selectionEnd;
+    const selected = value.slice(start, end);
+    if (!selected.trim()) {
+      setAiHint(true);
+      setTimeout(() => setAiHint(false), 2500);
+      return;
+    }
+    setAiDialog({ action, text: selected, start, end });
+  };
+
+  const handleAiReplace = (newText: string) => {
+    if (!aiDialog) return;
+    onChange(value.slice(0, aiDialog.start) + newText + value.slice(aiDialog.end));
   };
 
   // 分屏下源码滚动按比例联动预览。
@@ -111,7 +140,14 @@ export function MarkdownEditor({
         viewMode={mode}
         onViewMode={setMode}
         toolbar={toolbar}
+        onAiAction={handleAiAction}
       />
+
+      {aiHint && (
+        <div className="px-3 py-2 rounded-lg border border-[var(--primary)]/30 bg-[var(--primary)]/5 text-sm text-[var(--primary)]">
+          请先在编辑器中选中要处理的文字，再使用 AI 辅助。
+        </div>
+      )}
 
       <input
         ref={fileRef}
@@ -149,6 +185,16 @@ export function MarkdownEditor({
           primaryUrl={pendingImageUrl}
           onClose={() => setPendingImageUrl(null)}
           onConfirm={(md) => insert(md)}
+        />
+      )}
+
+      {aiDialog && (
+        <AIAssistDialog
+          action={aiDialog.action}
+          text={aiDialog.text}
+          articleTitle={uploadMeta?.articleTitle}
+          onClose={() => setAiDialog(null)}
+          onReplace={handleAiReplace}
         />
       )}
     </div>

@@ -6,7 +6,7 @@ import {
   Heading, List, ListOrdered, Quote, Minus, Table2,
   Link2, Image as ImageIcon, Code2,
   Type, TextCursorInput, Palette, AlignVerticalJustifyCenter, Columns2,
-  Maximize2, Minimize2,
+  Maximize2, Minimize2, Sparkles, ChevronDown,
 } from "lucide-react";
 
 import { HeadingDialog } from "./dialogs/HeadingDialog";
@@ -15,8 +15,15 @@ import { CodeBlockDialog } from "./dialogs/CodeBlockDialog";
 import { LinkDialog } from "./dialogs/LinkDialog";
 import { FontDialog } from "./dialogs/FontDialog";
 import type { ViewMode } from "../hooks/useEditorLayout";
+import type { AssistAction } from "../../../lib/assistant/editor-assist";
 
 type DialogKind = null | "heading" | "table" | "code" | "link" | "font-family" | "font-size" | "font-color" | "line-height" | "spacing";
+
+const AI_MENU_ITEMS: { action: AssistAction; label: string }[] = [
+  { action: "polish", label: "润色选区" },
+  { action: "expand", label: "扩写选区" },
+  { action: "simplify", label: "通俗化选区" },
+];
 
 const ICON_CLS = "w-3.5 h-3.5";
 
@@ -73,6 +80,8 @@ export interface ToolbarProps {
     media?: boolean;
     typography?: boolean;
   };
+  /** 选区 AI 动作（润色/扩写/通俗化）；不传则不显示 AI 菜单。 */
+  onAiAction?: (action: AssistAction) => void;
 }
 
 export function Toolbar(props: ToolbarProps) {
@@ -83,6 +92,7 @@ export function Toolbar(props: ToolbarProps) {
     typography: props.toolbar?.typography ?? true,
   };
   const [dialog, setDialog] = useState<DialogKind>(null);
+  const [aiMenuOpen, setAiMenuOpen] = useState(false);
   const toggle = (k: Exclude<DialogKind, null>) =>
     setDialog((d) => (d === k ? null : k));
   const fontMode = dialog === "font-family" ? "family"
@@ -132,6 +142,44 @@ export function Toolbar(props: ToolbarProps) {
           <Btn onClick={() => toggle("spacing")} title="段距"><Columns2 className="w-3.5 h-3.5" /></Btn>
           <Sep />
         </>)}
+
+        {props.onAiAction && (
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setAiMenuOpen((v) => !v)}
+              title="AI 辅助"
+              aria-haspopup="menu"
+              aria-expanded={aiMenuOpen}
+              className="inline-flex items-center gap-1 px-2 py-1.5 rounded text-[var(--primary)] hover:bg-[var(--primary)]/10 transition-colors text-xs font-medium"
+            >
+              <Sparkles className={ICON_CLS} />
+              AI
+              <ChevronDown className="w-3 h-3" />
+            </button>
+            {aiMenuOpen && (
+              <div
+                role="menu"
+                className="absolute left-0 top-full mt-1 z-20 min-w-[120px] rounded-lg border border-[var(--card-border)] bg-[var(--card)] shadow-lg overflow-hidden"
+              >
+                {AI_MENU_ITEMS.map(({ action, label }) => (
+                  <button
+                    key={action}
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setAiMenuOpen(false);
+                      props.onAiAction!(action);
+                    }}
+                    className="w-full text-left px-3 py-2 text-xs text-[var(--foreground)] hover:bg-[var(--primary)]/10 hover:text-[var(--primary)] transition-colors"
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         <Btn onClick={props.onToggleFullscreen} title={props.isFullscreen ? "退出全屏" : "全屏"} ariaPressed={props.isFullscreen}>
           {props.isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
