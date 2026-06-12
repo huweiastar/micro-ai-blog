@@ -150,9 +150,10 @@ export default function ArticlesPage() {
                 onClick={() => openEditor(a.slug)}
                 className="group relative w-full overflow-hidden rounded-xl border border-[var(--card-border)] bg-[var(--card)] text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-indigo-500/40 hover:shadow-lg hover:shadow-indigo-500/10"
               >
-                {/* 顶部渐变发丝线 */}
+                {/* 左侧常驻蓝色识别条 + 顶部悬停发丝线 */}
+                <span aria-hidden className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-indigo-500 to-blue-500 opacity-50 transition-opacity group-hover:opacity-100" />
                 <span aria-hidden className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-indigo-500/0 via-indigo-500/60 to-blue-500/0 opacity-0 transition-opacity group-hover:opacity-100" />
-                <div className="flex gap-3 p-4">
+                <div className="flex gap-3 p-4 pl-5">
                   {a.cover && (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={a.cover} alt="" className="h-16 w-24 shrink-0 rounded-lg object-cover ring-1 ring-[var(--card-border)]" />

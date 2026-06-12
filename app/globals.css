@@ -151,6 +151,17 @@
     z-index: 2;
   }
 
+  /* ==高亮== 渲染出的 mark：跟随主题的柔和荧光笔效果 */
+  mark {
+    background: linear-gradient(
+      transparent 40%,
+      color-mix(in srgb, var(--accent) 35%, transparent) 40%
+    );
+    color: inherit;
+    padding: 0 0.15em;
+    border-radius: 0.2em;
+  }
+
   .prose-custom h1 {
     @apply relative text-3xl font-bold mb-6 scroll-mt-20;
   }

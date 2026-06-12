@@ -9,6 +9,7 @@ import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import rehypeStringify from "rehype-stringify";
 import rehypePrettyCode from "rehype-pretty-code";
 import { rehypeCallouts } from "./rehype-callouts";
+import { rehypeMark } from "./rehype-mark";
 import readingTime from "reading-time";
 import Slugger from "github-slugger";
 
@@ -121,7 +122,11 @@ function readAllPostFiles(): BlogPost[] {
 
 /** 文章生效的发布时间（毫秒）：优先 publish 字段，否则回退 date；解析失败按 0。 */
 export function getPublishTime(post: { publish?: string; date: string }): number {
-  const t = new Date(post.publish || post.date).getTime();
+  const raw = (post.publish || post.date || "").trim();
+  // 纯日期（YYYY-MM-DD）按「服务器本地午夜」解释，与 todayDate() 生成日期的本地时区保持一致。
+  // 否则 new Date("2026-06-13") 会被当成 UTC 午夜，在 UTC+N 时区的清晨被误判为「未来定时」而隐藏。
+  const normalized = /^\d{4}-\d{2}-\d{2}$/.test(raw) ? `${raw}T00:00:00` : raw;
+  const t = new Date(normalized).getTime();
   return Number.isNaN(t) ? 0 : t;
 }
 
@@ -243,6 +248,7 @@ export async function renderMarkdownToHtml(content: string): Promise<string> {
       content: { type: "text", value: "#" },
     })
     .use(rehypeCallouts)
+    .use(rehypeMark)
     .use(rehypePrettyCode, {
       theme: "github-dark",
       keepBackground: false,
