@@ -6,6 +6,7 @@ import { Plus, Search } from "lucide-react";
 
 type Article = {
   slug: string;
+  type?: string;
   title: string;
   date: string;
   summary: string;
@@ -37,7 +38,10 @@ export default function ArticlesPage() {
   useEffect(() => {
     fetch("/api/posts")
       .then((r) => r.json())
-      .then((d) => setArticles(Array.isArray(d) ? d : []))
+      .then((d) =>
+        // 随手记由 /admin/notes 管理，文章列表只展示正式文章
+        setArticles(Array.isArray(d) ? d.filter((a: Article) => a.type !== "note") : [])
+      )
       .catch(() => {});
   }, []);
 

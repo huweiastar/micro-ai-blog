@@ -3,7 +3,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Plus, ChevronDown, FileText, FolderOpen, Rocket } from "lucide-react";
+import { Plus, ChevronDown, FileText, FolderOpen, Rocket, StickyNote } from "lucide-react";
 
 export function NewMenu({ onPicked }: { onPicked?: () => void }) {
   const [open, setOpen] = useState(false);
@@ -45,6 +45,7 @@ export function NewMenu({ onPicked }: { onPicked?: () => void }) {
       {open && (
         <div className="absolute left-0 right-0 top-full mt-1 z-20 rounded-lg border border-[var(--card-border)] bg-[var(--card)] shadow-lg overflow-hidden">
           {item("/admin/articles/edit?new=1", "新文章", FileText)}
+          {item("/admin/notes", "随手记", StickyNote)}
           {item("/admin/projects/edit?new=1", "新项目", Rocket)}
           {item("/admin/categories/edit?new=1", "新专栏", FolderOpen)}
         </div>
