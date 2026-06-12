@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 import { findMediaReferences } from "../../../../lib/content-media";
+import { s3Configured, listImages, deleteImage, keyFromUrl } from "../../../../lib/storage";
 
 export const dynamic = "force-dynamic";
 
@@ -42,11 +43,35 @@ function walk(dir: string, items: MediaItem[]): void {
 }
 
 export async function GET() {
-  if (!fs.existsSync(IMAGES_ROOT)) return NextResponse.json([]);
   const items: MediaItem[] = [];
-  walk(IMAGES_ROOT, items);
-  items.sort((a, b) => b.mtime - a.mtime);
-  return NextResponse.json(items);
+
+  // 本地文件列出
+  if (fs.existsSync(IMAGES_ROOT)) {
+    walk(IMAGES_ROOT, items);
+  }
+
+  // S3 配置时追加对象存储列表
+  if (s3Configured()) {
+    try {
+      const s3Items = await listImages();
+      items.push(...s3Items);
+    } catch {
+      // S3 列表失败不阻断响应，仍返回本地列表
+    }
+  }
+
+  // 去重（同一文件可能在两处）并按 mtime 排序
+  const deduped = new Map<string, MediaItem>();
+  for (const item of items) {
+    const existing = deduped.get(item.url);
+    if (!existing || item.mtime > existing.mtime) {
+      deduped.set(item.url, item);
+    }
+  }
+
+  const result = Array.from(deduped.values());
+  result.sort((a, b) => b.mtime - a.mtime);
+  return NextResponse.json(result);
 }
 
 export async function DELETE(req: NextRequest) {
@@ -58,14 +83,8 @@ export async function DELETE(req: NextRequest) {
     if (!IMAGE_EXTS.has(path.extname(url).toLowerCase())) {
       return NextResponse.json({ error: "不支持的文件类型" }, { status: 400 });
     }
-    const target = path.resolve(process.cwd(), "public", "." + url);
-    // 双重确认：解析后的真实路径必须仍在 images 根目录内，杜绝路径穿越。
-    if (!target.startsWith(IMAGES_ROOT + path.sep)) {
-      return NextResponse.json({ error: "非法路径" }, { status: 400 });
-    }
-    if (!fs.existsSync(target)) {
-      return NextResponse.json({ error: "文件不存在" }, { status: 404 });
-    }
+
+    // 引用检查：无论 S3 还是本地都需要
     const references = findMediaReferences(url);
     if (references.length > 0 && !force) {
       return NextResponse.json(
@@ -76,7 +95,25 @@ export async function DELETE(req: NextRequest) {
         { status: 409 }
       );
     }
-    fs.unlinkSync(target);
+
+    // 判断是 S3 还是本地
+    const s3Key = keyFromUrl(url);
+    if (s3Key) {
+      // S3 删除
+      await deleteImage(s3Key);
+    } else {
+      // 本地删除
+      const target = path.resolve(process.cwd(), "public", "." + url);
+      // 双重确认：解析后的真实路径必须仍在 images 根目录内，杜绝路径穿越。
+      if (!target.startsWith(IMAGES_ROOT + path.sep)) {
+        return NextResponse.json({ error: "非法路径" }, { status: 400 });
+      }
+      if (!fs.existsSync(target)) {
+        return NextResponse.json({ error: "文件不存在" }, { status: 404 });
+      }
+      fs.unlinkSync(target);
+    }
+
     return NextResponse.json({ success: true });
   } catch {
     return NextResponse.json({ error: "删除失败" }, { status: 500 });
