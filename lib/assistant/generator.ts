@@ -189,33 +189,20 @@ export function resolveAIConfig(): AIConfig | null {
 }
 
 /**
- * Stream AI answer from provider.
- * Returns a ReadableStream of text chunks (OpenAI SSE format).
- * Falls back to generateLocalResponse if API key is not configured.
+ * 通用 LLM 流式调用：给定 system/user 提示词，返回文本增量流。
+ * 不做本地回退——未配置 AI_API_KEY 时直接抛错，由调用方决定降级策略。
  */
-export async function generateAIAnswerStream(
-  message: string,
-  contextChunks: KnowledgeChunk[],
-  mode: string = "all"
-): Promise<{ stream: ReadableStream<string>; isLocal: boolean }> {
+export async function streamLLM(opts: {
+  system: string;
+  user: string;
+  maxTokens?: number;
+}): Promise<ReadableStream<string>> {
   const config = resolveAIConfig();
-
   if (!config) {
-    // Return a "stream" that yields the local response text
-    const local = generateLocalResponse(message, contextChunks, []);
-    return {
-      stream: new ReadableStream({
-        start(controller) {
-          controller.enqueue(local.answer);
-          controller.close();
-        },
-      }),
-      isLocal: true,
-    };
+    throw new Error("未配置 AI_API_KEY，无法调用 AI 服务");
   }
 
-  const prompt = generatePrompt(message, contextChunks, mode);
-
+  const maxTokens = opts.maxTokens ?? 2000;
   let response: Response;
 
   if (config.provider === "anthropic") {
@@ -228,9 +215,9 @@ export async function generateAIAnswerStream(
       },
       body: JSON.stringify({
         model: config.model,
-        max_tokens: 2000,
-        system: SYSTEM_PROMPT,
-        messages: [{ role: "user", content: prompt }],
+        max_tokens: maxTokens,
+        system: opts.system,
+        messages: [{ role: "user", content: opts.user }],
         stream: true,
       }),
     });
@@ -244,11 +231,11 @@ export async function generateAIAnswerStream(
       },
       body: JSON.stringify({
         model: config.model,
-        max_tokens: 2000,
+        max_tokens: maxTokens,
         stream: true,
         messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: prompt },
+          { role: "system", content: opts.system },
+          { role: "user", content: opts.user },
         ],
       }),
     });
@@ -264,7 +251,7 @@ export async function generateAIAnswerStream(
   const decoder = new TextDecoder();
   let buffer = "";
 
-  const stream = new ReadableStream({
+  return new ReadableStream({
     async start(controller) {
       try {
         while (true) {
@@ -306,7 +293,36 @@ export async function generateAIAnswerStream(
       }
     },
   });
+}
 
+/**
+ * Stream AI answer from provider.
+ * Returns a ReadableStream of text chunks (OpenAI SSE format).
+ * Falls back to generateLocalResponse if API key is not configured.
+ */
+export async function generateAIAnswerStream(
+  message: string,
+  contextChunks: KnowledgeChunk[],
+  mode: string = "all"
+): Promise<{ stream: ReadableStream<string>; isLocal: boolean }> {
+  const config = resolveAIConfig();
+
+  if (!config) {
+    // Return a "stream" that yields the local response text
+    const local = generateLocalResponse(message, contextChunks, []);
+    return {
+      stream: new ReadableStream({
+        start(controller) {
+          controller.enqueue(local.answer);
+          controller.close();
+        },
+      }),
+      isLocal: true,
+    };
+  }
+
+  const prompt = generatePrompt(message, contextChunks, mode);
+  const stream = await streamLLM({ system: SYSTEM_PROMPT, user: prompt, maxTokens: 2000 });
   return { stream, isLocal: false };
 }
 
