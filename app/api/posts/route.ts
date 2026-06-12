@@ -142,9 +142,10 @@ function buildFrontmatter(opts: {
   cover?: string;
   publish?: string;
   slug?: string;
+  type?: "article" | "note";
   content: string;
 }): string {
-  const { title, date, summary, tags, category, draft, cover, publish, slug, content } = opts;
+  const { title, date, summary, tags, category, draft, cover, publish, slug, type, content } = opts;
   const lines = [
     "---",
     `title: "${yamlEscape(title)}"`,
@@ -154,6 +155,8 @@ function buildFrontmatter(opts: {
     `category: "${yamlEscape(category)}"`,
     `draft: ${draft ? "true" : "false"}`,
   ];
+  // article 为缺省值，仅 note 需要落到 frontmatter。
+  if (type === "note") lines.push("type: note");
   // 仅当自定义 slug 与文件名不一致时才写入 frontmatter，保持文件整洁。
   if (slug) lines.push(`slug: "${yamlEscape(slug)}"`);
   if (publish) lines.push(`publish: "${yamlEscape(publish)}"`);
@@ -178,6 +181,7 @@ export async function GET(req: NextRequest) {
       const { data, content } = matter(source);
       return NextResponse.json({
         slug: slugParam,
+        type: data.type === "note" ? "note" : "article",
         title: (data.title as string) || "",
         date: (data.date as string) || "",
         summary: (data.summary as string) || "",
@@ -205,6 +209,7 @@ export async function GET(req: NextRequest) {
 
       return {
         slug: canonicalSlug(data, file),
+        type: data.type === "note" ? "note" : "article",
         title: (data.title as string) || "",
         date: (data.date as string) || "",
         summary: (data.summary as string) || "",
@@ -272,6 +277,7 @@ export async function POST(req: NextRequest) {
       draft: isDraft,
       cover: body.cover ? String(body.cover) : undefined,
       publish: body.publish ? String(body.publish) : undefined,
+      type: body.type === "note" ? "note" : undefined,
       content: String(content ?? ""),
     });
 
@@ -353,6 +359,8 @@ export async function PUT(req: NextRequest) {
       cover: body.cover ? String(body.cover) : undefined,
       publish: body.publish ? String(body.publish) : undefined,
       slug: frontmatterSlug,
+      // ArticleEditor 的保存请求不带 type，必须从既有 frontmatter 保留，否则编辑随手记会丢类型。
+      type: body.type === "note" || (body.type === undefined && existingData.type === "note") ? "note" : undefined,
       content: String(content ?? ""),
     });
 
