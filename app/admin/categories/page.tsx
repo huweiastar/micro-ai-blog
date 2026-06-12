@@ -104,7 +104,7 @@ export default function CategoriesPage() {
                   <div className="mb-1 flex items-center justify-between gap-2">
                     <span className="flex min-w-0 items-center gap-1.5">
                       <span className="line-clamp-1 text-sm font-medium transition-colors group-hover:text-violet-500 dark:group-hover:text-violet-300">{c.name}</span>
-                      {c.draft && <span className="shrink-0 rounded bg-amber-500/10 px-1.5 py-0.5 text-[10px] text-amber-500">草稿</span>}
+                      {c.draft && <span className="shrink-0 rounded bg-fuchsia-500/10 px-1.5 py-0.5 text-[10px] text-fuchsia-500">草稿</span>}
                     </span>
                     <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-violet-500/10 px-2 py-0.5 text-xs text-violet-500 dark:text-violet-300">
                       <BookOpen className="h-3 w-3" />

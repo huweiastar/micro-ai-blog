@@ -98,7 +98,7 @@ export default async function PostPage({ params }: PostPageProps) {
           <header className="mb-8">
             {post.type === "note" ? (
               // 随手记没有真正的标题（自动取自首行），详情页只标注类型，避免与正文首行重复
-              <div className="mb-4 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-400/10 text-amber-400 text-sm">
+              <div className="mb-4 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-sky-500/10 text-sky-500 dark:text-sky-400 text-sm">
                 <StickyNote className="w-4 h-4" />
                 随手记
               </div>

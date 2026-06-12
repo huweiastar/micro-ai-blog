@@ -23,7 +23,7 @@ const SEVERITY_STYLE: Record<
     label: "严重",
   },
   warning: {
-    chip: "bg-amber-500/10 text-amber-400 border border-amber-500/20",
+    chip: "bg-fuchsia-500/10 text-fuchsia-400 border border-fuchsia-500/20",
     label: "提醒",
   },
   info: {
@@ -83,7 +83,7 @@ export default function ContentHealthPage() {
           value={totals.live}
           tone="text-emerald-400"
         />
-        <StatCard icon={<PenLine className="w-3.5 h-3.5" />} label="草稿" value={totals.drafts} tone="text-amber-400" />
+        <StatCard icon={<PenLine className="w-3.5 h-3.5" />} label="草稿" value={totals.drafts} tone="text-fuchsia-400" />
         <StatCard icon={<Clock className="w-3.5 h-3.5" />} label="定时待发" value={totals.scheduled} tone="text-sky-400" />
         <StatCard
           icon={<AlertTriangle className="w-3.5 h-3.5" />}
@@ -141,7 +141,7 @@ export default function ContentHealthPage() {
                     <span>·</span>
                     <span>{post.wordCount} 字</span>
                     {post.draft && (
-                      <span className="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400">草稿</span>
+                      <span className="px-1.5 py-0.5 rounded bg-fuchsia-500/10 text-fuchsia-400">草稿</span>
                     )}
                     {post.scheduled && (
                       <span className="px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-400">定时待发</span>

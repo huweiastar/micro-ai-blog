@@ -3,7 +3,7 @@
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
-export type AdminHue = "indigo" | "violet" | "teal" | "amber" | "sky";
+export type AdminHue = "indigo" | "violet" | "teal" | "sky";
 
 // Tailwind 需要静态类名，按色调枚举映射
 const HUE: Record<
@@ -27,12 +27,6 @@ const HUE: Record<
     glow: "from-teal-500/15",
     ring: "ring-teal-500/20",
     chip: "bg-teal-500/10 text-teal-600 dark:text-teal-300",
-  },
-  amber: {
-    tile: "from-amber-400 to-orange-500 shadow-amber-500/30",
-    glow: "from-amber-500/15",
-    ring: "ring-amber-500/20",
-    chip: "bg-amber-500/10 text-amber-600 dark:text-amber-300",
   },
   sky: {
     tile: "from-sky-400 to-cyan-500 shadow-sky-500/30",

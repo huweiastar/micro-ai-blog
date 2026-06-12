@@ -120,11 +120,11 @@ export function MarkdownEditor({
       className={`flex flex-col gap-2 ${isFullscreen ? "h-screen bg-[var(--background)] p-4" : ""} ${className ?? ""}`}
     >
       {detectedDraft && (
-        <div className="flex items-center justify-between gap-3 px-3 py-2 rounded-lg border border-amber-500/30 bg-amber-500/5 text-sm text-amber-300">
+        <div className="flex items-center justify-between gap-3 px-3 py-2 rounded-lg border border-fuchsia-500/30 bg-fuchsia-500/5 text-sm text-fuchsia-300">
           <span>检测到未保存的草稿（{Math.max(1, Math.round((Date.now() - detectedDraft.updatedAt) / 60000))} 分钟前）</span>
           <div className="flex items-center gap-2">
-            <button onClick={handleRestore} className="px-2 py-0.5 rounded bg-amber-500/20 hover:bg-amber-500/30">恢复</button>
-            <button onClick={discard} className="px-2 py-0.5 rounded text-amber-300/70 hover:text-amber-200">丢弃</button>
+            <button onClick={handleRestore} className="px-2 py-0.5 rounded bg-fuchsia-500/20 hover:bg-fuchsia-500/30">恢复</button>
+            <button onClick={discard} className="px-2 py-0.5 rounded text-fuchsia-300/70 hover:text-fuchsia-200">丢弃</button>
           </div>
         </div>
       )}

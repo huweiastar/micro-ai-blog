@@ -30,7 +30,7 @@ export function renderMarkdownPreview(md: string): { __html: string } {
     .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
     .replace(/~~(.+?)~~/g, "<del>$1</del>")
     .replace(/\*(.+?)\*/g, "<em>$1</em>")
-    .replace(/==(.+?)==/g, "<mark class='bg-yellow-200 dark:bg-yellow-800 px-1 rounded'>$1</mark>")
+    .replace(/==(.+?)==/g, "<mark class='bg-violet-200 dark:bg-violet-800 px-1 rounded'>$1</mark>")
     .replace(/!\[(.+?)\]\((.+?)\)/g, '<img src="$2" alt="$1" class="max-w-full rounded-lg my-4"/>')
     .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" class="text-[var(--link)] hover:text-[var(--link-hover)] underline underline-offset-2">$1</a>')
     .replace(/`([^`]+?)`/g, '<code class="px-2 py-0.5 rounded bg-[var(--card)] text-[var(--primary)] text-sm font-mono">$1</code>')

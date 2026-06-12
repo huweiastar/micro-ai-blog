@@ -32,10 +32,10 @@ const TYPE_STYLES: Record<
   },
   note: {
     label: "随手记",
-    dot: "bg-amber-400",
-    badge: "bg-amber-400/10 text-amber-400",
+    dot: "bg-sky-400",
+    badge: "bg-sky-500/10 text-sky-500 dark:text-sky-400",
     Icon: StickyNote,
-    iconCls: "text-amber-400",
+    iconCls: "text-sky-500 dark:text-sky-400",
   },
   project: {
     label: "项目",

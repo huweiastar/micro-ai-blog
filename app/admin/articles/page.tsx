@@ -163,7 +163,7 @@ export default function ArticlesPage() {
                       <span className="line-clamp-1 text-sm font-medium text-[var(--foreground)] transition-colors group-hover:text-indigo-500 dark:group-hover:text-indigo-300">
                         {a.title || "（无标题）"}
                       </span>
-                      {a.draft && <span className="shrink-0 rounded bg-amber-500/10 px-1.5 py-0.5 text-[10px] text-amber-500">草稿</span>}
+                      {a.draft && <span className="shrink-0 rounded bg-fuchsia-500/10 px-1.5 py-0.5 text-[10px] text-fuchsia-500">草稿</span>}
                       {isScheduled(a) && <span className="shrink-0 rounded bg-sky-500/10 px-1.5 py-0.5 text-[10px] text-sky-400">定时</span>}
                     </div>
                     {a.summary && <p className="mb-2 line-clamp-2 text-xs text-[var(--muted)]">{a.summary}</p>}

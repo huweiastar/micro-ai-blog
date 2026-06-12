@@ -101,7 +101,7 @@ export default function ProjectsPage() {
                 <div className="p-3">
                   <div className="flex items-center gap-1.5">
                     <span className="line-clamp-1 text-sm font-medium transition-colors group-hover:text-teal-600 dark:group-hover:text-teal-300">{p.name || "（未命名）"}</span>
-                    {p.draft && <span className="shrink-0 rounded bg-amber-500/10 px-1.5 py-0.5 text-[10px] text-amber-500">草稿</span>}
+                    {p.draft && <span className="shrink-0 rounded bg-fuchsia-500/10 px-1.5 py-0.5 text-[10px] text-fuchsia-500">草稿</span>}
                     <span className="ml-auto flex shrink-0 items-center gap-1 text-[var(--muted)]">
                       {p.githubUrl && <Github className="h-3.5 w-3.5" />}
                       {p.demoUrl && <Globe className="h-3.5 w-3.5" />}

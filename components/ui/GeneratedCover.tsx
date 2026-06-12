@@ -16,7 +16,7 @@ const PALETTES: [string, string, string][] = [
   ["#3b82f6", "#0ea5e9", "#06b6d4"], // blue → cyan
   ["#ec4899", "#d946ef", "#a855f7"], // pink → fuchsia
   ["#10b981", "#14b8a6", "#06b6d4"], // emerald → teal
-  ["#f59e0b", "#f97316", "#ef4444"], // amber → orange
+  ["#ec4899", "#f43f5e", "#ef4444"], // pink → rose
   ["#8b5cf6", "#6366f1", "#3b82f6"], // violet → blue
   ["#f43f5e", "#ec4899", "#8b5cf6"], // rose → violet
   ["#0ea5e9", "#6366f1", "#8b5cf6"], // sky → indigo

@@ -16,7 +16,7 @@ const groups: {
   {
     label: "内容",
     items: [
-      { href: "/admin/articles", label: "文章", Icon: FileText, badge: "drafts", badgeTone: "bg-amber-500/15 text-amber-400" },
+      { href: "/admin/articles", label: "文章", Icon: FileText, badge: "drafts", badgeTone: "bg-fuchsia-500/15 text-fuchsia-400" },
       { href: "/admin/categories", label: "专栏", Icon: FolderOpen },
       { href: "/admin/projects", label: "项目", Icon: Rocket },
       { href: "/admin/notes", label: "随手记", Icon: StickyNote },

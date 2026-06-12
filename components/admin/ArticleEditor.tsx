@@ -401,9 +401,9 @@ export function ArticleEditor({ slug, isNew, categories, onSaved, onDeleted, onB
     qualityScore >= 5
       ? { label: "优秀", cls: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20" }
       : qualityScore >= 3
-        ? { label: "良好", cls: "text-amber-400 bg-amber-500/10 border-amber-500/20" }
+        ? { label: "良好", cls: "text-fuchsia-400 bg-fuchsia-500/10 border-fuchsia-500/20" }
         : { label: "待完善", cls: "text-red-400 bg-red-500/10 border-red-500/20" };
-  const metricTone = (ok: boolean) => (ok ? "text-[var(--muted)]" : "text-amber-400");
+  const metricTone = (ok: boolean) => (ok ? "text-[var(--muted)]" : "text-fuchsia-400");
 
   return (
     <div className="flex h-full min-h-0 flex-col">

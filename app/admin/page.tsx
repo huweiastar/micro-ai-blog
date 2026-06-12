@@ -53,7 +53,7 @@ export default function AdminDashboard() {
 
   const todos = [
     drafts.length > 0
-      ? { label: `${drafts.length} 篇草稿待完善`, href: "/admin/articles", tone: "text-amber-400", Icon: PenLine }
+      ? { label: `${drafts.length} 篇草稿待完善`, href: "/admin/articles", tone: "text-fuchsia-400", Icon: PenLine }
       : null,
     scheduled.length > 0
       ? { label: `${scheduled.length} 篇定时待发`, href: "/admin/articles", tone: "text-sky-400", Icon: Clock }
@@ -90,7 +90,7 @@ export default function AdminDashboard() {
       {/* 概览卡片 */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
         <StatCard icon={<FileText className="w-3.5 h-3.5" />} label="已发布" value={live.length} tone="text-emerald-400" />
-        <StatCard icon={<PenLine className="w-3.5 h-3.5" />} label="草稿" value={drafts.length} tone="text-amber-400" />
+        <StatCard icon={<PenLine className="w-3.5 h-3.5" />} label="草稿" value={drafts.length} tone="text-fuchsia-400" />
         <StatCard icon={<Clock className="w-3.5 h-3.5" />} label="定时待发" value={scheduled.length} tone="text-sky-400" />
         <StatCard icon={<Type className="w-3.5 h-3.5" />} label="总字数" value={totalWords.toLocaleString()} />
       </div>
@@ -145,7 +145,7 @@ export default function AdminDashboard() {
                   <span className="block text-xs text-[var(--muted)]">{p.date} · {p.wordCount} 字</span>
                 </span>
                 <span className="shrink-0 flex items-center gap-1">
-                  {p.draft && <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400">草稿</span>}
+                  {p.draft && <span className="text-[10px] px-1.5 py-0.5 rounded bg-fuchsia-500/10 text-fuchsia-400">草稿</span>}
                   {p.scheduled && <span className="text-[10px] px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-400">定时</span>}
                 </span>
               </Link>
