@@ -44,7 +44,7 @@ export default async function NotesPage() {
           <div className="relative ml-3 space-y-8 border-l border-[var(--card-border)]">
             {rendered.map((note) => (
               <div key={note.slug} className="relative pl-6 sm:pl-8">
-                <span className="absolute -left-[5px] top-7 h-2.5 w-2.5 rounded-full bg-amber-400 ring-4 ring-[var(--background)]" />
+                <span className="absolute -left-[5px] top-7 h-2.5 w-2.5 rounded-full bg-sky-400 ring-4 ring-[var(--background)]" />
                 <NoteCard
                   slug={note.slug}
                   date={note.date}

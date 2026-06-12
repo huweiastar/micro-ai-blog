@@ -177,7 +177,7 @@ export default function AdminNotesPage() {
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 space-y-6">
       <ListHero
         icon={StickyNote}
-        hue="amber"
+        hue="sky"
         title="随手记"
         description="记下此刻学到的东西，无需标题与分类，⌘/Ctrl + Enter 直接发布"
         stats={[{ label: "条随手记", value: notes.length }]}
@@ -185,7 +185,7 @@ export default function AdminNotesPage() {
 
       {/* 快速记录卡 */}
       <div className="relative overflow-hidden rounded-2xl border border-[var(--card-border)] bg-[var(--card)] p-4 space-y-3">
-        <span aria-hidden className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-amber-400/0 via-amber-400/70 to-orange-500/0" />
+        <span aria-hidden className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-sky-400/0 via-sky-400/70 to-cyan-500/0" />
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
@@ -198,7 +198,7 @@ export default function AdminNotesPage() {
           placeholder="今天学到了什么？支持 Markdown，可贴代码块……"
           rows={5}
           autoFocus
-          className="w-full px-3 py-2.5 rounded-lg border border-[var(--card-border)] bg-[var(--background)] text-[var(--foreground)] text-sm leading-relaxed resize-y focus:outline-none focus:ring-2 focus:ring-amber-400/50"
+          className="w-full px-3 py-2.5 rounded-lg border border-[var(--card-border)] bg-[var(--background)] text-[var(--foreground)] text-sm leading-relaxed resize-y focus:outline-none focus:ring-2 focus:ring-sky-400/50"
         />
         <div className="flex items-center gap-3">
           <input
@@ -206,13 +206,13 @@ export default function AdminNotesPage() {
             value={tags}
             onChange={(e) => setTags(e.target.value)}
             placeholder="标签（可选，逗号分隔）"
-            className="flex-1 px-3 py-2 rounded-lg border border-[var(--card-border)] bg-[var(--background)] text-[var(--foreground)] text-sm focus:outline-none focus:ring-2 focus:ring-amber-400/50"
+            className="flex-1 px-3 py-2 rounded-lg border border-[var(--card-border)] bg-[var(--background)] text-[var(--foreground)] text-sm focus:outline-none focus:ring-2 focus:ring-sky-400/50"
           />
           <button
             type="button"
             onClick={publish}
             disabled={publishing || !content.trim()}
-            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 px-5 py-2 text-sm font-medium text-white shadow-lg shadow-amber-500/25 transition-all hover:shadow-amber-500/40 hover:brightness-110 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-sky-400 to-cyan-500 px-5 py-2 text-sm font-medium text-white shadow-lg shadow-sky-500/25 transition-all hover:shadow-sky-500/40 hover:brightness-110 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {publishing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
             发布
@@ -236,7 +236,7 @@ export default function AdminNotesPage() {
               editingSlug === note.slug ? (
                 <li
                   key={note.slug}
-                  className="rounded-xl border border-amber-400/40 bg-[var(--card)] p-4 space-y-3 shadow-lg shadow-amber-500/10"
+                  className="rounded-xl border border-sky-400/40 bg-[var(--card)] p-4 space-y-3 shadow-lg shadow-sky-500/10"
                 >
                   {editLoading ? (
                     <div className="flex items-center gap-2 py-4 text-sm text-[var(--muted)]">
@@ -257,7 +257,7 @@ export default function AdminNotesPage() {
                         }}
                         rows={5}
                         autoFocus
-                        className="w-full px-3 py-2.5 rounded-lg border border-[var(--card-border)] bg-[var(--background)] text-sm leading-relaxed resize-y focus:outline-none focus:ring-2 focus:ring-amber-400/50"
+                        className="w-full px-3 py-2.5 rounded-lg border border-[var(--card-border)] bg-[var(--background)] text-sm leading-relaxed resize-y focus:outline-none focus:ring-2 focus:ring-sky-400/50"
                       />
                       <div className="flex items-center gap-2">
                         <input
@@ -265,13 +265,13 @@ export default function AdminNotesPage() {
                           value={editTags}
                           onChange={(e) => setEditTags(e.target.value)}
                           placeholder="标签（可选，逗号分隔）"
-                          className="flex-1 px-3 py-1.5 rounded-lg border border-[var(--card-border)] bg-[var(--background)] text-sm focus:outline-none focus:ring-2 focus:ring-amber-400/50"
+                          className="flex-1 px-3 py-1.5 rounded-lg border border-[var(--card-border)] bg-[var(--background)] text-sm focus:outline-none focus:ring-2 focus:ring-sky-400/50"
                         />
                         <button
                           type="button"
                           onClick={saveEdit}
                           disabled={editSaving || !editContent.trim()}
-                          className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-amber-400 to-orange-500 px-3 py-1.5 text-sm font-medium text-white transition-all hover:brightness-110 active:scale-95 disabled:opacity-50"
+                          className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-sky-400 to-cyan-500 px-3 py-1.5 text-sm font-medium text-white transition-all hover:brightness-110 active:scale-95 disabled:opacity-50"
                         >
                           {editSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
                           保存
@@ -291,10 +291,10 @@ export default function AdminNotesPage() {
               ) : (
                 <li
                   key={note.slug}
-                  className="group flex items-center gap-3 rounded-xl border border-[var(--card-border)] bg-[var(--card)] px-4 py-3 transition-all hover:border-amber-400/40 hover:shadow-md hover:shadow-amber-500/5 animate-slide-up"
+                  className="group flex items-center gap-3 rounded-xl border border-[var(--card-border)] bg-[var(--card)] px-4 py-3 transition-all hover:border-sky-400/40 hover:shadow-md hover:shadow-sky-500/5 animate-slide-up"
                   style={{ animationDelay: `${Math.min(i, 8) * 30}ms`, animationFillMode: "backwards" }}
                 >
-                  <span aria-hidden className="h-8 w-1 shrink-0 rounded-full bg-gradient-to-b from-amber-400 to-orange-500 opacity-40 transition-opacity group-hover:opacity-100" />
+                  <span aria-hidden className="h-8 w-1 shrink-0 rounded-full bg-gradient-to-b from-sky-400 to-cyan-500 opacity-40 transition-opacity group-hover:opacity-100" />
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-sm text-[var(--foreground)]">{note.title}</div>
                     <div className="mt-0.5 flex items-center gap-2 text-xs text-[var(--muted)]">
@@ -306,7 +306,7 @@ export default function AdminNotesPage() {
                     href={`/blog/${note.slug}`}
                     target="_blank"
                     rel="noreferrer"
-                    className="p-1.5 rounded-lg text-[var(--muted)] transition-colors hover:text-amber-500"
+                    className="p-1.5 rounded-lg text-[var(--muted)] transition-colors hover:text-sky-500"
                     title="查看"
                   >
                     <ExternalLink className="w-4 h-4" />
@@ -314,7 +314,7 @@ export default function AdminNotesPage() {
                   <button
                     type="button"
                     onClick={() => startEdit(note.slug)}
-                    className="p-1.5 rounded-lg text-[var(--muted)] transition-colors hover:text-amber-500"
+                    className="p-1.5 rounded-lg text-[var(--muted)] transition-colors hover:text-sky-500"
                     title="编辑"
                   >
                     <Pencil className="w-4 h-4" />

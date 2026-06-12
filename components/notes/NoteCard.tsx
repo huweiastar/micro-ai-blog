@@ -47,11 +47,11 @@ export function NoteCard({ slug, date, dateLabel, tags, html, commentsEnabled }:
   }, [slug]);
 
   return (
-    <article className="group relative glass overflow-hidden rounded-xl transition-all duration-300 hover:-translate-y-1 hover:border-amber-400/40 hover:shadow-[var(--shadow-lg)] active:scale-[0.99]">
-      {/* 左侧琥珀色脊：与博客卡片的分类色脊同语言 */}
+    <article className="group relative glass overflow-hidden rounded-xl transition-all duration-300 hover:-translate-y-1 hover:border-sky-400/40 hover:shadow-[var(--shadow-lg)] active:scale-[0.99]">
+      {/* 左侧天青色脊：与博客卡片的分类色脊同语言 */}
       <span
         aria-hidden
-        className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-amber-400 to-orange-500 opacity-70 transition-opacity duration-300 group-hover:opacity-100"
+        className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-sky-400 to-cyan-500 opacity-70 transition-opacity duration-300 group-hover:opacity-100"
       />
 
       {/* 整卡跳转的隐形链接层 */}
@@ -63,7 +63,7 @@ export function NoteCard({ slug, date, dateLabel, tags, html, commentsEnabled }:
 
       <div className="p-5 pl-6 sm:p-6 sm:pl-7">
         <div className="mb-3 flex flex-wrap items-center gap-2 text-sm text-[var(--muted)]">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-400/10 px-2 py-0.5 text-xs text-amber-500 dark:text-amber-400">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-sky-500/10 px-2 py-0.5 text-xs text-sky-500 dark:text-sky-400">
             <StickyNote className="h-3.5 w-3.5" />
             随手记
           </span>
@@ -89,7 +89,7 @@ export function NoteCard({ slug, date, dateLabel, tags, html, commentsEnabled }:
               aria-hidden
               className="pointer-events-none absolute inset-x-0 bottom-0 flex h-20 items-end justify-center bg-gradient-to-t from-[var(--card)] to-transparent"
             >
-              <span className="mb-1 inline-flex items-center gap-1 text-xs text-amber-500 dark:text-amber-400">
+              <span className="mb-1 inline-flex items-center gap-1 text-xs text-sky-500 dark:text-sky-400">
                 <ChevronDown className="h-3.5 w-3.5" />
                 查看全文
               </span>
@@ -108,7 +108,7 @@ export function NoteCard({ slug, date, dateLabel, tags, html, commentsEnabled }:
               评论
             </span>
           )}
-          <span className="ml-auto inline-flex translate-x-1 items-center gap-1 text-xs opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100 group-hover:text-amber-500 dark:group-hover:text-amber-400">
+          <span className="ml-auto inline-flex translate-x-1 items-center gap-1 text-xs opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100 group-hover:text-sky-500 dark:group-hover:text-sky-400">
             进入详情
             <ArrowRight className="h-3.5 w-3.5" />
           </span>
