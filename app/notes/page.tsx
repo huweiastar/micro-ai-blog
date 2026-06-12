@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { StickyNote, Link as LinkIcon } from "lucide-react";
+import { StickyNote } from "lucide-react";
 import { getAllNotesSync, renderMarkdownToHtml } from "../../lib/posts";
 import { Tag } from "../../components/Tag";
 import { PageHeader } from "../../components/ui/PageHeader";
@@ -45,18 +45,16 @@ export default async function NotesPage() {
               <article key={note.slug} className="relative pl-8">
                 <span className="absolute -left-[5px] top-2 w-2.5 h-2.5 rounded-full bg-[var(--primary)]" />
                 <div className="flex flex-wrap items-center gap-3 mb-3 text-sm text-[var(--muted)]">
-                  <time dateTime={note.date}>{formatDate(note.date)}</time>
+                  <Link
+                    href={`/blog/${note.slug}`}
+                    className="hover:text-[var(--primary)] transition-colors"
+                    title="查看这条随手记"
+                  >
+                    <time dateTime={note.date}>{formatDate(note.date)}</time>
+                  </Link>
                   {note.tags.map((tag) => (
                     <Tag key={tag} name={tag} />
                   ))}
-                  <Link
-                    href={`/blog/${note.slug}`}
-                    className="inline-flex items-center gap-1 hover:text-[var(--primary)] transition-colors"
-                    aria-label="永久链接"
-                  >
-                    <LinkIcon className="w-3.5 h-3.5" />
-                    永久链接
-                  </Link>
                 </div>
                 <div
                   className="prose prose-sm sm:prose-base dark:prose-invert max-w-none"

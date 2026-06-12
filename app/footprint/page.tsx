@@ -1,23 +1,49 @@
 import { getAllPostsSync } from "../../lib/posts";
 import { getProjects } from "../../lib/projects";
-import { formatDate } from "../../lib/utils";
 import { generatePageMetadata } from "../../lib/seo";
 import { PageHeader } from "../../components/ui/PageHeader";
 import { Container } from "../../components/ui/Container";
-import { FileText, FolderGit2 } from "lucide-react";
+import { FileText, FolderGit2, StickyNote } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = generatePageMetadata({
   title: "足迹",
-  description: "文章和项目的时间线记录",
+  description: "文章、随手记和项目的时间线记录",
 });
 
 type FootprintItem = {
   date: string;
-  type: "article" | "project";
+  type: "article" | "note" | "project";
   title: string;
   href: string;
   description: string;
+};
+
+const TYPE_STYLES: Record<
+  FootprintItem["type"],
+  { label: string; dot: string; badge: string; Icon: typeof FileText; iconCls: string }
+> = {
+  article: {
+    label: "文章",
+    dot: "bg-[var(--primary)]",
+    badge: "bg-[var(--primary)]/10 text-[var(--primary)]",
+    Icon: FileText,
+    iconCls: "text-[var(--primary)]",
+  },
+  note: {
+    label: "随手记",
+    dot: "bg-amber-400",
+    badge: "bg-amber-400/10 text-amber-400",
+    Icon: StickyNote,
+    iconCls: "text-amber-400",
+  },
+  project: {
+    label: "项目",
+    dot: "bg-[var(--accent)]",
+    badge: "bg-[var(--accent)]/10 text-[var(--accent)]",
+    Icon: FolderGit2,
+    iconCls: "text-[var(--accent)]",
+  },
 };
 
 export default function FootprintPage() {
@@ -27,10 +53,11 @@ export default function FootprintPage() {
   const items: FootprintItem[] = [
     ...posts.map((post) => ({
       date: post.date,
-      type: "article" as const,
+      type: post.type,
       title: post.title,
       href: `/blog/${post.slug}`,
-      description: post.summary,
+      // 随手记的 summary 与标题相同，时间线上不重复展示
+      description: post.type === "note" ? "" : post.summary,
     })),
     ...projects.map((project) => ({
       date: new Date().toISOString().split("T")[0],
@@ -45,7 +72,7 @@ export default function FootprintPage() {
     <>
       <PageHeader
         title="足迹"
-        description="记录每一篇文章和项目"
+        description="记录每一篇文章、随手记和项目"
         count={items.length}
         countLabel="条"
       />
@@ -54,26 +81,25 @@ export default function FootprintPage() {
         {items.length === 0 && (
           <p className="pl-6 text-[var(--muted)]">还没有足迹</p>
         )}
-        {items.map((item, index) => (
-          <div key={index} className="pl-6 relative">
-            <div className={`absolute -left-[11px] top-1 w-5 h-5 rounded-full border-4 border-[var(--background)] ${item.type === "article" ? "bg-[var(--primary)]" : "bg-[var(--accent)]"}`} />
-            <div className="flex items-center gap-2 mb-1">
-              {item.type === "article" ? (
-                <FileText className="w-4 h-4 text-[var(--primary)]" />
-              ) : (
-                <FolderGit2 className="w-4 h-4 text-[var(--accent)]" />
+        {items.map((item, index) => {
+          const style = TYPE_STYLES[item.type];
+          return (
+            <div key={index} className="pl-6 relative">
+              <div className={`absolute -left-[11px] top-1 w-5 h-5 rounded-full border-4 border-[var(--background)] ${style.dot}`} />
+              <div className="flex items-center gap-2 mb-1">
+                <style.Icon className={`w-4 h-4 ${style.iconCls}`} />
+                <span className="text-xs text-[var(--muted)]">{item.date}</span>
+                <span className={`text-xs px-2 py-0.5 rounded ${style.badge}`}>{style.label}</span>
+              </div>
+              <a href={item.href} className="font-medium text-[var(--foreground)] hover:text-[var(--primary)] transition-colors">
+                {item.title}
+              </a>
+              {item.description && (
+                <p className="text-sm text-[var(--muted)] mt-1">{item.description}</p>
               )}
-              <span className="text-xs text-[var(--muted)]">{item.date}</span>
-              <span className={`text-xs px-2 py-0.5 rounded ${item.type === "article" ? "bg-[var(--primary)]/10 text-[var(--primary)]" : "bg-[var(--accent)]/10 text-[var(--accent)]"}`}>
-                {item.type === "article" ? "文章" : "项目"}
-              </span>
             </div>
-            <a href={item.href} className="font-medium text-[var(--foreground)] hover:text-[var(--primary)] transition-colors">
-              {item.title}
-            </a>
-            <p className="text-sm text-[var(--muted)] mt-1">{item.description}</p>
-          </div>
-        ))}
+          );
+        })}
       </div>
       </Container>
     </>

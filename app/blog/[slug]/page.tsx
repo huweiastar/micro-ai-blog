@@ -17,7 +17,7 @@ import { BookmarkButton } from "../../../components/blog/BookmarkButton";
 import { LikeButton } from "../../../components/blog/LikeButton";
 import { ReadingPosition } from "../../../components/blog/ReadingPosition";
 import { Container } from "../../../components/ui/Container";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, StickyNote } from "lucide-react";
 import type { Metadata } from "next";
 
 interface PostPageProps {
@@ -96,7 +96,15 @@ export default async function PostPage({ params }: PostPageProps) {
             </div>
           )}
           <header className="mb-8">
-            <h1 className="text-3xl sm:text-4xl font-bold mb-4">{post.title}</h1>
+            {post.type === "note" ? (
+              // 随手记没有真正的标题（自动取自首行），详情页只标注类型，避免与正文首行重复
+              <div className="mb-4 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-400/10 text-amber-400 text-sm">
+                <StickyNote className="w-4 h-4" />
+                随手记
+              </div>
+            ) : (
+              <h1 className="text-3xl sm:text-4xl font-bold mb-4">{post.title}</h1>
+            )}
 
             {post.summary && post.summary !== post.title && (
               <p className="text-[var(--muted)] mb-6 leading-relaxed">{post.summary}</p>
