@@ -15,6 +15,7 @@ const WRITE_API_PATHS = [
   "/api/admin/media",
   "/api/about",
   "/api/assistant/write",
+  "/api/assistant/assist",
 ];
 
 const READ_ONLY_METHODS = ["GET", "HEAD", "OPTIONS"];
