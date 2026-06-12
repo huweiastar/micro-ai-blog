@@ -188,7 +188,27 @@ export function ProjectEditor({ slug, isNew, onSaved, onDeleted, onBack }: {
             </InspectorSection>
 
             <InspectorSection id="proj-cover" title="封面">
-              <input type="text" value={projCover} onChange={(e) => setProjCover(e.target.value)} placeholder="/images/projects/cover.png" className={inputCls} />
+              <div className="flex gap-2">
+                <input type="text" value={projCover} onChange={(e) => setProjCover(e.target.value)} placeholder="/images/projects/cover.png" className={inputCls} />
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    e.target.value = "";
+                    if (!file) return;
+                    const fd = new FormData();
+                    fd.append("file", file);
+                    fd.append("type", "projects");
+                    const res = await fetch("/api/upload", { method: "POST", body: fd });
+                    const data = await res.json();
+                    if (data.success && data.url) setProjCover(data.url);
+                  }}
+                  className="hidden"
+                  id="project-cover-upload"
+                />
+                <label htmlFor="project-cover-upload" className="px-3 py-2 rounded-lg border border-[var(--card-border)] bg-[var(--card)] text-sm text-[var(--muted)] hover:text-[var(--primary)] cursor-pointer shrink-0">上传</label>
+              </div>
               {projCover && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={projCover} alt="封面预览" className="mt-2 w-full rounded-lg border border-[var(--card-border)] object-cover aspect-video" />
