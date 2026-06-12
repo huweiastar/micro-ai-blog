@@ -47,11 +47,11 @@ export function NoteCard({ slug, date, dateLabel, tags, html, commentsEnabled }:
   }, [slug]);
 
   return (
-    <article className="group relative glass overflow-hidden rounded-2xl transition-all duration-300 hover:-translate-y-1 hover:border-amber-400/40 hover:shadow-xl hover:shadow-amber-500/10">
-      {/* 顶部发丝渐变线：随手记的琥珀印记 */}
+    <article className="group relative glass overflow-hidden rounded-xl transition-all duration-300 hover:-translate-y-1 hover:border-amber-400/40 hover:shadow-[var(--shadow-lg)] active:scale-[0.99]">
+      {/* 左侧琥珀色脊：与博客卡片的分类色脊同语言 */}
       <span
         aria-hidden
-        className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-amber-400/70 via-[var(--primary)]/40 to-transparent opacity-60 transition-opacity duration-300 group-hover:opacity-100"
+        className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-amber-400 to-orange-500 opacity-70 transition-opacity duration-300 group-hover:opacity-100"
       />
 
       {/* 整卡跳转的隐形链接层 */}
@@ -61,7 +61,7 @@ export function NoteCard({ slug, date, dateLabel, tags, html, commentsEnabled }:
         className="absolute inset-0 z-[1]"
       />
 
-      <div className="p-5 sm:p-6">
+      <div className="p-5 pl-6 sm:p-6 sm:pl-7">
         <div className="mb-3 flex flex-wrap items-center gap-2 text-sm text-[var(--muted)]">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-400/10 px-2 py-0.5 text-xs text-amber-500 dark:text-amber-400">
             <StickyNote className="h-3.5 w-3.5" />
