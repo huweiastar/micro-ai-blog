@@ -5,6 +5,7 @@ import matter from "gray-matter";
 import { atomicWriteFile } from "../../../lib/atomic-file";
 import { refreshAfterContentChange } from "../../../lib/regenerate";
 import { snapshotPost } from "../../../lib/revisions";
+import { countWords as calculateWordCount } from "../../../lib/word-count";
 
 const postsDirectory = path.join(process.cwd(), "content/blog");
 const redirectsFile = path.join(process.cwd(), "config", "redirects.json");
@@ -25,12 +26,7 @@ function canonicalSlug(data: Record<string, unknown>, file: string): string {
   return typeof data.slug === "string" && data.slug ? data.slug : getSlug(file);
 }
 
-function calculateWordCount(content: string): number {
-  const text = content.replace(/[#*`~\-\[\]!()]/g, "").trim();
-  const cn = (text.match(/[一-鿿]/g) || []).length;
-  const en = (text.replace(/[一-鿿]/g, "").match(/\b\w+\b/g) || []).length;
-  return cn + en;
-}
+
 
 // Sanitize YAML string values: escape backslashes, quotes, and newlines.
 function yamlEscape(s: string): string {

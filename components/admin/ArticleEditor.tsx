@@ -27,6 +27,7 @@ import { EditorInspector } from "./inspector/EditorInspector";
 import { InspectorSection } from "./inspector/InspectorSection";
 import { useEditorLayout } from "./hooks/useEditorLayout";
 import { useAssistStream } from "./hooks/useAssistStream";
+import { countWords } from "../../lib/word-count";
 import type { LinkSuggestion } from "../../lib/assistant/editor-assist";
 
 export type CategoryConfig = { name: string; description: string };
@@ -65,13 +66,6 @@ function defaultScheduleStr(): string {
   return toDatetimeLocal(d);
 }
 
-/** 统计字数：中文按字 + 英文按词。 */
-function countWords(md: string): number {
-  const text = md.replace(/[#*`~\-[\]!()>]/g, "").trim();
-  const cn = (text.match(/[一-鿿]/g) || []).length;
-  const en = (text.replace(/[一-鿿]/g, "").match(/\b\w+\b/g) || []).length;
-  return cn + en;
-}
 
 export function ArticleEditor({ slug, isNew, categories, onSaved, onDeleted, onBack }: ArticleEditorProps) {
   const [articleTitle, setArticleTitle] = useState("");

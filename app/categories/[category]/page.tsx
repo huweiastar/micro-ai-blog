@@ -6,7 +6,7 @@ import { BlogCard } from "../../../components/BlogCard";
 import { Container } from "../../../components/ui/Container";
 import { EmptyState } from "../../../components/ui/EmptyState";
 import { generatePageMetadata } from "../../../lib/seo";
-import { renderMarkdownPreview } from "../../../lib/markdown/render";
+import { renderMarkdownToHtml } from "../../../lib/posts";
 import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 
@@ -26,7 +26,7 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
   });
 }
 
-export default function CategoryDetailPage({ params }: CategoryPageProps) {
+export default async function CategoryDetailPage({ params }: CategoryPageProps) {
   const category = decodeURIComponent(params.category);
   const posts = getPostsByCategory(category);
   const catConfig = getCategoryByName(category);
@@ -69,7 +69,7 @@ export default function CategoryDetailPage({ params }: CategoryPageProps) {
           {catConfig.description_long && (
             <div
               className="mt-4 prose prose-invert max-w-none"
-              dangerouslySetInnerHTML={renderMarkdownPreview(catConfig.description_long)}
+              dangerouslySetInnerHTML={{ __html: await renderMarkdownToHtml(catConfig.description_long) }}
             />
           )}
           <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--primary)]/15 text-[var(--primary)] text-sm font-medium">

@@ -11,6 +11,7 @@ import rehypePrettyCode from "rehype-pretty-code";
 import { rehypeCallouts } from "./rehype-callouts";
 import { rehypeMark } from "./rehype-mark";
 import readingTime from "reading-time";
+import { countWords } from "./word-count";
 import Slugger from "github-slugger";
 
 export type BlogPost = {
@@ -67,13 +68,7 @@ export function calculateReadingTime(content: string): string {
 }
 
 export function calculateWordCount(content: string): number {
-  // Count Chinese characters individually + English words
-  const chineseChars = (content.match(/[一-鿿]/g) || []).length;
-  const englishWords = content
-    .replace(/[一-鿿]/g, " ")
-    .split(/\s+/)
-    .filter((w) => w.length > 0).length;
-  return chineseChars + englishWords;
+  return countWords(content);
 }
 
 export function generateToc(content: string): TocItem[] {
