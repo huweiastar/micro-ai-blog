@@ -43,6 +43,11 @@ export function generatePageMetadata(meta: {
     metadataBase: new URL(siteConfig.url),
     alternates: {
       canonical: url,
+      // 与 layout 一致地暴露 RSS（页面级 metadata 会整体替换 layout 的 alternates，
+      // 故这里需重复声明，否则使用本函数的页面会丢失 feed 自动发现）。
+      types: {
+        "application/rss+xml": `${siteConfig.url}/rss.xml`,
+      },
     },
     openGraph: {
       title: meta.title,
