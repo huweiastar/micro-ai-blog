@@ -4,6 +4,7 @@ import path from "path";
 import yaml from "js-yaml";
 import { atomicWriteFile } from "../../../lib/atomic-file";
 import { refreshAfterContentChange } from "../../../lib/regenerate";
+import { slugifyCjk } from "../../../lib/utils";
 
 // 后台保存后立即生效：禁止 GET 被静态缓存成旧值。
 export const dynamic = "force-dynamic";
@@ -40,10 +41,7 @@ export async function POST(req: NextRequest) {
     const projects = readProjects();
 
     // Generate slug
-    const slug = body.name
-      .toLowerCase()
-      .replace(/[^\w一-龥]+/g, "-")
-      .replace(/^-+|-+$/g, "");
+    const slug = slugifyCjk(body.name);
 
     const project = {
       slug,

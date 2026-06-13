@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { atomicWriteFile } from "../atomic-file";
+import { slugify } from "../utils";
 import matter from "gray-matter";
 import yaml from "js-yaml";
 import type { KnowledgeChunk, KnowledgeIndex } from "./types";
@@ -9,13 +10,6 @@ import type { Project } from "../../types/project";
 const BLOG_DIR = path.join(process.cwd(), "content/blog");
 const PROJECTS_YAML = path.join(process.cwd(), "content/projects/projects.yaml");
 const INDEX_OUTPUT = path.join(process.cwd(), "public/knowledge-index.json");
-
-function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .replace(/\s+/g, "-")
-    .replace(/[^\w一-龥-]/g, "");
-}
 
 function chunkId(sourceType: string, base: string, index: number): string {
   return `${sourceType}-${slugify(base)}-${index}`;

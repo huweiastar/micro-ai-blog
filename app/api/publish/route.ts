@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 import { atomicWriteFile } from "../../../lib/atomic-file";
+import { slugifyCjk } from "../../../lib/utils";
 
 export async function POST(req: NextRequest) {
   try {
@@ -16,10 +17,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Generate slug from title
-    const slug = title
-      .toLowerCase()
-      .replace(/[^\w一-龥]+/g, "-")
-      .replace(/^-+|-+$/g, "");
+    const slug = slugifyCjk(title);
 
     const safeSlug = slug || `article-${Date.now()}`;
     const fileName = `${safeSlug}.md`;
