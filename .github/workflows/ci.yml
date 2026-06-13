@@ -23,14 +23,15 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Generate search index
-        run: npm run generate:search
-
       - name: Lint
         run: npm run lint
 
       - name: Type Check
         run: npm run type-check
 
+      - name: Test
+        run: npm test
+
+      # 注：搜索/sitemap/rss/知识索引由 build 的 prebuild 步骤自动生成，无需单独预生成
       - name: Build
         run: npm run build
