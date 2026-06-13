@@ -9,6 +9,17 @@ import { verifySession } from "../../../lib/auth";
 
 // 简单的 IP 级限流，抑制脚本刷量（与助手聊天接口一致的思路）。
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+let lastSweep = 0;
+
+// 惰性清理过期条目：长跑进程下 Map 只增不删会缓慢漏内存。
+// 不用 setInterval（避免悬挂定时器拖住事件循环），改为每分钟最多扫一次。
+function sweepExpired(now: number): void {
+  if (now - lastSweep < 60_000) return;
+  lastSweep = now;
+  for (const [key, value] of Array.from(rateLimitMap.entries())) {
+    if (now > value.resetAt) rateLimitMap.delete(key);
+  }
+}
 
 function checkRateLimit(req: NextRequest): boolean {
   const ip =
@@ -16,6 +27,7 @@ function checkRateLimit(req: NextRequest): boolean {
     req.headers.get("x-real-ip") ||
     "unknown";
   const now = Date.now();
+  sweepExpired(now);
   const windowMs = 60 * 1000;
   const maxRequests = 60; // 单 IP 每分钟最多 60 次上报
 
