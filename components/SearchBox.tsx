@@ -11,6 +11,26 @@ interface SearchBoxProps {
   index: SearchItem[];
 }
 
+function escapeRegExp(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/** 将命中的查询词包裹为 <mark>，不使用 dangerouslySetInnerHTML（按捕获组切分渲染）。 */
+function highlight(text: string, query: string): React.ReactNode {
+  const terms = query.trim().split(/\s+/).filter(Boolean).map(escapeRegExp);
+  if (terms.length === 0) return text;
+  const parts = text.split(new RegExp(`(${terms.join("|")})`, "gi"));
+  return parts.map((part, i) =>
+    i % 2 === 1 ? (
+      <mark key={i} className="rounded bg-[var(--primary)]/20 px-0.5 text-[var(--primary)]">
+        {part}
+      </mark>
+    ) : (
+      part
+    )
+  );
+}
+
 export function SearchBox({ index }: SearchBoxProps) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchItem[]>([]);
@@ -91,11 +111,11 @@ export function SearchBox({ index }: SearchBoxProps) {
                         {isProject ? "项目" : "文章"}
                       </span>
                       <h3 className="font-medium text-[var(--foreground)]">
-                        {item.title}
+                        {highlight(item.title, query)}
                       </h3>
                     </div>
                     <p className="text-sm text-[var(--muted)] line-clamp-2">
-                      {item.summary}
+                      {highlight(item.summary, query)}
                     </p>
                     <div className="flex gap-2 mt-2">
                       {item.tags.slice(0, 3).map((tag) => (

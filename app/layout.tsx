@@ -48,6 +48,9 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   alternates: {
     canonical: siteUrl,
+    types: {
+      "application/rss+xml": `${siteUrl}/rss.xml`,
+    },
   },
   openGraph: {
     title: `${siteName} | 个人技术博客`,

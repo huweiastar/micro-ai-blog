@@ -68,14 +68,18 @@ export function Header() {
           </div>
         </div>
 
-        <div className="flex items-center gap-3 md:hidden">
-          <button onClick={openCommandPalette} aria-label="搜索" className="text-[var(--muted)]">
+        <div className="flex items-center gap-1 md:hidden">
+          <button
+            onClick={openCommandPalette}
+            aria-label="搜索"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center text-[var(--muted)]"
+          >
             <Search className="w-5 h-5" />
           </button>
           <ThemeToggle />
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="text-[var(--foreground)] p-1"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center text-[var(--foreground)]"
             aria-label="Toggle menu"
             aria-expanded={mobileOpen}
           >

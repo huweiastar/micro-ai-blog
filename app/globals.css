@@ -166,8 +166,9 @@
     z-index: 2;
   }
 
-  /* ==高亮== 渲染出的 mark：跟随主题的柔和荧光笔效果 */
-  mark {
+  /* ==高亮== 渲染出的 mark：跟随主题的柔和荧光笔效果（仅限正文，
+     避免影响搜索结果等其它 <mark> 用途） */
+  .prose-custom mark {
     background: linear-gradient(
       transparent 40%,
       color-mix(in srgb, var(--accent) 35%, transparent) 40%
