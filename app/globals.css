@@ -269,6 +269,15 @@
     @apply rounded-lg mx-auto;
   }
 
+  /* 外链：正文中的站外链接追加箭头图标，区别于站内链接 */
+  .prose-custom a.external-link::after {
+    content: "↗";
+    display: inline-block;
+    margin-left: 0.15em;
+    font-size: 0.85em;
+    opacity: 0.7;
+  }
+
   .prose-custom table {
     @apply w-full border-collapse mb-4 overflow-hidden rounded-lg;
   }

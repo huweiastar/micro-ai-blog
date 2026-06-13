@@ -10,6 +10,7 @@ import rehypeStringify from "rehype-stringify";
 import rehypePrettyCode from "rehype-pretty-code";
 import { rehypeCallouts } from "./rehype-callouts";
 import { rehypeMark } from "./rehype-mark";
+import { rehypeContentEnhance } from "./rehype-content-enhance";
 import readingTime from "reading-time";
 import { countWords } from "./word-count";
 import Slugger from "github-slugger";
@@ -244,6 +245,7 @@ export async function renderMarkdownToHtml(content: string): Promise<string> {
     })
     .use(rehypeCallouts)
     .use(rehypeMark)
+    .use(rehypeContentEnhance)
     .use(rehypePrettyCode, {
       theme: "github-dark",
       keepBackground: false,

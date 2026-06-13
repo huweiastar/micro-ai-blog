@@ -28,6 +28,8 @@ export function ProjectCard({ project }: ProjectCardProps) {
             src={project.cover}
             alt={project.name}
             onError={() => setCoverFailed(true)}
+            loading="lazy"
+            decoding="async"
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
