@@ -155,7 +155,9 @@
   }
 
   .prose-custom {
-    @apply max-w-none;
+    /* 约束正文测宽到中文舒适区（约 40+ 字/行）：宽屏 9/12 内容列里一行原本可达
+       60+ 字，过长伤可读性。代码块/图片同受约束，保持左对齐一致性。 */
+    max-width: 46rem;
   }
 
   /* 随手记整卡可点（stretched-link）：正文内的链接需抬升到卡片链接层之上 */
@@ -176,15 +178,20 @@
   }
 
   .prose-custom h1 {
-    @apply relative text-3xl font-bold mb-6 scroll-mt-20;
+    @apply relative font-bold mb-6 scroll-mt-20;
+    /* 流式字号：移动端到桌面端平滑过渡，避免断点处突变 */
+    font-size: clamp(1.75rem, 1.2rem + 2.2vw, 2.25rem);
+    text-wrap: balance;
   }
 
   .prose-custom h2 {
     @apply relative text-2xl font-bold mt-10 mb-4 scroll-mt-20;
+    text-wrap: balance;
   }
 
   .prose-custom h3 {
     @apply relative text-xl font-semibold mt-8 mb-3 scroll-mt-20;
+    text-wrap: balance;
   }
 
   /* Heading anchor — a faint # that surfaces on hover */
@@ -198,6 +205,9 @@
 
   .prose-custom p {
     @apply leading-8 mb-5;
+    /* 收尾行避免孤字、长 URL 等溢出（渐进增强，不支持的浏览器忽略） */
+    text-wrap: pretty;
+    overflow-wrap: break-word;
   }
 
   /* Lead paragraph when an article opens with prose */
