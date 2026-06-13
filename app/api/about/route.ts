@@ -10,7 +10,7 @@ export async function GET() {
 }
 
 const ALLOWED_KEYS: (keyof AboutProfile)[] = [
-  "name", "avatar", "bio", "bio2", "email", "github", "skills",
+  "name", "avatar", "bio", "bio2", "email", "github", "skills", "techStack",
 ];
 
 export async function PUT(req: NextRequest) {

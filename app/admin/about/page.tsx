@@ -3,10 +3,13 @@
 import { useState, useEffect } from "react";
 import {
   Camera, Check, Save, Plus, Trash2,
-  X, Edit3,
+  X, Edit3, ChevronUp, ChevronDown,
 } from "lucide-react";
 import { MarkdownEditor } from "../../../components/admin/MarkdownEditor";
 import { useToast } from "../../../components/admin/Toast";
+import { TECH_ICON_KEYS, TechIcon } from "../../../lib/tech-icons";
+import { IconPicker } from "../../../components/admin/IconPicker";
+import type { TechTag } from "../../../types/about";
 
 type SkillGroup = { title: string; items: string[] };
 
@@ -20,6 +23,7 @@ export default function AboutPage() {
   const [aboutEmail, setAboutEmail] = useState("");
   const [aboutGithub, setAboutGithub] = useState("");
   const [aboutSkills, setAboutSkills] = useState<SkillGroup[]>([]);
+  const [aboutTechStack, setAboutTechStack] = useState<TechTag[]>([]);
   const [aboutSaved, setAboutSaved] = useState(false);
   const [aboutResult, setAboutResult] = useState<{ success: boolean; message: string } | null>(null);
   const [editingGroupName, setEditingGroupName] = useState<{ groupIndex: number; name: string } | null>(null);
@@ -39,6 +43,7 @@ export default function AboutPage() {
         setAboutEmail(data.email || "");
         setAboutGithub(data.github || "");
         setAboutSkills(data.skills || []);
+        setAboutTechStack(data.techStack || []);
         try {
           const savedAvatar = localStorage.getItem("blog-avatar");
           setAvatar(savedAvatar || data.avatar || "");
@@ -86,6 +91,7 @@ export default function AboutPage() {
         email: aboutEmail,
         github: aboutGithub,
         skills: aboutSkills,
+        techStack: aboutTechStack,
       }),
     });
     const data = await res.json();
@@ -132,6 +138,35 @@ export default function AboutPage() {
     const updated = [...aboutSkills];
     updated[groupIndex] = { ...updated[groupIndex], items: updated[groupIndex].items.filter((_, i) => i !== skillIndex) };
     setAboutSkills(updated);
+  };
+
+  // 首页技术栈标签管理
+  const addTechTag = () => {
+    setAboutTechStack([...aboutTechStack, { name: "新标签", icon: TECH_ICON_KEYS[0] }]);
+  };
+
+  const removeTechTag = (index: number) => {
+    setAboutTechStack(aboutTechStack.filter((_, i) => i !== index));
+  };
+
+  const updateTechTagName = (index: number, name: string) => {
+    const updated = [...aboutTechStack];
+    updated[index] = { ...updated[index], name };
+    setAboutTechStack(updated);
+  };
+
+  const updateTechTagIcon = (index: number, icon: string) => {
+    const updated = [...aboutTechStack];
+    updated[index] = { ...updated[index], icon };
+    setAboutTechStack(updated);
+  };
+
+  const moveTechTag = (index: number, dir: -1 | 1) => {
+    const target = index + dir;
+    if (target < 0 || target >= aboutTechStack.length) return;
+    const updated = [...aboutTechStack];
+    [updated[index], updated[target]] = [updated[target], updated[index]];
+    setAboutTechStack(updated);
   };
 
   return (
@@ -261,6 +296,49 @@ export default function AboutPage() {
 
             <button onClick={addSkillGroup} className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[var(--primary)] text-white text-sm hover:bg-[var(--primary-hover)] transition-colors">
               <Plus className="w-4 h-4" />添加分组
+            </button>
+          </div>
+        </div>
+
+        {/* 首页技术栈标签 */}
+        <div className="glass rounded-xl p-6">
+          <h2 className="text-lg font-semibold mb-1">首页技术栈标签 ({aboutTechStack.length})</h2>
+          <p className="text-sm text-[var(--muted)] mb-4">首页 Hero 区域展示的标签，可自定义名称、图标和顺序。</p>
+
+          <div className="space-y-3">
+            {aboutTechStack.map((tag, ti) => (
+              <div key={ti} className="flex flex-wrap items-center gap-2 p-3 rounded-lg border border-[var(--card-border)] bg-[var(--card)]">
+                <span className="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-[var(--background)] border border-[var(--card-border)] text-[var(--primary)] shrink-0">
+                  <TechIcon icon={tag.icon} className="w-4 h-4" />
+                </span>
+                <input
+                  type="text"
+                  value={tag.name}
+                  onChange={(e) => updateTechTagName(ti, e.target.value)}
+                  placeholder="标签名称"
+                  className="flex-1 min-w-[120px] px-3 py-2 rounded-lg border border-[var(--card-border)] bg-[var(--card)] text-[var(--foreground)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50"
+                />
+                <IconPicker value={tag.icon} onChange={(icon) => updateTechTagIcon(ti, icon)} />
+                <div className="flex items-center gap-1">
+                  <button onClick={() => moveTechTag(ti, -1)} disabled={ti === 0} className="p-1.5 rounded text-[var(--muted)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors" title="上移">
+                    <ChevronUp className="w-4 h-4" />
+                  </button>
+                  <button onClick={() => moveTechTag(ti, 1)} disabled={ti === aboutTechStack.length - 1} className="p-1.5 rounded text-[var(--muted)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors" title="下移">
+                    <ChevronDown className="w-4 h-4" />
+                  </button>
+                  <button onClick={() => removeTechTag(ti)} className="p-1.5 rounded text-[var(--muted)] hover:text-red-400 hover:bg-red-500/10 transition-colors" title="删除标签">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
+
+            {aboutTechStack.length === 0 && (
+              <p className="text-[var(--muted)] text-sm">还没有技术栈标签</p>
+            )}
+
+            <button onClick={addTechTag} className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[var(--primary)] text-white text-sm hover:bg-[var(--primary-hover)] transition-colors">
+              <Plus className="w-4 h-4" />添加标签
             </button>
           </div>
         </div>

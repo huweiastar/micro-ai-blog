@@ -123,6 +123,7 @@ export function revalidateContentPaths(slug?: string) {
     ["/", "page"],
     ["/blog", "page"],
     ["/blog/[slug]", "page"],
+    ["/notes", "page"],
     ["/archive", "page"],
     ["/tags", "page"],
     ["/tags/[tag]", "page"],

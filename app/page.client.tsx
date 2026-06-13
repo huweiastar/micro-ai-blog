@@ -5,8 +5,9 @@ import Link from "next/link";
 import { ParticleNetwork } from "../components/ui/ParticleNetwork";
 import { AvatarDisplay } from "../components/ui/AvatarDisplay";
 import { useProfile } from "../components/ProfileProvider.client";
-import { Github, Mail, ArrowRight, Database, Brain, Code2, Sparkles, Zap, Layers, FileText, BookOpen, FolderGit2, Eye, Users } from "lucide-react";
+import { Github, Mail, ArrowRight, Layers, FileText, BookOpen, FolderGit2, Eye, Users } from "lucide-react";
 import { getCategoryStyle } from "../lib/category-style";
+import { TechIcon } from "../lib/tech-icons";
 
 type StatsData = {
   postCount: number;
@@ -71,14 +72,8 @@ export function HomeClient({ stats, columns, initialVisits }: HomeClientProps) {
       .catch(() => {});
   }, []);
 
-  const techTags = [
-    { name: "Python", icon: Code2 },
-    { name: "SQL", icon: Database },
-    { name: "Spark", icon: Zap },
-    { name: "LLM", icon: Brain },
-    { name: "RAG", icon: Layers },
-    { name: "多模态", icon: Sparkles },
-  ];
+  // 首页技术栈标签由后台「关于我」配置（content/about/profile.yaml），通过 ProfileProvider 注入
+  const techTags = profile?.techStack ?? [];
 
   const wordsDisplay =
     stats.totalWords > 10000 ? `${(stats.totalWords / 10000).toFixed(1)}万` : `${stats.totalWords}`;
@@ -139,17 +134,19 @@ export function HomeClient({ stats, columns, initialVisits }: HomeClientProps) {
           </div>
 
           {/* Tech Tags */}
-          <div className="flex flex-wrap justify-center gap-3 mb-12 animate-fade-in-up" style={{ animationDelay: "0.6s" }}>
-            {techTags.map((tag) => (
-              <div
-                key={tag.name}
-                className="glass inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm hover:border-[var(--primary)]/50 hover:shadow-lg hover:shadow-[var(--glow-primary)]/20 hover:-translate-y-0.5 transition-all duration-300 cursor-default"
-              >
-                <tag.icon className="w-4 h-4 text-[var(--primary)]" />
-                <span className="text-[var(--foreground)]">{tag.name}</span>
-              </div>
-            ))}
-          </div>
+          {techTags.length > 0 && (
+            <div className="flex flex-wrap justify-center gap-3 mb-12 animate-fade-in-up" style={{ animationDelay: "0.6s" }}>
+              {techTags.map((tag, i) => (
+                <div
+                  key={tag.name + i}
+                  className="glass inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm hover:border-[var(--primary)]/50 hover:shadow-lg hover:shadow-[var(--glow-primary)]/20 hover:-translate-y-0.5 transition-all duration-300 cursor-default"
+                >
+                  <TechIcon icon={tag.icon} className="w-4 h-4 text-[var(--primary)]" />
+                  <span className="text-[var(--foreground)]">{tag.name}</span>
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* Stats — unified telemetry panel */}
           <div

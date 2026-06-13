@@ -14,13 +14,22 @@ const DEFAULT_PROFILE: AboutProfile = {
   email: "",
   github: "",
   skills: [],
+  techStack: [
+    { name: "Python", icon: "code" },
+    { name: "SQL", icon: "database" },
+    { name: "Spark", icon: "zap" },
+    { name: "LLM", icon: "brain" },
+    { name: "RAG", icon: "layers" },
+    { name: "多模态", icon: "sparkles" },
+  ],
 };
 
 export function getAboutProfile(): AboutProfile {
   if (!fs.existsSync(profilePath)) return DEFAULT_PROFILE;
   const content = fs.readFileSync(profilePath, "utf-8");
   const data = yaml.load(content, { schema: yaml.DEFAULT_SCHEMA });
-  return (data as AboutProfile) || DEFAULT_PROFILE;
+  // 与默认值合并：保证旧的 profile.yaml（无 techStack 字段）也能拿到首页默认标签
+  return { ...DEFAULT_PROFILE, ...(data as Partial<AboutProfile>) };
 }
 
 export function saveAboutProfile(profile: AboutProfile) {
