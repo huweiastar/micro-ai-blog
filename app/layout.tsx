@@ -86,21 +86,9 @@ export default function RootLayout({
   return (
     <html lang="zh-CN" suppressHydrationWarning>
       <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                try {
-                  var stored = localStorage.getItem('theme');
-                  if (!stored) {
-                    document.documentElement.classList.add('dark');
-                    localStorage.setItem('theme', 'dark');
-                  }
-                } catch(e) {}
-              })();
-            `,
-          }}
-        />
+        {/* 同步执行（不加 async/defer），保证首帧前完成暗色判定，避免闪白 */}
+        {/* eslint-disable-next-line @next/next/no-sync-scripts */}
+        <script src="/theme-init.js" />
       </head>
       <body>
         <ThemeProvider attribute="class" defaultTheme="dark" storageKey="theme">

@@ -42,6 +42,37 @@ const nextConfig = {
   async redirects() {
     return loadRedirects();
   },
+  async headers() {
+    // CSP 先以 Report-Only 观察（违规仅在浏览器控制台报告，不拦截），
+    // 稳定一周后把 key 切换为 Content-Security-Policy 正式启用。
+    // script-src 暂保留 'unsafe-inline'：App Router 自身会注入内联 RSC 数据脚本，
+    // 去掉它需要 nonce 方案，留待后续。
+    const csp = [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' https://giscus.app",
+      "style-src 'self' 'unsafe-inline' https://giscus.app",
+      "img-src 'self' data: blob: https:",
+      "font-src 'self' data:",
+      "connect-src 'self' https://giscus.app",
+      "frame-src https://giscus.app",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "frame-ancestors 'none'",
+    ].join("; ");
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "Strict-Transport-Security", value: "max-age=15552000; includeSubDomains" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+          { key: "Content-Security-Policy-Report-Only", value: csp },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;
