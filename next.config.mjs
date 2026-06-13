@@ -25,9 +25,10 @@ const nextConfig = {
   // 构建输出目录可通过 NEXT_DIST_DIR 覆盖，用于蓝绿部署（先构建到 staging 目录，
   // 再原子切换），避免在"线上正在使用的 .next"上原地重建导致页面崩坏。
   distDir: process.env.NEXT_DIST_DIR || ".next",
-  // Disabled StrictMode to prevent double execution of useEffect in dev/production
-  // which caused page views to be counted twice.
-  reactStrictMode: false,
+  // StrictMode 仅影响 dev（双调用 effect 以暴露副作用问题），生产构建中无此行为。
+  // 之前因 PV 被重复计数而关闭；现 usePageView 已加模块级时间窗去重，可安全开启，
+  // 恢复 dev 期的副作用检查（利于后续 React/Next 升级）。
+  reactStrictMode: true,
   poweredByHeader: false,
   images: {
     formats: ["image/avif", "image/webp"],
