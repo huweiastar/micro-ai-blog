@@ -65,5 +65,17 @@ function migrate(d: Database.Database): void {
       visitor_id TEXT NOT NULL,
       PRIMARY KEY (slug, visitor_id)
     );
+    -- 会话版本号等认证状态（key-value）。版本号 +1 = 吊销所有已签发会话
+    CREATE TABLE IF NOT EXISTS auth_kv (
+      key   TEXT PRIMARY KEY,
+      value TEXT NOT NULL
+    );
+    -- 登录失败计数与锁定（ip='__global__' 行为全局滑动窗口计数）
+    CREATE TABLE IF NOT EXISTS login_attempts (
+      ip           TEXT PRIMARY KEY,
+      fail_count   INTEGER NOT NULL DEFAULT 0,
+      locked_until INTEGER NOT NULL DEFAULT 0,
+      window_start INTEGER NOT NULL DEFAULT 0
+    );
   `);
 }
