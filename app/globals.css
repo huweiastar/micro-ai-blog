@@ -266,7 +266,7 @@
   }
 
   .prose-custom img {
-    @apply rounded-lg mx-auto;
+    @apply rounded-lg mx-auto cursor-zoom-in;
   }
 
   /* 外链：正文中的站外链接追加箭头图标，区别于站内链接 */

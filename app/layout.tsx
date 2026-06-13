@@ -12,6 +12,7 @@ import { SiteChrome } from "../components/SiteChrome";
 import { CommandPalette } from "../components/CommandPalette";
 import { ThemeConfigProvider } from "../components/ThemeContext";
 import { CodeCopyButton } from "../components/CodeCopyButton";
+import { ImageZoom } from "../components/blog/ImageZoom";
 import { PageViewTracker } from "../components/PageViewTracker";
 import { ProfileProvider } from "../components/ProfileProvider";
 import { getSiteUrl } from "../lib/seo";
@@ -114,6 +115,7 @@ export default function RootLayout({
                 {children}
               </SiteChrome>
               <CodeCopyButton />
+              <ImageZoom />
             </ThemeConfigProvider>
           </ProfileProvider>
         </ThemeProvider>
