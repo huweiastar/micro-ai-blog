@@ -88,7 +88,7 @@ export function LoginForm() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Error message */}
             {error && (
-              <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-start gap-2">
+              <div className="p-3 rounded-lg bg-[var(--danger)]/10 border border-[var(--danger)]/20 text-[var(--danger)] text-sm flex items-start gap-2">
                 <span className="mt-0.5 text-xs">⚠️</span>
                 <span>{error}</span>
               </div>
@@ -96,7 +96,7 @@ export function LoginForm() {
 
             {/* Lock countdown */}
             {lockSeconds > 0 && (
-              <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400 text-sm flex items-start gap-2">
+              <div className="p-3 rounded-lg bg-[var(--warning)]/10 border border-[var(--warning)]/20 text-[var(--warning)] text-sm flex items-start gap-2">
                 <span className="mt-0.5 text-xs">⏳</span>
                 <span>尝试次数过多，请 {lockSeconds} 秒后再试</span>
               </div>
@@ -104,7 +104,7 @@ export function LoginForm() {
 
             {/* Success message */}
             {success && (
-              <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20 text-green-400 text-sm flex items-center gap-2">
+              <div className="p-3 rounded-lg bg-[var(--success)]/10 border border-[var(--success)]/20 text-[var(--success)] text-sm flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
                 <span>密码正确，正在跳转...</span>
               </div>

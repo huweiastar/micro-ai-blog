@@ -65,10 +65,10 @@ function Toast({ item, onClose }: { item: ToastItem; onClose: () => void }) {
   }, [onClose]);
   const tone =
     item.type === "success"
-      ? "text-green-500"
+      ? "text-[var(--success)]"
       : item.type === "error"
-        ? "text-red-500"
-        : "text-[var(--primary)]";
+        ? "text-[var(--danger)]"
+        : "text-[var(--info)]";
   return (
     <div className="glass flex items-center gap-2 rounded-lg px-4 py-3 shadow-[var(--shadow-lg)] animate-slide-up">
       <Icon className={`h-4 w-4 shrink-0 ${tone}`} />

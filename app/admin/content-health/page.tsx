@@ -19,15 +19,15 @@ const SEVERITY_STYLE: Record<
   { chip: string; label: string }
 > = {
   error: {
-    chip: "bg-red-500/10 text-red-400 border border-red-500/20",
+    chip: "bg-[var(--danger)]/10 text-[var(--danger)] border border-[var(--danger)]/20",
     label: "严重",
   },
   warning: {
-    chip: "bg-fuchsia-500/10 text-fuchsia-400 border border-fuchsia-500/20",
+    chip: "bg-[var(--warning)]/10 text-[var(--warning)] border border-[var(--warning)]/20",
     label: "提醒",
   },
   info: {
-    chip: "bg-sky-500/10 text-sky-400 border border-sky-500/20",
+    chip: "bg-[var(--info)]/10 text-[var(--info)] border border-[var(--info)]/20",
     label: "建议",
   },
 };
@@ -89,7 +89,7 @@ export default function ContentHealthPage() {
           icon={<AlertTriangle className="w-3.5 h-3.5" />}
           label="待修复项"
           value={needsFix}
-          tone={needsFix > 0 ? "text-red-400" : "text-emerald-400"}
+          tone={needsFix > 0 ? "text-[var(--danger)]" : "text-[var(--success)]"}
         />
         <StatCard
           icon={<CheckCircle2 className="w-3.5 h-3.5" />}

@@ -25,6 +25,14 @@
     --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
     --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.12);
     --ring: var(--primary);
+    /* 语义色：成功/警告/危险/信息。callout、Toast、徽章、内容体检等统一引用，
+       避免散落的 red-500 / emerald-400 硬编码。透明度写法 [var(--danger)]/10
+       由 Tailwind 编译为 color-mix，可正常工作。
+       警告用品红 fuchsia 而非琥珀——遵循站点「全站去黄」配色决策（commit aac23c7）。 */
+    --success: #10b981;
+    --warning: #d946ef;
+    --danger: #ef4444;
+    --info: #3b82f6;
   }
 
   .dark {
@@ -42,6 +50,11 @@
     --link-hover: #3b82f6;
     --glow-primary: rgba(129, 140, 248, 0.4);
     --glow-accent: rgba(167, 139, 250, 0.4);
+    /* 暗色下提亮一档，保证在深背景上的对比度 */
+    --success: #34d399;
+    --warning: #e879f9;
+    --danger: #f87171;
+    --info: #60a5fa;
   }
 
   body {
@@ -221,19 +234,19 @@
     background: color-mix(in srgb, var(--cl) 7%, var(--card));
   }
   .prose-custom .callout-note {
-    --cl: #3b82f6;
+    --cl: var(--info);
   }
   .prose-custom .callout-tip {
-    --cl: #10b981;
+    --cl: var(--success);
   }
   .prose-custom .callout-important {
-    --cl: #8b5cf6;
+    --cl: var(--accent);
   }
   .prose-custom .callout-warning {
-    --cl: #f59e0b;
+    --cl: var(--warning);
   }
   .prose-custom .callout-caution {
-    --cl: #ef4444;
+    --cl: var(--danger);
   }
   .prose-custom .callout-title {
     @apply mb-1.5 flex items-center gap-2 font-semibold not-italic;
