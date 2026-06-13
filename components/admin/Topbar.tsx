@@ -2,7 +2,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { LogOut, Menu } from "lucide-react";
+import { LogOut, Menu, ShieldOff } from "lucide-react";
 
 const labels: Record<string, string> = {
   "/admin": "概览",
@@ -23,8 +23,12 @@ export function Topbar({ onMenu }: { onMenu?: () => void }) {
     .map((p) => labels[p])
     .filter(Boolean);
 
-  const handleLogout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
+  const handleLogout = async (all = false) => {
+    await fetch("/api/auth/logout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ all }),
+    });
     router.push("/admin/login");
   };
 
@@ -45,12 +49,21 @@ export function Topbar({ onMenu }: { onMenu?: () => void }) {
           ))}
         </nav>
       </div>
-      <button
-        onClick={handleLogout}
-        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[var(--card-border)] text-sm text-[var(--muted)] hover:text-red-400 hover:border-red-500/30 transition-colors"
-      >
-        <LogOut className="w-4 h-4" /> 退出
-      </button>
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => handleLogout(true)}
+          title="使所有设备上的登录全部失效"
+          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[var(--card-border)] text-sm text-[var(--muted)] hover:text-red-400 hover:border-red-500/30 transition-colors"
+        >
+          <ShieldOff className="w-4 h-4" /> 全部退出
+        </button>
+        <button
+          onClick={() => handleLogout()}
+          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[var(--card-border)] text-sm text-[var(--muted)] hover:text-red-400 hover:border-red-500/30 transition-colors"
+        >
+          <LogOut className="w-4 h-4" /> 退出
+        </button>
+      </div>
     </header>
   );
 }

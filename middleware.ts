@@ -81,16 +81,44 @@ function getRequestOrigin(request: NextRequest): string {
   return `${proto}://${host}`;
 }
 
-async function verifyToken(token: string): Promise<boolean> {
-  const password = process.env.ADMIN_PASSWORD;
-  if (!password) return false;
+async function getSessionSecretEdge(): Promise<string> {
+  const secret = process.env.SESSION_SECRET;
+  if (secret && secret.length >= 32) return secret;
+  return sha256Hex(process.env.ADMIN_PASSWORD || "");
+}
+
+// 会话版本：从 /api/auth/version 拉取并缓存 60s。middleware 是 edge runtime
+// 读不了 SQLite，用内部 fetch 间接读；接口故障时沿用旧缓存或 fail-open
+// （只验签名），避免把管理员锁在门外。该 fetch 不带 cookie，不会递归触发鉴权。
+let cachedVersion: number | null = null;
+let cachedAt = 0;
+
+async function getCurrentSessionVersion(origin: string): Promise<number | null> {
+  if (cachedVersion !== null && Date.now() - cachedAt < 60_000) return cachedVersion;
+  try {
+    const res = await fetch(`${origin}/api/auth/version`, { cache: "no-store" });
+    if (res.ok) {
+      const data = await res.json();
+      if (typeof data.v === "number") {
+        cachedVersion = data.v;
+        cachedAt = Date.now();
+      }
+    }
+  } catch {
+    // 网络失败：保留旧缓存值
+  }
+  return cachedVersion;
+}
+
+async function verifyToken(token: string, origin: string): Promise<boolean> {
+  if (!process.env.SESSION_SECRET && !process.env.ADMIN_PASSWORD) return false;
 
   const parts = token.split(".");
-  if (parts.length !== 3) return false;
+  if (parts.length !== 4) return false;
 
-  const [payload, timestamp, signature] = parts;
-  const secret = await sha256Hex(password);
-  const expectedSignature = await hmacSha256Hex(secret, `${payload}.${timestamp}`);
+  const [v36, payload, timestamp, signature] = parts;
+  const secret = await getSessionSecretEdge();
+  const expectedSignature = await hmacSha256Hex(secret, `${v36}.${payload}.${timestamp}`);
 
   if (!timingSafeEqualHex(signature, expectedSignature)) return false;
 
@@ -98,13 +126,20 @@ async function verifyToken(token: string): Promise<boolean> {
   if (isNaN(issuedAt)) return false;
   if (Date.now() - issuedAt > SESSION_MAX_AGE) return false;
 
+  const tokenVersion = parseInt(v36, 36);
+  if (isNaN(tokenVersion)) return false;
+  const currentVersion = await getCurrentSessionVersion(origin);
+  if (currentVersion !== null && tokenVersion !== currentVersion) return false;
+
   return true;
 }
 
 export async function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
   const sessionCookie = request.cookies.get("admin_session");
-  const isAuthenticated = !!sessionCookie?.value && await verifyToken(sessionCookie.value);
+  const isAuthenticated =
+    !!sessionCookie?.value &&
+    (await verifyToken(sessionCookie.value, request.nextUrl.origin));
 
   // Protect /admin pages (but not /admin/login)
   if (pathname.startsWith("/admin")) {

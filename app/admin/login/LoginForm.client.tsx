@@ -12,6 +12,7 @@ export function LoginForm() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [lockSeconds, setLockSeconds] = useState(0);
 
   // Read callback URL from window to avoid useSearchParams
   useEffect(() => {
@@ -19,6 +20,13 @@ export function LoginForm() {
     const cb = params.get("callbackUrl");
     if (cb) setCallbackUrl(cb);
   }, []);
+
+  // 429 锁定倒计时
+  useEffect(() => {
+    if (lockSeconds <= 0) return;
+    const t = setTimeout(() => setLockSeconds((s) => s - 1), 1000);
+    return () => clearTimeout(t);
+  }, [lockSeconds]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -34,6 +42,13 @@ export function LoginForm() {
       });
 
       const data = await res.json();
+
+      if (res.status === 429) {
+        setLockSeconds(Number(data.retryAfter) || 60);
+        setError("");
+        setLoading(false);
+        return;
+      }
 
       if (data.success) {
         setSuccess(true);
@@ -79,6 +94,14 @@ export function LoginForm() {
               </div>
             )}
 
+            {/* Lock countdown */}
+            {lockSeconds > 0 && (
+              <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400 text-sm flex items-start gap-2">
+                <span className="mt-0.5 text-xs">⏳</span>
+                <span>尝试次数过多，请 {lockSeconds} 秒后再试</span>
+              </div>
+            )}
+
             {/* Success message */}
             {success && (
               <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20 text-green-400 text-sm flex items-center gap-2">
@@ -114,7 +137,7 @@ export function LoginForm() {
 
             <button
               type="submit"
-              disabled={loading || success || !password.trim()}
+              disabled={loading || success || lockSeconds > 0 || !password.trim()}
               className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg bg-[var(--primary)] text-white text-sm font-medium hover:bg-[var(--primary-hover)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {success ? (
