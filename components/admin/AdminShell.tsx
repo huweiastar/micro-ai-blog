@@ -23,6 +23,9 @@ export function AdminShell({ children, theme }: {
             className="absolute inset-0"
             style={{ backgroundColor: "var(--background)", opacity: (theme.backgroundOpacity ?? 40) / 100 }}
           />
+          {/* 亮色模式可读性蒙层：后台背景图在亮色下偏亮，会压低卡片/文字对比度，
+              叠一层 --background 提亮拉回；暗色模式关闭（opacity-0）保持原观感。 */}
+          <div className="absolute inset-0 bg-[var(--background)] opacity-50 dark:opacity-0" />
         </div>
       )}
       {/* Desktop sidebar */}

@@ -18,6 +18,13 @@ export function AnimatedBackground() {
         />
       )}
 
+      {/* Light-mode readability wash: the user's background photo is bright in light
+          mode, so bare text rendered directly over it (page headers, archive timeline,
+          tag pills, intro copy) loses contrast. This lifts the photo toward --background
+          much like dark mode's navy does, keeping it visible while restoring WCAG contrast.
+          Disabled in dark mode (opacity-0) so the richer dark look is untouched. */}
+      <div className="absolute inset-0 bg-[var(--background)] opacity-50 dark:opacity-0" />
+
       {/* Aurora mesh — soft drifting color fields. Subtle in light mode, richer in dark. */}
       <div className="absolute inset-0 opacity-60 dark:opacity-90">
         <div className="animate-aurora absolute -top-1/4 left-1/5 h-[38rem] w-[38rem] rounded-full bg-[var(--primary)]/[0.06] blur-[110px] dark:bg-[var(--primary)]/20" />
