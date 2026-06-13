@@ -123,9 +123,25 @@ function findPostFile(slug: string): string | null {
   return null;
 }
 
-// 检查某个 slug 是否已被占用（用于新建/改名查重）。
+// 检查某个 slug 是否已被占用（用于改名查重，单次调用）。
 function slugExists(slug: string): boolean {
   return findPostFile(slug) !== null;
+}
+
+// 一次性收集所有文章的规范 slug（frontmatter.slug 优先，否则文件名）。
+// 新建去重的 while 循环原先每轮都 findPostFile 重扫全目录（O(n²)），
+// 改为先建集合再内存查重。
+function collectExistingSlugs(): Set<string> {
+  const slugs = new Set<string>();
+  if (!fs.existsSync(postsDirectory)) return slugs;
+  const files = fs
+    .readdirSync(postsDirectory)
+    .filter((f) => f.endsWith(".md") || f.endsWith(".mdx"));
+  for (const file of files) {
+    const { data } = matter(fs.readFileSync(path.join(postsDirectory, file), "utf-8"));
+    slugs.add(canonicalSlug(data, file));
+  }
+  return slugs;
 }
 
 function buildFrontmatter(opts: {
@@ -253,10 +269,11 @@ export async function POST(req: NextRequest) {
       fs.mkdirSync(postsDirectory, { recursive: true });
     }
 
-    // Disambiguate slug if duplicate exists.
+    // Disambiguate slug if duplicate exists（一次性建集合，内存查重）。
+    const existingSlugs = collectExistingSlugs();
     let finalSlug = baseSlug;
     let counter = 1;
-    while (slugExists(finalSlug)) {
+    while (existingSlugs.has(finalSlug)) {
       finalSlug = `${baseSlug}-${counter}`;
       counter++;
     }

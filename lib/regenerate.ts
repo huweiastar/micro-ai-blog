@@ -4,7 +4,7 @@ import { atomicWriteFile } from "./atomic-file";
 import { commitContentChange } from "./git-sync";
 import RSS from "rss";
 import { revalidatePath } from "next/cache";
-import { getAllPostsSync, generateSearchIndex } from "./posts";
+import { getAllPostsSync, generateSearchIndex, invalidatePostsCache } from "./posts";
 import { getSiteUrl } from "./seo";
 import { getAboutProfile } from "./about";
 import { saveKnowledgeIndex } from "./assistant/indexer";
@@ -150,6 +150,8 @@ export function revalidateContentPaths(slug?: string) {
 
 /** 内容变更后的统一刷新入口：重建产物 + 失效页面缓存 + git 自动提交。 */
 export function refreshAfterContentChange(slug?: string) {
+  // 先失效文章缓存，确保下面重建搜索索引/sitemap/RSS 时读到的是刚写入的新内容。
+  invalidatePostsCache();
   const result = regenerateContentArtifacts();
   revalidateContentPaths(slug);
   commitContentChange(`chore(content): 后台更新 ${slug ?? "内容"}`);

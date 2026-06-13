@@ -108,12 +108,39 @@ function parsePostFile(file: string): BlogPost {
   };
 }
 
-/** 读取并解析全部文章文件（不做任何可见性过滤）。 */
+// 进程级缓存：解析全部文章是重活（读盘 + gray-matter + readingTime + toc），
+// 而单次页面渲染/构建会反复调用（详情页一次渲染就触发 3~4 次）。以「目录 mtime +
+// 文件名集合」为指纹：新增/删除/改名会改文件名集合，经 atomicWriteFile 的原子
+// rename 覆盖编辑会改目录 mtime，二者任一变化都自动失效；写操作后
+// refreshAfterContentChange 也会显式清空，双保险。
+let postsCache: { signature: string; posts: BlogPost[] } | null = null;
+
+function dirSignature(files: string[]): string {
+  let mtime = 0;
+  try {
+    mtime = fs.statSync(postsDirectory).mtimeMs;
+  } catch {
+    /* 目录不存在：指纹退化为空集 */
+  }
+  return `${mtime}:${files.join(",")}`;
+}
+
+/** 读取并解析全部文章文件（不做任何可见性过滤），带进程级指纹缓存。 */
 function readAllPostFiles(): BlogPost[] {
-  return fs
+  if (!fs.existsSync(postsDirectory)) return [];
+  const files = fs
     .readdirSync(postsDirectory)
-    .filter((file) => file.endsWith(".md") || file.endsWith(".mdx"))
-    .map(parsePostFile);
+    .filter((file) => file.endsWith(".md") || file.endsWith(".mdx"));
+  const signature = dirSignature(files);
+  if (postsCache && postsCache.signature === signature) return postsCache.posts;
+  const posts = files.map(parsePostFile);
+  postsCache = { signature, posts };
+  return posts;
+}
+
+/** 显式清空文章缓存。内容写操作（增删改）后调用，保证产物重建读到最新数据。 */
+export function invalidatePostsCache(): void {
+  postsCache = null;
 }
 
 /** 文章生效的发布时间（毫秒）：优先 publish 字段，否则回退 date；解析失败按 0。 */
@@ -133,10 +160,8 @@ export function isPublished(post: BlogPost, now: number = Date.now()): boolean {
 }
 
 export async function getAllPosts(): Promise<BlogPost[]> {
-  const now = Date.now();
-  return readAllPostFiles()
-    .filter((post) => isPublished(post, now))
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  // 与 getAllPostsSync 逻辑一致，委托避免重复实现。
+  return getAllPostsSync();
 }
 
 export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
