@@ -31,6 +31,7 @@ export async function PUT(req: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
+    console.error("更新关于页失败:", error);
     return NextResponse.json({ error: "更新失败" }, { status: 500 });
   }
 }

@@ -37,6 +37,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, message: "专栏已添加" });
   } catch (error) {
+    console.error("新增专栏失败:", error);
     return NextResponse.json({ error: "操作失败" }, { status: 500 });
   }
 }
@@ -69,6 +70,7 @@ export async function PUT(req: NextRequest) {
 
     return NextResponse.json({ success: true, message: "专栏已更新" });
   } catch (error) {
+    console.error("更新专栏失败:", error);
     return NextResponse.json({ error: "操作失败" }, { status: 500 });
   }
 }
@@ -88,6 +90,7 @@ export async function DELETE(req: NextRequest) {
 
     return NextResponse.json({ success: true, message: "专栏已删除" });
   } catch (error) {
+    console.error("删除专栏失败:", error);
     return NextResponse.json({ error: "操作失败" }, { status: 500 });
   }
 }

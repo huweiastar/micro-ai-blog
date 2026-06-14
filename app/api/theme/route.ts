@@ -37,7 +37,8 @@ export async function PUT(req: NextRequest) {
     const updated = { ...current, ...sanitized };
     atomicWriteFile(themePath, JSON.stringify(updated, null, 2));
     return NextResponse.json({ success: true, message: "主题已更新" });
-  } catch {
+  } catch (error) {
+    console.error("更新主题失败:", error);
     return NextResponse.json({ success: false, message: "更新失败" }, { status: 500 });
   }
 }

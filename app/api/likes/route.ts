@@ -76,7 +76,8 @@ export async function POST(req: NextRequest) {
     if (!visitorId) return NextResponse.json({ error: "缺少有效 visitorId" }, { status: 400 });
 
     return NextResponse.json(toggleLike(slug, visitorId));
-  } catch {
+  } catch (error) {
+    console.error("点赞操作失败:", error);
     return NextResponse.json({ error: "操作失败" }, { status: 500 });
   }
 }
