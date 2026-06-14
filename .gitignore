@@ -65,3 +65,9 @@ next-env.d.ts
 /public/sitemap.xml
 /public/rss.xml
 /public/knowledge-index.json
+
+# Claude Code 本地个人设置（不入库）
+.claude/settings.local.json
+
+# superpowers 插件本地目录
+.superpowers/
