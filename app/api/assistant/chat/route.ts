@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { retrieve } from "../../../../lib/assistant/retriever";
 import { generateAIAnswerStream } from "../../../../lib/assistant/generator";
-import type { ChatRequest } from "../../../../lib/assistant/types";
+import type { ChatRequest, KnowledgeChunk } from "../../../../lib/assistant/types";
 
 // Simple in-memory rate limiting
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
@@ -111,7 +111,7 @@ export async function POST(req: NextRequest) {
 }
 
 // Import followUps generator
-function generateFollowUps(contextChunks: any[]): string[] {
+function generateFollowUps(contextChunks: KnowledgeChunk[]): string[] {
   const followUps: string[] = [];
   if (contextChunks.length > 0) {
     const topChunk = contextChunks[0];

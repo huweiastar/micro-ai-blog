@@ -5,19 +5,20 @@ import yaml from "js-yaml";
 import { atomicWriteFile } from "../../../lib/atomic-file";
 import { refreshAfterContentChange } from "../../../lib/regenerate";
 import { slugifyCjk } from "../../../lib/utils";
+import type { Project } from "../../../types/project";
 
 // 后台保存后立即生效：禁止 GET 被静态缓存成旧值。
 export const dynamic = "force-dynamic";
 
 const projectsPath = path.join(process.cwd(), "content/projects/projects.yaml");
 
-function readProjects() {
+function readProjects(): Project[] {
   if (!fs.existsSync(projectsPath)) return [];
   const content = fs.readFileSync(projectsPath, "utf-8");
-  return (yaml.load(content, { schema: yaml.DEFAULT_SCHEMA }) as any[]) || [];
+  return (yaml.load(content, { schema: yaml.DEFAULT_SCHEMA }) as Project[]) || [];
 }
 
-function writeProjects(projects: any[]) {
+function writeProjects(projects: Project[]) {
   const content = yaml.dump(projects, { lineWidth: 1000 });
   atomicWriteFile(projectsPath, content);
 }
@@ -27,7 +28,7 @@ export async function GET(req: NextRequest) {
   const slug = searchParams.get("slug");
   const projects = readProjects();
   if (slug) {
-    const project = projects.find((p: any) => p.slug === slug);
+    const project = projects.find((p) => p.slug === slug);
     return project
       ? NextResponse.json({ success: true, project })
       : NextResponse.json({ error: "项目不存在" }, { status: 404 });
@@ -78,7 +79,7 @@ export async function PUT(req: NextRequest) {
     const { slug, ...rest } = body;
     const projects = readProjects();
 
-    const index = projects.findIndex((p: any) => p.slug === slug);
+    const index = projects.findIndex((p) => p.slug === slug);
     if (index === -1) {
       return NextResponse.json({ error: "项目不存在" }, { status: 404 });
     }
@@ -108,7 +109,7 @@ export async function DELETE(req: NextRequest) {
     const { slug } = body;
     let projects = readProjects();
 
-    projects = projects.filter((p: any) => p.slug !== slug);
+    projects = projects.filter((p) => p.slug !== slug);
     writeProjects(projects);
 
     refreshAfterContentChange();

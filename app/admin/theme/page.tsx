@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useThemeConfig } from "../../../components/ThemeContext";
+import { useThemeConfig, type EffectStyle } from "../../../components/ThemeContext";
 import {
   Check, Save, Plus,
   Image as ImageIcon, X,
@@ -14,7 +14,7 @@ export default function ThemePage() {
   // Theme state
   const [themeBgImage, setThemeBgImage] = useState("");
   const [themeBgOpacity, setThemeBgOpacity] = useState(50);
-  const [themeEffect, setThemeEffect] = useState("ink");
+  const [themeEffect, setThemeEffect] = useState<EffectStyle>("ink");
   const [themeSaved, setThemeSaved] = useState(false);
   const [bgImageHistory, setBgImageHistory] = useState<string[]>([]);
   const [tab, setTab] = useState<"theme" | "media">("theme");
@@ -26,7 +26,7 @@ export default function ThemePage() {
       .then((data) => {
         setThemeBgImage(data.backgroundImage || "");
         setThemeBgOpacity(data.backgroundOpacity ?? 50);
-        setThemeEffect(data.effectStyle || "ink");
+        setThemeEffect((data.effectStyle as EffectStyle) || "ink");
       })
       .catch(() => {});
 
@@ -45,7 +45,7 @@ export default function ThemePage() {
     });
     const data = await res.json();
     if (data.success) {
-      setGlobalTheme(themeData as any);
+      setGlobalTheme(themeData);
       setThemeSaved(true);
       setTimeout(() => setThemeSaved(false), 2000);
     }
@@ -186,12 +186,12 @@ export default function ThemePage() {
         <div className="glass rounded-xl p-6">
           <h2 className="text-lg font-semibold mb-4">点击特效</h2>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {[
+            {([
               { id: "ink", name: "墨水溅射", desc: "墨滴四溅" },
               { id: "sparkle", name: "星星闪烁", desc: "星光飞散" },
               { id: "ripple", name: "波纹扩散", desc: "水波涟漪" },
               { id: "none", name: "无特效", desc: "关闭特效" },
-            ].map((eff) => (
+            ] as const).map((eff) => (
               <button
                 key={eff.id}
                 onClick={() => setThemeEffect(eff.id)}

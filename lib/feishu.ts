@@ -1,5 +1,41 @@
 const FEISHU_BASE = "https://open.feishu.cn/open-apis";
 
+// 飞书 docx 文档块的最小化结构（仅声明本文件实际读取的字段）。
+interface FeishuTextElement {
+  text_run?: {
+    content?: string;
+    text_element_style?: {
+      bold?: boolean;
+      italic?: boolean;
+      strikethrough?: boolean;
+      inline_code?: boolean;
+      link?: { url?: string };
+    };
+  };
+}
+
+interface FeishuTextBody {
+  elements?: FeishuTextElement[];
+}
+
+interface FeishuBlock {
+  block_type: number;
+  text?: FeishuTextBody;
+  heading1?: FeishuTextBody;
+  heading2?: FeishuTextBody;
+  heading3?: FeishuTextBody;
+  heading4?: FeishuTextBody;
+  heading5?: FeishuTextBody;
+  heading6?: FeishuTextBody;
+  bullet?: FeishuTextBody;
+  ordered?: FeishuTextBody;
+  quote?: FeishuTextBody;
+  callout?: FeishuTextBody;
+  code?: { style?: { language?: number } };
+  todo?: FeishuTextBody & { style?: { done?: boolean } };
+  image?: { token?: string };
+}
+
 let cachedToken: { token: string; expiresAt: number } | null = null;
 
 async function getAccessToken(): Promise<string> {
@@ -61,8 +97,8 @@ async function resolveWikiToken(wikiToken: string, accessToken: string): Promise
   return data.data.node.obj_token;
 }
 
-async function fetchDocBlocks(docToken: string, accessToken: string): Promise<any[]> {
-  const blocks: any[] = [];
+async function fetchDocBlocks(docToken: string, accessToken: string): Promise<FeishuBlock[]> {
+  const blocks: FeishuBlock[] = [];
   let pageToken = "";
 
   while (true) {
@@ -91,10 +127,10 @@ async function getDocTitle(docToken: string, accessToken: string): Promise<strin
   return data.data.document.title || "";
 }
 
-function textElementsToString(elements: any[]): string {
+function textElementsToString(elements?: FeishuTextElement[]): string {
   if (!elements) return "";
   return elements
-    .map((el: any) => {
+    .map((el) => {
       if (!el.text_run) return "";
       const text = el.text_run.content || "";
       const style = el.text_run.text_element_style;
@@ -114,7 +150,7 @@ function textElementsToString(elements: any[]): string {
     .join("");
 }
 
-function blocksToMarkdown(blocks: any[]): string {
+function blocksToMarkdown(blocks: FeishuBlock[]): string {
   const lines: string[] = [];
   let inCodeBlock = false;
   let codeBlockLang = "";
