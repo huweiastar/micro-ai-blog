@@ -44,10 +44,11 @@ const nextConfig = {
     return loadRedirects();
   },
   async headers() {
-    // CSP 先以 Report-Only 观察（违规仅在浏览器控制台报告，不拦截），
-    // 稳定一周后把 key 切换为 Content-Security-Policy 正式启用。
+    // CSP 已正式启用（enforced）：经代码层审计确认各 *-src 覆盖站点全部加载资源
+    // （字体自托管、脚本仅 theme-init+giscus、连接全同源、文章无外部 iframe）。
     // script-src 暂保留 'unsafe-inline'：App Router 自身会注入内联 RSC 数据脚本，
-    // 去掉它需要 nonce 方案，留待后续。
+    // 去掉它需要 nonce 方案，留待后续硬化。
+    // 注意：未来若在文章中嵌入外部 iframe/脚本，需把对应域名加入 frame-src/script-src。
     const csp = [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' https://giscus.app",
@@ -69,7 +70,7 @@ const nextConfig = {
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
-          { key: "Content-Security-Policy-Report-Only", value: csp },
+          { key: "Content-Security-Policy", value: csp },
         ],
       },
     ];
