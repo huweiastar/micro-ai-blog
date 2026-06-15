@@ -183,7 +183,7 @@ export function resolveAIConfig(): AIConfig | null {
   return {
     apiKey,
     baseUrl,
-    model: model || (apiProvider === "anthropic" ? "claude-sonnet-4-6" : "qwen-plus"),
+    model: model || (apiProvider === "anthropic" ? "claude-opus-4-8" : "qwen3.6-max"),
     provider: apiProvider,
   };
 }

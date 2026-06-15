@@ -3,7 +3,8 @@ import { retrieve } from "../../../../lib/assistant/retriever";
 import { generateAIAnswerStream } from "../../../../lib/assistant/generator";
 import type { ChatRequest, KnowledgeChunk } from "../../../../lib/assistant/types";
 
-// Simple in-memory rate limiting
+// 进程内限流：仅在单实例部署下有效。重启即清空；多实例/Serverless 下各实例
+// 独立计数，不构成全局配额。若未来横向扩容，需替换为 Redis/Upstash 等共享存储。
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 
 function checkRateLimit(req: NextRequest): { allowed: boolean; retryAfter?: number } {
