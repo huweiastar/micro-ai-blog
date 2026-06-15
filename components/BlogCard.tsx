@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import type { CSSProperties } from "react";
 import type { BlogPost } from "../lib/posts";
 import { formatDate } from "../lib/utils";
@@ -40,14 +41,13 @@ export function BlogCard({ post }: BlogCardProps) {
       <div className="relative z-10 mt-9">
         {/* Cover image */}
         {post.cover && (
-          <div className="mb-4 -mx-6 -mt-6 overflow-hidden rounded-t-xl">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+          <div className="relative mb-4 -mx-6 -mt-6 h-48 overflow-hidden rounded-t-xl">
+            <Image
               src={post.cover}
               alt={post.title}
-              loading="lazy"
-              decoding="async"
-              className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-105"
+              fill
+              sizes="(max-width: 768px) 100vw, 720px"
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
             />
           </div>
         )}
