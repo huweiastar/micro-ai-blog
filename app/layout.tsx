@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { ThemeProvider } from "next-themes";
-import { Analytics } from "@vercel/analytics/react";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 import { AnimatedBackground } from "../components/ui/AnimatedBackground";
@@ -122,7 +121,6 @@ export default function RootLayout({
             </ThemeConfigProvider>
           </ProfileProvider>
         </ThemeProvider>
-        <Analytics />
       </body>
     </html>
   );
