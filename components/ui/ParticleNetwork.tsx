@@ -45,7 +45,7 @@ export function ParticleNetwork({ className, mousePos }: ParticleNetworkProps) {
     let isDark = false;
 
     const isMobile = window.innerWidth < 768;
-    const particleCount = isMobile ? 40 : 80;
+    const particleCount = isMobile ? 50 : 110;
     const connectionDistance = isMobile ? 100 : 150;
     const mouseDistance = isMobile ? 120 : 200;
 
@@ -81,9 +81,17 @@ export function ParticleNetwork({ className, mousePos }: ParticleNetworkProps) {
       c.clearRect(0, 0, width, height);
 
       const particleColor = isDark ? "rgba(129, 140, 248, " : "rgba(99, 102, 241, ";
-      const lineColor = isDark ? "rgba(129, 140, 248, " : "rgba(99, 102, 241, ";
-      const particleOpacity = isDark ? "0.8)" : "0.5)";
-      const lineOpacityFactor = isDark ? 0.3 : 0.15;
+      const lineColor     = isDark ? "rgba(6, 182, 212, "   : "rgba(99, 102, 241, ";
+      const particleOpacity    = isDark ? "0.9)" : "0.5)";
+      const lineOpacityFactor  = isDark ? 0.5 : 0.15;
+
+      // 暗色下粒子辉光
+      if (isDark) {
+        c.shadowBlur  = 6;
+        c.shadowColor = "rgba(129, 140, 248, 0.6)";
+      } else {
+        c.shadowBlur = 0;
+      }
 
       // Update and draw particles
       particles.forEach((p) => {
