@@ -8,7 +8,7 @@ import { ThemeToggle } from "./ThemeToggle";
 import { navConfig } from "../config/nav";
 import { useProfile } from "./ProfileProvider.client";
 import { Container } from "./ui/Container";
-import { openCommandPalette } from "./CommandPalette";
+import { openCommandPalette } from "./command-palette-bus";
 
 export function Header() {
   const pathname = usePathname();
@@ -25,7 +25,7 @@ export function Header() {
           href="/"
           className="text-xl font-bold bg-gradient-to-r from-[var(--primary)] to-[var(--accent)] bg-clip-text text-transparent hover:from-[var(--accent)] hover:to-[var(--primary)] transition-all duration-500 hover:scale-105 active:scale-95"
         >
-          {profile?.name ?? "微观AI"}
+          {profile?.name ?? "微观AI"}<span className="animate-terminal-blink ml-0.5 font-mono text-[var(--neon-cyan)]">_</span>
         </Link>
 
         <div className="hidden md:flex items-center gap-1">
@@ -42,7 +42,9 @@ export function Header() {
                   : "text-[var(--muted)] hover:text-[var(--foreground)]"
               }`}
             >
-              <span className="relative z-10">{item.title}</span>
+              <span className="relative z-10">
+                <span className="hidden font-mono text-[var(--neon-cyan)]/60 lg:inline">~/</span>{item.title}
+              </span>
               {/* Hover background */}
               <div className="absolute inset-0 bg-[var(--card)]/50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               {/* Bottom indicator */}
