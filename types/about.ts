@@ -16,6 +16,8 @@ export type AboutProfile = {
   bio2: string;
   email: string;
   github: string;
+  /** 首页 Hero 名字下方的一句话标语（管理员可在后台配置） */
+  tagline: string;
   skills: SkillGroup[];
   /** 首页技术栈标签（管理员可在后台配置） */
   techStack: TechTag[];

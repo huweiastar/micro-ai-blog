@@ -43,6 +43,8 @@ export function ParticleNetwork({ className, mousePos }: ParticleNetworkProps) {
     let animationId: number;
     let particles: Particle[] = [];
     let isDark = false;
+    // 帧率无关：以 60fps 为基准换算每帧位移，避免暗色模式辉光降帧导致粒子“变慢”
+    let lastTime = performance.now();
 
     const isMobile = window.innerWidth < 768;
     const particleCount = isMobile ? 50 : 110;
@@ -78,6 +80,11 @@ export function ParticleNetwork({ className, mousePos }: ParticleNetworkProps) {
       const width = el.offsetWidth;
       const height = el.offsetHeight;
 
+      const now = performance.now();
+      // 归一化到 60fps，并钳制以避免切后台回来时的大跳变
+      const dt = Math.min((now - lastTime) / 16.667, 3);
+      lastTime = now;
+
       c.clearRect(0, 0, width, height);
 
       const particleColor = isDark ? "rgba(129, 140, 248, " : "rgba(99, 102, 241, ";
@@ -95,8 +102,8 @@ export function ParticleNetwork({ className, mousePos }: ParticleNetworkProps) {
 
       // Update and draw particles
       particles.forEach((p) => {
-        p.x += p.vx;
-        p.y += p.vy;
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
 
         if (p.x < 0 || p.x > width) p.vx *= -1;
         if (p.y < 0 || p.y > height) p.vy *= -1;
@@ -107,8 +114,8 @@ export function ParticleNetwork({ className, mousePos }: ParticleNetworkProps) {
         const dist = Math.sqrt(dx * dx + dy * dy);
         if (dist < mouseDistance) {
           const force = (mouseDistance - dist) / mouseDistance;
-          p.vx -= (dx / dist) * force * 0.02;
-          p.vy -= (dy / dist) * force * 0.02;
+          p.vx -= (dx / dist) * force * 0.02 * dt;
+          p.vy -= (dy / dist) * force * 0.02 * dt;
         }
 
         // Draw particle

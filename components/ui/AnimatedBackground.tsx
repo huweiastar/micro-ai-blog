@@ -42,9 +42,6 @@ export function AnimatedBackground() {
             "radial-gradient(ellipse at center, transparent 55%, color-mix(in srgb, var(--background) 55%, transparent) 100%)",
         }}
       />
-
-      {/* 赛博网格遮罩（仅暗色下显示） */}
-      <div className="absolute inset-0 opacity-0 dark:opacity-100 cyber-grid pointer-events-none" />
     </div>
   );
 }

@@ -13,6 +13,7 @@ const DEFAULT_PROFILE: AboutProfile = {
   bio2: "",
   email: "",
   github: "",
+  tagline: "大数据研发工程师 · LLM · Agent · 量化投资",
   skills: [],
   techStack: [
     { name: "Python", icon: "code" },

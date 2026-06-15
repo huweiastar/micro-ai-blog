@@ -23,12 +23,11 @@ export function Header() {
       <Container as="nav" className="h-16 flex items-center justify-between">
         <Link
           href="/"
-          className="text-xl font-bold transition-all duration-500 hover:scale-105 active:scale-95 inline-flex items-baseline"
+          className="text-xl font-bold transition-transform duration-300 hover:scale-105 active:scale-95 inline-flex items-baseline"
         >
-          <span className="bg-gradient-to-r from-[var(--primary)] to-[var(--accent)] bg-clip-text text-transparent hover:from-[var(--accent)] hover:to-[var(--primary)] transition-all duration-500">
+          <span className="bg-gradient-to-r from-[var(--primary)] to-[var(--accent)] bg-clip-text text-transparent">
             {profile?.name ?? "微观AI"}
           </span>
-          <span className="animate-terminal-blink ml-0.5 font-mono text-[var(--neon-cyan)]">_</span>
         </Link>
 
         <div className="hidden md:flex items-center gap-1">
@@ -39,21 +38,21 @@ export function Header() {
               key={item.href}
               href={item.href}
               aria-current={active ? "page" : undefined}
-              className={`relative px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 group ${
+              className={`relative px-3.5 py-2 text-sm font-medium rounded-full transition-colors duration-200 ${
                 active
-                  ? "text-[var(--primary)] bg-[var(--primary)]/10"
+                  ? "text-[var(--primary)]"
                   : "text-[var(--muted)] hover:text-[var(--foreground)]"
               }`}
             >
-              <span className="relative z-10">
-                <span className="hidden font-mono text-[var(--neon-cyan)]/60 lg:inline">~/</span>{item.title}
-              </span>
-              {/* Hover background */}
-              <div className="absolute inset-0 bg-[var(--card)]/50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              {/* Bottom indicator */}
-              <div className={`absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 bg-gradient-to-r from-[var(--primary)] to-[var(--accent)] rounded-full transition-all duration-300 ${
-                active ? 'w-4' : 'w-0 group-hover:w-3'
-              }`} />
+              <span className="relative z-10">{item.title}</span>
+              {/* Active / hover pill */}
+              <span
+                className={`absolute inset-0 rounded-full transition-all duration-200 ${
+                  active
+                    ? "bg-[var(--primary)]/10"
+                    : "bg-[var(--card)]/0 hover:bg-[var(--card)]/60"
+                }`}
+              />
             </Link>
             );
           })}

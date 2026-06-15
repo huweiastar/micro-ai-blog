@@ -22,6 +22,7 @@ export default function AboutPage() {
   const [aboutBio, setAboutBio] = useState("");
   const [aboutEmail, setAboutEmail] = useState("");
   const [aboutGithub, setAboutGithub] = useState("");
+  const [aboutTagline, setAboutTagline] = useState("");
   const [aboutSkills, setAboutSkills] = useState<SkillGroup[]>([]);
   const [aboutTechStack, setAboutTechStack] = useState<TechTag[]>([]);
   const [aboutSaved, setAboutSaved] = useState(false);
@@ -42,6 +43,7 @@ export default function AboutPage() {
         setAboutBio(data.bio || "");
         setAboutEmail(data.email || "");
         setAboutGithub(data.github || "");
+        setAboutTagline(data.tagline || "");
         setAboutSkills(data.skills || []);
         setAboutTechStack(data.techStack || []);
         try {
@@ -90,6 +92,7 @@ export default function AboutPage() {
         bio: aboutBio,
         email: aboutEmail,
         github: aboutGithub,
+        tagline: aboutTagline,
         skills: aboutSkills,
         techStack: aboutTechStack,
       }),
@@ -192,6 +195,7 @@ export default function AboutPage() {
           <h2 className="text-lg font-semibold mb-4">基本信息</h2>
           <div className="space-y-4">
             <div><label className="block text-sm text-[var(--muted)] mb-1">昵称</label><input type="text" value={aboutName} onChange={(e) => setAboutName(e.target.value)} className="w-full px-4 py-2.5 rounded-lg border border-[var(--card-border)] bg-[var(--card)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50" /></div>
+            <div><label className="block text-sm text-[var(--muted)] mb-1">首页标语</label><input type="text" value={aboutTagline} onChange={(e) => setAboutTagline(e.target.value)} placeholder="例如：大数据研发工程师 · LLM · Agent" className="w-full px-4 py-2.5 rounded-lg border border-[var(--card-border)] bg-[var(--card)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50" /><p className="mt-1 text-xs text-[var(--muted)]">显示在首页名字下方，留空则不展示</p></div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div><label className="block text-sm text-[var(--muted)] mb-1">邮箱</label><input type="email" value={aboutEmail} onChange={(e) => setAboutEmail(e.target.value)} placeholder="your-email@example.com" className="w-full px-4 py-2.5 rounded-lg border border-[var(--card-border)] bg-[var(--card)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50" /></div>
               <div><label className="block text-sm text-[var(--muted)] mb-1">GitHub</label><input type="text" value={aboutGithub} onChange={(e) => setAboutGithub(e.target.value)} placeholder="https://github.com/your-name" className="w-full px-4 py-2.5 rounded-lg border border-[var(--card-border)] bg-[var(--card)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50" /></div>

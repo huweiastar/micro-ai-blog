@@ -24,21 +24,12 @@ export function BlogCard({ post }: BlogCardProps) {
       className="group relative glass cursor-pointer overflow-hidden rounded-xl p-6 pl-7 transition-all duration-300 hover:-translate-y-1 hover:border-[var(--cat)]/40 hover:shadow-[var(--shadow-lg)] active:scale-[0.99]"
       onClick={() => router.push(`/blog/${post.slug}`)}
     >
-      {/* 终端标题栏 */}
-      <div className="absolute inset-x-0 top-0 flex items-center gap-1.5 border-b border-[var(--terminal-border)] bg-[var(--terminal-bg)] px-3 py-2">
-        <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
-        <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
-        <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
-        <span className="ml-2 font-mono text-[10px] text-[var(--terminal-text)]">
-          {post.slug}.mdx
-        </span>
-      </div>
       {/* Category accent spine */}
       <div
         className="absolute inset-y-0 left-0 w-1 opacity-70 transition-opacity duration-300 group-hover:opacity-100"
         style={{ background: `linear-gradient(180deg, ${style.gradient[0]}, ${style.gradient[1]})` }}
       />
-      <div className="relative z-10 mt-9">
+      <div className="relative z-10">
         {/* Cover image */}
         {post.cover && (
           <div className="relative mb-4 -mx-6 -mt-6 h-48 overflow-hidden rounded-t-xl">
