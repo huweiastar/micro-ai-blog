@@ -20,8 +20,12 @@ export function ReadingProgress() {
   return (
     <div className="fixed top-0 left-0 right-0 z-50 h-1 bg-transparent">
       <div
-        className="h-full bg-[var(--primary)] transition-all duration-150"
-        style={{ width: `${progress}%` }}
+        className="h-full transition-all duration-150"
+        style={{
+          width: `${progress}%`,
+          background: "linear-gradient(90deg, var(--primary), var(--neon-purple), var(--neon-cyan))",
+          boxShadow: "0 0 8px rgba(6, 182, 212, 0.6)",
+        }}
       />
     </div>
   );
