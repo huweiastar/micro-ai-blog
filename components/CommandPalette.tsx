@@ -19,6 +19,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { navConfig } from "../config/nav";
 import type { SearchItem } from "../lib/posts";
+import { COMMAND_PALETTE_OPEN_EVENT } from "./command-palette-bus";
 
 type Command = {
   id: string;
@@ -30,14 +31,7 @@ type Command = {
   run?: () => void;
 };
 
-const OPEN_EVENT = "command-palette:open";
-
-/** 触发命令面板打开（供 Header 搜索按钮等调用）。 */
-export function openCommandPalette() {
-  window.dispatchEvent(new CustomEvent(OPEN_EVENT));
-}
-
-export function CommandPalette() {
+export function CommandPalette({ autoOpen = false }: { autoOpen?: boolean }) {
   const router = useRouter();
   const { resolvedTheme, setTheme } = useTheme();
   const [open, setOpen] = useState(false);
@@ -92,12 +86,20 @@ export function CommandPalette() {
     };
     const onOpen = () => openPalette();
     window.addEventListener("keydown", onKey);
-    window.addEventListener(OPEN_EVENT, onOpen as EventListener);
+    window.addEventListener(COMMAND_PALETTE_OPEN_EVENT, onOpen as EventListener);
     return () => {
       window.removeEventListener("keydown", onKey);
-      window.removeEventListener(OPEN_EVENT, onOpen as EventListener);
+      window.removeEventListener(COMMAND_PALETTE_OPEN_EVENT, onOpen as EventListener);
     };
   }, [ensureIndex, openPalette]);
+
+  // 当被懒加载门控按需挂载时，组件加载完成后自行打开，
+  // 避免依赖"挂载后补发事件"与异步 chunk 加载之间的竞态。
+  useEffect(() => {
+    if (autoOpen) openPalette();
+    // 仅在首次挂载时根据 autoOpen 触发一次。
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Focus input + lock scroll while open.
   useEffect(() => {

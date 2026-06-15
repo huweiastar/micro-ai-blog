@@ -1,9 +1,16 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
-import { Bot, Sparkles, Loader2, X } from "lucide-react";
-import { AssistantPanel } from "./AssistantPanel";
+import { useEffect, useRef } from "react";
+import dynamic from "next/dynamic";
+import { Bot, Loader2, X } from "lucide-react";
 import { AssistantProvider, useAssistantContext } from "./AssistantContext";
+
+// 聊天面板是助手的重头（消息渲染/markdown/请求逻辑），仅在用户打开时才加载，
+// 从首屏 bundle 中剔除；浮窗按钮本身保持静态以便立即可见。
+const AssistantPanel = dynamic(
+  () => import("./AssistantPanel").then((m) => m.AssistantPanel),
+  { ssr: false },
+);
 
 function AssistantWidget() {
   const { isOpen, open, close, isLoading } = useAssistantContext();

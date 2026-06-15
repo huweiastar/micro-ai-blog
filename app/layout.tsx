@@ -9,7 +9,7 @@ import { MouseFollow } from "../components/ui/MouseFollow";
 import { ClickRipple } from "../components/ui/ClickEffect";
 import { AssistantLauncher } from "../components/assistant/AssistantLauncher";
 import { SiteChrome } from "../components/SiteChrome";
-import { CommandPalette } from "../components/CommandPalette";
+import { CommandPaletteLazy } from "../components/CommandPalette.lazy";
 import { ThemeConfigProvider } from "../components/ThemeContext";
 import { CodeCopyButton } from "../components/CodeCopyButton";
 import { ImageZoom } from "../components/blog/ImageZoom";
@@ -113,7 +113,7 @@ export default function RootLayout({
                 footer={<Footer />}
                 backToTop={<BackToTop />}
                 launcher={<AssistantLauncher />}
-                commandPalette={<CommandPalette />}
+                commandPalette={<CommandPaletteLazy />}
               >
                 {children}
               </SiteChrome>
