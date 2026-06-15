@@ -49,9 +49,11 @@ const nextConfig = {
     // script-src 暂保留 'unsafe-inline'：App Router 自身会注入内联 RSC 数据脚本，
     // 去掉它需要 nonce 方案，留待后续硬化。
     // 注意：未来若在文章中嵌入外部 iframe/脚本，需把对应域名加入 frame-src/script-src。
+    const isDev = process.env.NODE_ENV === "development";
     const csp = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' https://giscus.app",
+      // dev 模式下 Next.js webpack HMR 需要 unsafe-eval（react-refresh runtime）
+      `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://giscus.app`,
       "style-src 'self' 'unsafe-inline' https://giscus.app",
       "img-src 'self' data: blob: https:",
       "font-src 'self' data:",
