@@ -23,9 +23,12 @@ export function Header() {
       <Container as="nav" className="h-16 flex items-center justify-between">
         <Link
           href="/"
-          className="text-xl font-bold bg-gradient-to-r from-[var(--primary)] to-[var(--accent)] bg-clip-text text-transparent hover:from-[var(--accent)] hover:to-[var(--primary)] transition-all duration-500 hover:scale-105 active:scale-95"
+          className="text-xl font-bold transition-all duration-500 hover:scale-105 active:scale-95 inline-flex items-baseline"
         >
-          {profile?.name ?? "微观AI"}<span className="animate-terminal-blink ml-0.5 font-mono text-[var(--neon-cyan)]">_</span>
+          <span className="bg-gradient-to-r from-[var(--primary)] to-[var(--accent)] bg-clip-text text-transparent hover:from-[var(--accent)] hover:to-[var(--primary)] transition-all duration-500">
+            {profile?.name ?? "微观AI"}
+          </span>
+          <span className="animate-terminal-blink ml-0.5 font-mono text-[var(--neon-cyan)]">_</span>
         </Link>
 
         <div className="hidden md:flex items-center gap-1">
