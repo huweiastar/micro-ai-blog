@@ -33,6 +33,12 @@
     --warning: #d946ef;
     --danger: #ef4444;
     --info: #3b82f6;
+    --neon-cyan: #06b6d4;
+    --neon-purple: #a78bfa;
+    --terminal-bg: #161b22;
+    --terminal-border: #30363d;
+    --terminal-text: #8b949e;
+    --cyber-grid-color: rgba(99, 102, 241, 0.10);
   }
 
   .dark {
@@ -55,6 +61,9 @@
     --warning: #e879f9;
     --danger: #f87171;
     --info: #60a5fa;
+    --neon-cyan: #22d3ee;
+    --neon-purple: #c4b5fd;
+    --cyber-grid-color: rgba(129, 140, 248, 0.12);
   }
 
   body {
@@ -584,6 +593,32 @@
   .ripple-ring-3 {
     animation: ripple-expand 700ms ease-out 200ms forwards;
   }
+
+  /* 终端光标闪烁 */
+  .animate-terminal-blink {
+    animation: terminal-blink 1s step-end infinite;
+  }
+
+  /* 赛博网格覆盖层（仅在父元素 position:relative 下有效） */
+  .cyber-grid {
+    background-image:
+      linear-gradient(var(--cyber-grid-color) 1px, transparent 1px),
+      linear-gradient(90deg, var(--cyber-grid-color) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+
+  /* 滚动揭入动效：初始状态 */
+  .reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+
+  /* 滚动揭入动效：进入视口后 */
+  .reveal.reveal-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes blob {
@@ -831,4 +866,9 @@
 .animate-gradient {
   background-size: 200% 200%;
   animation: gradient-shift 3s ease infinite;
+}
+
+@keyframes terminal-blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
 }
