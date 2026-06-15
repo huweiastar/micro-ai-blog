@@ -97,10 +97,19 @@ export function HomeClient({ stats, columns, initialVisits }: HomeClientProps) {
       >
         <ParticleNetwork mousePos={mousePos} />
 
-        {/* Subtle gradient overlay for readability */}
+        {/* 赛博网格遮罩（暗色下加强层次感） */}
+        <div className="absolute inset-0 cyber-grid opacity-0 dark:opacity-100 pointer-events-none" />
+
+        {/* 渐变遮罩：保证文字可读性 */}
         <div className="absolute inset-0 bg-[var(--background)]/50 pointer-events-none" />
 
         <div className="relative z-10 text-center px-4 sm:px-6 max-w-4xl mx-auto">
+          {/* 终端风格 Badge */}
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[var(--neon-purple)]/40 bg-[var(--neon-purple)]/10 px-3 py-1.5 text-[10px] font-mono tracking-widest text-[var(--neon-purple)] animate-fade-in-up">
+            <span className="h-1.5 w-1.5 rounded-full bg-[var(--neon-purple)] animate-pulse" />
+            MICRO-AI BLOG · ONLINE
+          </div>
+
           {/* Avatar */}
           <AvatarDisplay />
 
@@ -110,8 +119,9 @@ export function HomeClient({ stats, columns, initialVisits }: HomeClientProps) {
             </span>
           </h1>
 
-          <p className="text-base sm:text-lg text-[var(--muted)] max-w-2xl mx-auto leading-relaxed mb-8 animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
-            大数据研发工程师 · 探索大数据与大模型技术
+          <p className="font-mono text-sm text-[var(--neon-cyan)] max-w-2xl mx-auto mb-8 animate-fade-in-up tracking-wider" style={{ animationDelay: "0.2s" }}>
+            <span className="text-[var(--neon-purple)] mr-1 select-none">$</span>
+            大数据研发工程师 · LLM · Agent · 量化投资
           </p>
 
           <div className="flex justify-center gap-3 mb-10 animate-fade-in-up" style={{ animationDelay: "0.4s" }}>
@@ -153,13 +163,21 @@ export function HomeClient({ stats, columns, initialVisits }: HomeClientProps) {
             className="glass mx-auto grid max-w-3xl grid-cols-3 overflow-hidden rounded-2xl border border-[var(--card-border)] divide-x divide-y divide-[var(--card-border)] sm:grid-cols-6 sm:divide-y-0 animate-fade-in-up"
             style={{ animationDelay: "0.8s" }}
           >
-            {statItems.map((item) => (
+            {statItems.map((item, idx) => (
               <div
                 key={item.label}
                 className="group/stat relative px-2 py-4 text-center transition-colors hover:bg-[var(--primary)]/[0.04]"
               >
                 <item.icon className="mx-auto mb-2 h-4 w-4 text-[var(--muted)] transition-colors group-hover/stat:text-[var(--primary)]" />
-                <div className="bg-gradient-to-r from-[var(--primary)] to-[var(--accent)] bg-clip-text font-mono text-xl font-bold tabular-nums text-transparent sm:text-2xl">
+                <div
+                  className="font-mono text-xl font-bold tabular-nums sm:text-2xl"
+                  style={{
+                    color: idx % 2 === 0 ? "var(--neon-purple)" : "var(--neon-cyan)",
+                    textShadow: idx % 2 === 0
+                      ? "0 0 12px rgba(167,139,250,0.6)"
+                      : "0 0 12px rgba(6,182,212,0.6)",
+                  }}
+                >
                   {item.value}
                 </div>
                 <div className="mt-1 text-[10px] uppercase tracking-[0.12em] text-[var(--muted)]">
