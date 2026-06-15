@@ -11,6 +11,7 @@ import rehypePrettyCode from "rehype-pretty-code";
 import { rehypeCallouts } from "./rehype-callouts";
 import { rehypeMark } from "./rehype-mark";
 import { rehypeContentEnhance } from "./rehype-content-enhance";
+import { rehypeCodeHeader } from "./rehype-code-header";
 import readingTime from "reading-time";
 import { countWords } from "./word-count";
 import Slugger from "github-slugger";
@@ -275,6 +276,8 @@ export async function renderMarkdownToHtml(content: string): Promise<string> {
       theme: "github-dark",
       keepBackground: false,
     })
+    // 在 pretty-code 之后预渲染代码块工具条，保证 SSR 与客户端 DOM 一致（消除水合不匹配）
+    .use(rehypeCodeHeader)
     .use(rehypeStringify, { allowDangerousHtml: true })
     .process(safeContent);
 
