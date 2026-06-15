@@ -7,6 +7,7 @@ import { getAboutProfile } from "../lib/about";
 import { HomeClient } from "./page.client";
 import { BlogCard } from "../components/BlogCard";
 import { ProjectCard } from "../components/ProjectCard";
+import { RevealList } from "../components/RevealList";
 import { Section } from "../components/ui/Section";
 import { StructuredData } from "../components/StructuredData";
 import type { Metadata } from "next";
@@ -58,11 +59,11 @@ export default function HomePage() {
 
       {/* Latest Posts */}
       <Section title="最新文章" moreHref="/blog" className="mb-20">
-        <div className="grid gap-6">
+        <RevealList className="grid gap-6">
           {posts.map((post) => (
             <BlogCard key={post.slug} post={post} />
           ))}
-        </div>
+        </RevealList>
       </Section>
 
       {/* Featured Projects */}
