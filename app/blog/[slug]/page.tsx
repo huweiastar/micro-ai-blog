@@ -6,7 +6,6 @@ import { Comment } from "../../../components/Comment";
 import { Tag } from "../../../components/Tag";
 import { ShareButtons } from "../../../components/blog/ShareButtons";
 import { PostMeta } from "../../../components/blog/PostMeta";
-import { BackToTop } from "../../../components/ui/BackToTop";
 import { ReadingProgress } from "../../../components/ui/ReadingProgress";
 import { ViewCount } from "../../../components/ViewCount";
 import { generatePageMetadata, generateArticleStructuredData, generateBreadcrumbStructuredData, getSiteUrl } from "../../../lib/seo";
@@ -151,7 +150,6 @@ export default async function PostPage({ params }: PostPageProps) {
           <Comment slug={post.slug} title={post.title} />
         </ArticleLayout>
       </Container>
-      <BackToTop />
     </>
   );
 }
