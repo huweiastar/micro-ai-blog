@@ -177,3 +177,15 @@ export function generateWebsiteStructuredData(): Record<string, unknown> {
 export function getRssFeedUrl(): string {
   return `${siteConfig.url}/rss.xml`;
 }
+
+/** 取文章集合中最新的 updated/date，用于站点级 lastModified；空集合回退到传入的当前时间。 */
+export function latestContentDate(
+  posts: { date: string; updated?: string }[],
+  fallback: Date = new Date(),
+): Date {
+  const times = posts
+    .map((p) => new Date(p.updated || p.date).getTime())
+    .filter((t) => !Number.isNaN(t));
+  if (times.length === 0) return fallback;
+  return new Date(Math.max(...times));
+}

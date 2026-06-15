@@ -1,54 +1,53 @@
 import { getAllPostsSync } from "../lib/posts";
-import { getSiteUrl } from "../lib/seo";
+import { getSiteUrl, latestContentDate } from "../lib/seo";
 import type { MetadataRoute } from "next";
-
-// Build date — only changes when the site is rebuilt
-const BUILD_DATE = new Date().toISOString();
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const posts = getAllPostsSync();
   const siteUrl = getSiteUrl();
+  // 列表/静态页的 lastModified 取最新文章日期，比"构建时间"更贴近实际内容变更。
+  const lastContent = latestContentDate(posts);
 
   return [
     {
       url: siteUrl,
-      lastModified: BUILD_DATE,
+      lastModified: lastContent,
       changeFrequency: "daily",
       priority: 1,
     },
     {
       url: `${siteUrl}/blog`,
-      lastModified: BUILD_DATE,
+      lastModified: lastContent,
       changeFrequency: "daily",
       priority: 0.8,
     },
     {
       url: `${siteUrl}/tags`,
-      lastModified: BUILD_DATE,
+      lastModified: lastContent,
       changeFrequency: "weekly",
       priority: 0.7,
     },
     {
       url: `${siteUrl}/categories`,
-      lastModified: BUILD_DATE,
+      lastModified: lastContent,
       changeFrequency: "weekly",
       priority: 0.7,
     },
     {
       url: `${siteUrl}/archive`,
-      lastModified: BUILD_DATE,
+      lastModified: lastContent,
       changeFrequency: "weekly",
       priority: 0.6,
     },
     {
       url: `${siteUrl}/projects`,
-      lastModified: BUILD_DATE,
+      lastModified: lastContent,
       changeFrequency: "monthly",
       priority: 0.7,
     },
     {
       url: `${siteUrl}/about`,
-      lastModified: BUILD_DATE,
+      lastModified: lastContent,
       changeFrequency: "monthly",
       priority: 0.5,
     },
