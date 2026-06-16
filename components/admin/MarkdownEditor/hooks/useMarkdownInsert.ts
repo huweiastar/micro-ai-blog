@@ -4,7 +4,7 @@ import { RefObject, useCallback } from "react";
 import { applyMarkdownInsert } from "../utils";
 
 export function useMarkdownInsert(
-  textareaRef: RefObject<HTMLTextAreaElement>,
+  textareaRef: RefObject<HTMLTextAreaElement | null>,
   value: string,
   onChange: (next: string) => void,
 ) {

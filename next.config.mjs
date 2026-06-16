@@ -19,9 +19,8 @@ const s3Host = process.env.S3_PUBLIC_BASE_URL
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    serverComponentsExternalPackages: ["better-sqlite3"],
-  },
+  // Next 15 起从 experimental 转正为顶层配置。
+  serverExternalPackages: ["better-sqlite3"],
   // 构建输出目录可通过 NEXT_DIST_DIR 覆盖，用于蓝绿部署（先构建到 staging 目录，
   // 再原子切换），避免在"线上正在使用的 .next"上原地重建导致页面崩坏。
   distDir: process.env.NEXT_DIST_DIR || ".next",
