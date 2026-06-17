@@ -1,0 +1,257 @@
+---
+title: "MCP 是什么？从概念到 Python 实战的完全入门指南"
+date: "2026-06-18"
+updated: "2026-06-18"
+summary: "一篇写给完全新手的 MCP（Model Context Protocol）教程：讲清架构与三大原语，并手把手带你接入现成 server、用 Python 从零写一个 MCP server。"
+tags: ["MCP", "Model Context Protocol", "LLM", "Agent", "Python"]
+category: "大模型应用工程"
+draft: false
+---
+
+如果你给大模型接过外部工具，多半踩过同一个坑：每换一个模型、每加一个数据源，集成代码就得重写一遍。MCP（Model Context Protocol，模型上下文协议）就是来解决这件事的。它由 Anthropic 在 2024 年 11 月开源，到 2025 年底已经成了大模型连接外部世界的事实标准。
+
+这篇文章假设你完全没接触过 MCP，但了解大模型和 API 的基本概念。读完你会明白 MCP 到底是什么、它的架构长什么样，并且能亲手接入一个现成的 server，再用 Python 写出自己的第一个 MCP server。
+
+> [!NOTE]
+> **本文要点**
+> - MCP 是连接大模型与外部工具/数据的开放协议，被称为「AI 应用的 USB-C 接口」。
+> - 截至 2025 年 12 月，Anthropic 报告生态中已有超过 10,000 个公开 MCP server（[Anthropic](https://www.anthropic.com)，2025）。
+> - 核心是三大服务端原语：Tools（工具）、Resources（资源）、Prompts（提示词模板）。
+> - 用 Python 的 FastMCP，几十行代码就能写出一个能被 Claude 调用的 server。
+
+## MCP 是什么？为什么需要它？
+
+MCP 是一个开放协议，用统一的方式让大模型应用连接外部的工具和数据源。在 2026 年，MCP 生态的公开 server 数量已超过一万个，被 OpenAI、Google 等主流厂商先后采纳（[Anthropic](https://www.anthropic.com)，2025），从一家公司的提案变成了跨厂商的通用标准。
+
+它要解决的是「M×N 集成难题」。假设你有 M 个大模型应用，要接 N 个数据源（数据库、文件系统、GitHub、Slack……）。没有统一协议时，每个应用都得为每个数据源单独写一套对接代码，总共 M×N 套。这些代码彼此不能复用，换个模型就得推倒重来。
+
+MCP 把这件事变成了 M+N。每个应用只需实现一次 MCP 客户端，每个数据源只需实现一次 MCP server，两边就能即插即用。这正是它被反复类比成 USB-C 的原因：以前每种设备一根专用线，现在一个接口通吃。
+
+> **一个好用的类比：** 如果你写过代码编辑器插件，MCP 之于 AI 工具，就像 LSP（Language Server Protocol）之于编辑器。LSP 让一个语言服务器服务于所有编辑器；MCP 让一个工具 server 服务于所有 AI 应用。同一个抽象思路，换了个领域。
+
+为什么是 2024 年底才出现？因为在那之前，大模型的「工具调用」能力刚刚成熟，但每家厂商的接法都不一样。MCP 出现的时机，正好卡在「模型已经会用工具，但没人统一怎么喂工具」的空档上。它没有发明新的能力，而是给一个已经混乱的事情定了规矩。
+
+## MCP 的核心架构长什么样？
+
+MCP 采用经典的客户端-服务端架构，但有三个角色：Host（宿主）、Client（客户端）、Server（服务端）。一个 Host 内部会为每个连接的 server 各创建一个 Client，每个 Client 维护一条独立连接（[modelcontextprotocol.io](https://modelcontextprotocol.io)，2026）。理解这三者的分工，是看懂 MCP 的关键。
+
+- **Host（宿主）**：你实际在用的 AI 应用，比如 Claude Desktop、Claude Code、Cursor、VS Code。它负责协调和管理多个 Client。
+- **Client（客户端）**：Host 内部的连接器组件。每连一个 server，就实例化一个 Client，一一对应。
+- **Server（服务端）**：真正提供能力的程序，对外暴露工具、资源或提示词。它可以跑在本地，也可以跑在远端。
+
+这里有个新手常困惑的点：**「MCP server」指的是「提供上下文的那个程序」，跟它跑在哪没关系**。Claude Desktop 在你本机启动的文件系统 server 是 server，Sentry 部署在云上的也是 server。区别只在用哪种传输方式连接。
+
+<figure className="chart-container" style={{margin: '2.5rem 0', textAlign: 'center'}}>
+  <svg viewBox="0 0 600 300" role="img" aria-label="MCP 架构图：一个 Host 内含多个 Client，分别连接到本地和远程的 MCP Server" xmlns="http://www.w3.org/2000/svg">
+    <rect x="20" y="40" width="240" height="220" rx="12" fill="none" stroke="#6366f1" strokeWidth="2"/>
+    <text x="140" y="65" textAnchor="middle" fill="#6366f1" fontSize="15" fontWeight="bold">Host（AI 应用）</text>
+    <rect x="50" y="90" width="180" height="34" rx="6" fill="#6366f1" opacity="0.15" stroke="#6366f1"/>
+    <text x="140" y="112" textAnchor="middle" fill="#6366f1" fontSize="13">Client 1</text>
+    <rect x="50" y="140" width="180" height="34" rx="6" fill="#6366f1" opacity="0.15" stroke="#6366f1"/>
+    <text x="140" y="162" textAnchor="middle" fill="#6366f1" fontSize="13">Client 2</text>
+    <rect x="50" y="190" width="180" height="34" rx="6" fill="#6366f1" opacity="0.15" stroke="#6366f1"/>
+    <text x="140" y="212" textAnchor="middle" fill="#6366f1" fontSize="13">Client 3</text>
+    <rect x="400" y="80" width="180" height="44" rx="8" fill="#10b981" opacity="0.15" stroke="#10b981" strokeWidth="2"/>
+    <text x="490" y="100" textAnchor="middle" fill="#10b981" fontSize="12">本地 Server</text>
+    <text x="490" y="116" textAnchor="middle" fill="#10b981" fontSize="11">文件系统（stdio）</text>
+    <rect x="400" y="150" width="180" height="44" rx="8" fill="#10b981" opacity="0.15" stroke="#10b981" strokeWidth="2"/>
+    <text x="490" y="170" textAnchor="middle" fill="#10b981" fontSize="12">本地 Server</text>
+    <text x="490" y="186" textAnchor="middle" fill="#10b981" fontSize="11">数据库（stdio）</text>
+    <rect x="400" y="210" width="180" height="44" rx="8" fill="#f59e0b" opacity="0.15" stroke="#f59e0b" strokeWidth="2"/>
+    <text x="490" y="230" textAnchor="middle" fill="#f59e0b" fontSize="12">远程 Server</text>
+    <text x="490" y="246" textAnchor="middle" fill="#f59e0b" fontSize="11">Sentry（HTTP）</text>
+    <line x1="230" y1="107" x2="400" y2="102" stroke="#94a3b8" strokeWidth="1.5"/>
+    <line x1="230" y1="157" x2="400" y2="172" stroke="#94a3b8" strokeWidth="1.5"/>
+    <line x1="230" y1="207" x2="400" y2="232" stroke="#94a3b8" strokeWidth="1.5"/>
+  </svg>
+  <figcaption style={{fontSize: '0.85rem', color: '#64748b'}}>MCP 架构：每个 Client 与一个 Server 维护一条专用连接。来源：modelcontextprotocol.io，2026</figcaption>
+</figure>
+
+底层上，MCP 分两层：**数据层**用 JSON-RPC 2.0 定义消息格式、生命周期管理和各种原语；**传输层**负责具体怎么把消息送过去。连接建立时，双方会先做一次「能力协商」握手——客户端发 `initialize` 请求，声明协议版本（如 `2025-06-18`）和自己支持的功能，服务端回应自己能提供什么。协商成功后才开始正常通信。
+
+## 三大原语：Tools、Resources、Prompts 分别是什么？
+
+MCP server 能对外暴露三种原语，按用途区分：Tools 是可执行的动作，Resources 是只读的上下文数据，Prompts 是可复用的提示词模板（[modelcontextprotocol.io](https://modelcontextprotocol.io)，2026）。新手最容易把 Tools 和 Resources 搞混，记住一句话就行：**Tools 会「做事」，Resources 只「给数据」**。
+
+| 原语 | 作用 | 类比 | 例子 |
+|------|------|------|------|
+| **Tools（工具）** | 模型可调用的可执行函数，会产生动作或副作用 | POST 请求 | 查数据库、发邮件、写文件 |
+| **Resources（资源）** | 提供只读上下文数据，给模型当背景信息 | GET 请求 | 文件内容、数据库表结构、API 返回 |
+| **Prompts（提示词）** | 可复用的交互模板，帮用户/模型组织对话 | 模板片段 | 内置的代码审查提示、few-shot 示例 |
+
+举个具体场景就清楚了。假设你写一个「数据库助手」server：可以用 **Tool** 暴露一个执行 SQL 查询的函数，用 **Resource** 暴露数据库的表结构（让模型知道有哪些表和字段），再用 **Prompt** 提供一个「如何安全写查询」的 few-shot 模板。三者配合，模型才能既懂上下文、又能动手。
+
+除了服务端原语，MCP 还定义了**客户端原语**，让 server 反过来向 Host 请求能力：`Sampling` 让 server 借用 Host 的大模型做一次推理（这样 server 自己不用集成模型 SDK，保持模型无关）；`Elicitation` 让 server 在执行动作前向用户追问或确认。新手阶段先掌握三大服务端原语，这两个等需要时再深入即可。
+
+每种原语都有配套的方法：用 `*/list`（如 `tools/list`）发现有哪些，用 `tools/call` 执行。客户端总是先「列出」再「调用」，所以你的工具列表可以是动态的——这也是 MCP 比硬编码工具更灵活的地方。
+
+> **延伸阅读：** Resources 提供的只读上下文，正是检索增强里「喂给模型的背景数据」那一类。想看它在完整系统里怎么落地，可以读本站的 [RAG 系统设计实践](/blog/rag-system-design)。
+
+## stdio 和 Streamable HTTP，两种传输方式怎么选？
+
+MCP 目前定义了两种标准传输方式：stdio 用于本地、Streamable HTTP 用于远程生产环境。两者底层都用同一套 JSON-RPC 2.0 消息格式，所以你的工具定义在本地和远程之间完全可移植（[modelcontextprotocol.io](https://modelcontextprotocol.io)，2026）。选哪个，本质上取决于 server 跑在哪、要服务几个客户端。
+
+**stdio（标准输入输出）** 是本地 server 的默认方式。Host 把 server 当子进程拉起来，通过标准输入/输出管道通信。它速度快、零网络配置、特别适合个人开发，但一个 stdio server 通常只服务一个客户端。
+
+**Streamable HTTP** 是远程、生产级 server 的标准。Server 暴露一个 HTTPS 端点，多个客户端通过网络连接，可以水平扩展，并能接入企业级认证（OAuth 2.1）。它用 HTTP POST/GET 通信，需要流式返回时再叠加 Server-Sent Events（SSE）。
+
+| 维度 | stdio | Streamable HTTP |
+|------|-------|-----------------|
+| 部署位置 | 本地（子进程） | 远程（HTTPS 端点） |
+| 客户端数量 | 通常单个 | 多个并发 |
+| 网络配置 | 零配置 | 需端点 + 认证 |
+| 认证 | 无需 | OAuth 2.1 / API Key |
+| 典型场景 | 本地开发、个人工具 | 团队共享、SaaS 集成 |
+
+简单决策：**自己本机用、给 Claude Desktop 接个小工具，选 stdio；要给团队共享、对外提供服务，选 HTTP**。本教程的实战二会用 stdio，因为它配置最省心，适合你写第一个 server。
+
+## 实战一：在 Claude Desktop / Cursor 里接入现成 server
+
+接入现成的 MCP server 不用写一行代码，只要改一个 JSON 配置文件，告诉客户端「用什么命令把这个 server 启动起来」。这是体验 MCP 最快的方式，几分钟就能让 Claude 读写你本地的文件。下面以官方的 filesystem server 为例。
+
+在 Claude Desktop 里，打开配置文件 `claude_desktop_config.json`（macOS 在 `~/Library/Application Support/Claude/` 下，Windows 在 `%APPDATA%\Claude\` 下），加入：
+
+```json
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/Users/你的用户名/Desktop"
+      ]
+    }
+  }
+}
+```
+
+这段配置的意思是：用 `npx` 启动官方 filesystem server，并授权它访问你的桌面目录。`command` + `args` 合起来就是 Host 用来拉起 server 子进程的完整命令——这正是 stdio 传输的工作方式。
+
+保存后**完全退出并重启 Claude Desktop**（不是关窗口，是退出进程）。重启后，你会在输入框看到工具图标，里面列出了 filesystem server 暴露的工具。这时你可以直接对 Claude 说「列出我桌面上的文件」，它就会通过 MCP 调用 server 完成。Cursor 的配置思路一致，只是文件位置和入口在设置面板里，格式同样是 `mcpServers` 这套结构。
+
+> [!TIP]
+> 第一次接入只授权一个无关紧要的目录（比如新建一个测试文件夹）。MCP 的工具是真能动手的——filesystem server 不仅能读，还能写和删。先在沙盒里玩熟再放开权限。
+
+## 实战二：用 Python 从零写一个 MCP server
+
+用 Python 写 MCP server，最快的路径是官方推荐的 FastMCP 框架——它用装饰器风格，自动处理参数校验、类型转换和协议细节。FastMCP 目前支撑着生态里约 70% 的 server（[gofastmcp.com](https://gofastmcp.com)，2026），是目前把自己的代码暴露给 Claude、Cursor、ChatGPT 等客户端的最简单方式。我们来写一个能查天气的玩具 server。
+
+**第一步：安装。** 官方 Python SDK 的包名就叫 `mcp`，FastMCP 已内置其中。建议用 `uv`（也可用 pip）：
+
+```bash
+# 用 uv（推荐）
+uv add "mcp[cli]"
+
+# 或者用 pip
+pip install "mcp[cli]"
+```
+
+**第二步：写 server。** 新建 `weather_server.py`。核心就是用 `@mcp.tool()` 装饰一个普通函数——FastMCP 会自动把函数签名和 docstring 转成 MCP 工具的输入 schema 和描述：
+
+```python
+from mcp.server.fastmcp import FastMCP
+
+# 给 server 起个名字
+mcp = FastMCP("Weather Server")
+
+
+@mcp.tool()
+def get_weather(city: str) -> str:
+    """查询指定城市的当前天气。
+
+    Args:
+        city: 城市名称，例如 "北京"、"上海"
+    """
+    # 真实场景这里会调用天气 API；演示先返回假数据
+    fake_db = {
+        "北京": "晴，22°C，西北风 3 级",
+        "上海": "多云，26°C，东南风 2 级",
+    }
+    return fake_db.get(city, f"暂无 {city} 的天气数据")
+
+
+@mcp.tool()
+def add(a: int, b: int) -> int:
+    """把两个整数相加并返回结果。"""
+    return a + b
+
+
+if __name__ == "__main__":
+    # 默认用 stdio 传输，给 Claude Desktop 这类本地 Host 用
+    mcp.run(transport="stdio")
+```
+
+注意三个细节：函数的**类型注解**（`city: str`）会变成工具的参数 schema，**docstring** 会变成工具描述（模型靠它判断何时调用），返回值会被自动包成 MCP 的文本内容。你写的就是一个普通 Python 函数，协议的脏活 FastMCP 全包了。
+
+**第三步：用 MCP Inspector 调试。** 先别急着接客户端。官方的 Inspector 能在浏览器里直接测你的 server，看工具列没列出来、调用通不通：
+
+```bash
+# 启动 Inspector 并加载你的 server
+npx @modelcontextprotocol/inspector uv run weather_server.py
+```
+
+它会打开一个网页，左边是连接状态，点 "Tools" 标签就能看到 `get_weather` 和 `add`，手动填参数点 "Call" 就能验证返回。**这一步是新手最该养成的习惯**——把 server 本身调通，再去排查客户端配置，能省掉大量「到底是谁的问题」的纠结。
+
+**第四步：接回 Claude Desktop。** 调通后，把它加进上一节的配置文件，命令换成你的 Python 入口：
+
+```json
+{
+  "mcpServers": {
+    "weather": {
+      "command": "uv",
+      "args": ["--directory", "/你的项目绝对路径", "run", "weather_server.py"]
+    }
+  }
+}
+```
+
+重启 Claude Desktop，对它说「北京天气怎么样」，它就会调用你刚写的 `get_weather`。恭喜——你的代码第一次被大模型自动调用了。
+
+> **踩坑提醒（来自实操）：** 配置里一定用**绝对路径**，相对路径在 Host 拉起子进程时大概率找不到文件。这是新手最常见的「server 死活连不上」原因，没有之一。
+
+## 把 MCP server 用到生产环境，要注意什么？
+
+把玩具 server 推到生产，安全是第一位的。MCP 的工具本质是「让大模型能执行的代码」，一旦暴露不当，等于把执行权交给了模型的判断。因此 2026 年企业落地 MCP 的讨论里，权限边界和认证几乎是绕不开的话题。下面是几个新手该提前知道的点。
+
+**安全与权限。** Tool 能做的事，模型就能让它做。给文件 server 授权目录时遵循最小权限；涉及写操作、删除、转账这类高危动作，配合 `Elicitation` 在执行前要求用户确认。永远不要假设模型不会调用某个工具。
+
+**stdio 的局限。** stdio server 通常只服务单个客户端，且和 Host 同机。要给多人或多应用共享，就得切到 Streamable HTTP，并加上 OAuth 2.1 之类的认证。好在传输层是可替换的，业务逻辑（你的 `@mcp.tool` 函数）基本不用改。
+
+**版本与协议兼容。** MCP 协议在持续演进（协议版本以日期标识，如 `2025-06-18`），初始化握手时会做版本协商。生产部署要锁定 SDK 版本、关注协议更新日志，避免客户端和 server 版本不匹配导致连接失败。
+
+## 常见问题
+
+### MCP 和大模型的 Function Calling 是一回事吗？
+
+不是，但相关。Function Calling 是模型「决定调用某个函数」的能力，是模型层的特性。MCP 是「如何把工具标准化地提供给模型应用」的协议，是应用层的规范。MCP 底层正是利用了模型的工具调用能力，但把工具的发现、描述、传输都标准化了，让工具能跨应用复用。
+
+### 学 MCP 必须会写代码吗？
+
+不必须。如果你只想「使用」现成的 MCP server（如实战一），只需改一个 JSON 配置文件，零代码。只有当你要「自己写」server，把私有数据或内部系统接给大模型时，才需要写代码——而用 FastMCP，几十行 Python 就够起步。
+
+### MCP 和 LangChain 这类框架是竞争关系吗？
+
+更多是互补。LangChain 是构建大模型应用的开发框架，MCP 是连接工具和数据的传输协议。你完全可以在 LangChain 应用里作为客户端去消费 MCP server。一个管「怎么编排逻辑」，一个管「怎么标准化接外部能力」，层次不同。
+
+### 一个 MCP server 可以同时支持 stdio 和 HTTP 吗？
+
+可以。由于两种传输共用同一套 JSON-RPC 消息格式和工具定义，你的业务逻辑只写一次，启动时通过 `mcp.run(transport=...)` 切换传输方式即可。本地开发用 stdio，部署上线切 HTTP，代码主体不变。
+
+## 结语
+
+MCP 的价值，一句话概括就是把大模型接外部世界的「M×N 难题」变成了「M+N」。理解了 Host / Client / Server 三角色和 Tools / Resources / Prompts 三原语，你就掌握了它的全部骨架；剩下的都是在这套骨架上填血肉。
+
+接下来怎么走？建议你：先用实战一接一个现成 server 找手感，再把实战二的天气 server 跑通、改成调用真实 API，最后尝试把你手头某个内部系统（数据库、知识库）封装成 server。动手写一个，比读十篇教程都管用。
+
+想继续深入，可以浏览本站 [大模型应用工程](/categories/大模型应用工程) 分类下的其他实战文章。
+
+---
+
+**参考来源**
+
+- Anthropic, MCP 生态更新, 检索于 2026-06-18, https://www.anthropic.com
+- Model Context Protocol, Architecture overview, 检索于 2026-06-18, https://modelcontextprotocol.io/docs/concepts/architecture
+- Model Context Protocol, Transports, 检索于 2026-06-18, https://modelcontextprotocol.io/specification
+- FastMCP, Quickstart, 检索于 2026-06-18, https://gofastmcp.com/getting-started/quickstart
+- MCP Python SDK, 检索于 2026-06-18, https://pypi.org/project/mcp/

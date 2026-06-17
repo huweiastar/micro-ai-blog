@@ -63,7 +63,8 @@ files.forEach((file) => {
       error(`${file}: tags must be an array`);
     }
 
-    if (!data.category || typeof data.category !== "string" || data.category.trim() === "") {
+    // 随手记（type: note）没有分类，仅常规文章要求 category
+    if (data.type !== "note" && (!data.category || typeof data.category !== "string" || data.category.trim() === "")) {
       error(`${file}: category is required and must be a non-empty string`);
     }
 
