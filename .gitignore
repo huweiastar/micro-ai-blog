@@ -11,6 +11,8 @@
 /.next.build/
 /.next.old/
 /.next.dev/
+/.next.next14/
+/node_modules.next14/
 /out/
 
 # production
