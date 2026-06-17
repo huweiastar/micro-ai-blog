@@ -9,6 +9,10 @@
 #   3. 切换前先做 `rm -rf` 清理，避免 webpack 缓存损坏。
 #   4. 新版本若 30s 内起不来，自动回滚到上一个版本（保存在 .next.old）。
 #   5. 构建失败则直接退出，线上原封不动。
+#   6. 用 `npm ci` 按 lockfile 精确安装，避免分支间依赖漂移（如 Next14/16 混装）。
+#   7. build 前清理跨版本残留的类型产物（.next.dev、.next/types），
+#      防止 tsconfig include 把旧版本（如 Next16）的 validator.ts 拖进类型检查。
+#      （2026-06-17 线上「排版乱了」事故的根因，见 incident 记忆）
 #
 # 用法：  ./deploy.sh
 #
@@ -28,13 +32,22 @@ cd "$APP_DIR"
 log()  { printf '\033[1;34m==>\033[0m %s\n' "$*"; }
 err()  { printf '\033[1;31m✗  %s\033[0m\n' "$*" >&2; }
 
-# --- 1. 依赖 ---
-log "安装依赖（如有变化）..."
-npm install --no-audit --no-fund
+# --- 0. 部署前提示：明确这次发布的是哪个分支/提交（防止误发其它分支）---
+BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo '?')"
+COMMIT="$(git rev-parse --short HEAD 2>/dev/null || echo '?')"
+log "准备部署：分支 $BRANCH @ $COMMIT"
+
+# --- 1. 依赖（按 lockfile 精确安装，避免分支间依赖漂移）---
+log "按 lockfile 安装依赖（npm ci）..."
+npm ci --no-audit --no-fund
 
 # --- 2. 构建到 staging 目录（线上不受影响）---
-log "清理旧的 staging 构建..."
+log "清理旧的 staging 构建与跨版本残留类型产物..."
 rm -rf "$BUILD_DIR"
+# 删除可能由别的分支（如 Next16）构建/dev 留下的类型产物：tsconfig 的 include
+# 会把这些目录里的 validator.ts 一起做类型检查，旧版本残留会让本次 build 失败。
+# 这些目录仅用于构建/类型检查，运行时不依赖，删除对线上 .next 无影响。
+rm -rf "$LIVE_DIR/types" .next.dev
 
 log "生产构建 → $BUILD_DIR（线上 $SITE_URL 全程正常）..."
 if ! NEXT_DIST_DIR="$BUILD_DIR" NEXT_PUBLIC_SITE_URL="$SITE_URL" NODE_ENV=production npm run build; then

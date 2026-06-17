@@ -45,6 +45,9 @@ next-env.d.ts
 # Playwright MCP screenshots/snapshots
 .playwright-mcp/
 
+# ad-hoc debug screenshots dropped at repo root (content images live in public/)
+/*.png
+
 # runtime data (likes counts persisted at runtime)
 /data/likes.json
 
