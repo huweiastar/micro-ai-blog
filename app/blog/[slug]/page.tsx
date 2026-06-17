@@ -1,6 +1,10 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { getAllPostsSync, getPostBySlug, getSeriesContext } from "../../../lib/posts";
+import {
+  getAllPostsSync,
+  getPostBySlug,
+  getSeriesContext,
+} from "../../../lib/posts";
 import { renderMarkdownToHtml } from "../../../lib/posts";
 import { Comment } from "../../../components/Comment";
 import { Tag } from "../../../components/Tag";
@@ -8,7 +12,12 @@ import { ShareButtons } from "../../../components/blog/ShareButtons";
 import { PostMeta } from "../../../components/blog/PostMeta";
 import { ReadingProgress } from "../../../components/ui/ReadingProgress";
 import { ViewCount } from "../../../components/ViewCount";
-import { generatePageMetadata, generateArticleStructuredData, generateBreadcrumbStructuredData, getSiteUrl } from "../../../lib/seo";
+import {
+  generatePageMetadata,
+  generateArticleStructuredData,
+  generateBreadcrumbStructuredData,
+  getSiteUrl,
+} from "../../../lib/seo";
 import { StructuredData } from "../../../components/StructuredData";
 import { ArticleLayout } from "../../../components/ArticleLayout";
 import SeriesNav from "../../../components/blog/SeriesNav";
@@ -20,7 +29,7 @@ import { ArrowLeft, StickyNote } from "lucide-react";
 import type { Metadata } from "next";
 
 interface PostPageProps {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }
 
 export function generateStaticParams() {
@@ -28,7 +37,10 @@ export function generateStaticParams() {
   return posts.map((post) => ({ slug: post.slug }));
 }
 
-export async function generateMetadata({ params }: PostPageProps): Promise<Metadata> {
+export async function generateMetadata(
+  props: PostPageProps
+): Promise<Metadata> {
+  const params = await props.params;
   const post = await getPostBySlug(params.slug);
   if (!post) return { title: "文章未找到" };
 
@@ -46,7 +58,8 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
   });
 }
 
-export default async function PostPage({ params }: PostPageProps) {
+export default async function PostPage(props: PostPageProps) {
+  const params = await props.params;
   const post = await getPostBySlug(params.slug);
   if (!post) notFound();
 
@@ -59,7 +72,12 @@ export default async function PostPage({ params }: PostPageProps) {
     { name: "首页", url: siteUrl },
     { name: "博客", url: `${siteUrl}/blog` },
     ...(post.category
-      ? [{ name: post.category, url: `${siteUrl}/categories/${encodeURIComponent(post.category)}` }]
+      ? [
+          {
+            name: post.category,
+            url: `${siteUrl}/categories/${encodeURIComponent(post.category)}`,
+          },
+        ]
       : []),
     { name: post.title, url: postUrl },
   ]);
@@ -77,10 +95,10 @@ export default async function PostPage({ params }: PostPageProps) {
           backLink={
             <Link
               href={post.type === "note" ? "/notes" : "/blog"}
-              className="inline-flex items-center justify-center w-9 h-9 rounded-full border border-[var(--card-border)] text-[var(--muted)] hover:text-[var(--primary)] hover:border-[var(--primary)]/50 hover:shadow-[var(--primary)]/10 hover:shadow-md transition-all duration-200 group"
+              className="hover:border-[var(--primary)]/50 hover:shadow-[var(--primary)]/10 group inline-flex h-9 w-9 items-center justify-center rounded-full border border-[var(--card-border)] text-[var(--muted)] transition-all duration-200 hover:text-[var(--primary)] hover:shadow-md"
               title={post.type === "note" ? "返回随手记" : "返回博客列表"}
             >
-              <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
+              <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
             </Link>
           }
         >
@@ -90,23 +108,27 @@ export default async function PostPage({ params }: PostPageProps) {
               <img
                 src={post.cover}
                 alt={post.title}
-                className="w-full h-56 sm:h-72 object-cover"
+                className="h-56 w-full object-cover sm:h-72"
               />
             </div>
           )}
           <header className="mb-8">
             {post.type === "note" ? (
               // 随手记没有真正的标题（自动取自首行），详情页只标注类型，避免与正文首行重复
-              <div className="mb-4 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-sky-500/10 text-sky-500 dark:text-sky-400 text-sm">
-                <StickyNote className="w-4 h-4" />
+              <div className="mb-4 inline-flex items-center gap-1.5 rounded-full bg-sky-500/10 px-2.5 py-1 text-sm text-sky-500 dark:text-sky-400">
+                <StickyNote className="h-4 w-4" />
                 随手记
               </div>
             ) : (
-              <h1 className="text-3xl sm:text-4xl font-bold mb-4">{post.title}</h1>
+              <h1 className="mb-4 text-3xl font-bold sm:text-4xl">
+                {post.title}
+              </h1>
             )}
 
             {post.summary && post.summary !== post.title && (
-              <p className="text-[var(--muted)] mb-6 leading-relaxed">{post.summary}</p>
+              <p className="mb-6 leading-relaxed text-[var(--muted)]">
+                {post.summary}
+              </p>
             )}
 
             <PostMeta
@@ -119,7 +141,7 @@ export default async function PostPage({ params }: PostPageProps) {
               <ViewCount path={currentPath} />
             </PostMeta>
 
-            <div className="flex flex-wrap gap-2 mt-4">
+            <div className="mt-4 flex flex-wrap gap-2">
               {post.tags.map((tag) => (
                 <Tag key={tag} name={tag} />
               ))}

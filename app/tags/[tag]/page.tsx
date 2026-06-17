@@ -8,14 +8,15 @@ import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 
 interface TagPageProps {
-  params: { tag: string };
+  params: Promise<{ tag: string }>;
 }
 
 export function generateStaticParams() {
   return getAllTags().map((t) => ({ tag: t.name }));
 }
 
-export async function generateMetadata({ params }: TagPageProps): Promise<Metadata> {
+export async function generateMetadata(props: TagPageProps): Promise<Metadata> {
+  const params = await props.params;
   const tag = decodeURIComponent(params.tag);
   return generatePageMetadata({
     title: tag,
@@ -23,7 +24,8 @@ export async function generateMetadata({ params }: TagPageProps): Promise<Metada
   });
 }
 
-export default function TagDetailPage({ params }: TagPageProps) {
+export default async function TagDetailPage(props: TagPageProps) {
+  const params = await props.params;
   const tag = decodeURIComponent(params.tag);
   const posts = getPostsByTag(tag);
 
@@ -33,14 +35,14 @@ export default function TagDetailPage({ params }: TagPageProps) {
     <Container className="py-12">
       <Link
         href="/tags"
-        className="inline-flex items-center justify-center w-9 h-9 rounded-full border border-[var(--card-border)] text-[var(--muted)] hover:text-[var(--primary)] hover:border-[var(--primary)]/50 hover:shadow-[var(--primary)]/10 hover:shadow-md transition-all duration-200 mb-6 group"
+        className="hover:border-[var(--primary)]/50 hover:shadow-[var(--primary)]/10 group mb-6 inline-flex h-9 w-9 items-center justify-center rounded-full border border-[var(--card-border)] text-[var(--muted)] transition-all duration-200 hover:text-[var(--primary)] hover:shadow-md"
         aria-label="返回标签列表"
       >
-        <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
+        <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
       </Link>
 
-      <h1 className="text-3xl font-bold mb-2">{tag}</h1>
-      <p className="text-[var(--muted)] text-sm mb-8">
+      <h1 className="mb-2 text-3xl font-bold">{tag}</h1>
+      <p className="mb-8 text-sm text-[var(--muted)]">
         共 {posts.length} 篇文章
       </p>
 
