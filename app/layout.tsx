@@ -7,6 +7,7 @@ import { BackToTop } from "../components/ui/BackToTop";
 import { ClickRipple } from "../components/ui/ClickEffect";
 import { AssistantLauncher } from "../components/assistant/AssistantLauncher";
 import { AppearancePanel } from "../components/AppearancePanel";
+import { DesktopPet } from "../components/DesktopPet";
 import { SiteChrome } from "../components/SiteChrome";
 import { CommandPaletteLazy } from "../components/CommandPalette.lazy";
 import { ThemeConfigProvider } from "../components/ThemeContext";
@@ -122,6 +123,7 @@ export default function RootLayout({
               <CodeCopyButton />
               <ImageZoom />
               <AppearancePanel />
+              <DesktopPet />
             </ThemeConfigProvider>
           </ProfileProvider>
         </ThemeProvider>

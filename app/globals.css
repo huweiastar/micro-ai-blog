@@ -774,3 +774,21 @@
   0%, 100% { opacity: 1; }
   50%       { opacity: 0; }
 }
+
+/* 桌面宠物：待机轻浮动 + 点击蹦跳。reduced-motion 下由全局规则降级。 */
+@keyframes pet-bob {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+.pet-bob {
+  animation: pet-bob 3.2s ease-in-out infinite;
+}
+@keyframes pet-jump {
+  0%   { transform: translateY(0) scale(1); }
+  30%  { transform: translateY(-16px) scale(1.06, 0.94); }
+  60%  { transform: translateY(0) scale(0.96, 1.04); }
+  100% { transform: translateY(0) scale(1); }
+}
+.pet-jump {
+  animation: pet-jump 0.5s ease-out;
+}
