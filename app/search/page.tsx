@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { SearchBox } from "../../components/SearchBox";
+import { Container } from "../../components/ui/Container";
 import { generatePageMetadata } from "../../lib/seo";
 import type { SearchItem } from "../../lib/posts";
 import type { Metadata } from "next";
@@ -22,9 +23,9 @@ export default function SearchPage() {
   const index = getSearchIndex();
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12">
+    <Container size="prose" className="py-12">
       <h1 className="text-3xl font-bold mb-8">搜索文章</h1>
       <SearchBox index={index} />
-    </div>
+    </Container>
   );
 }

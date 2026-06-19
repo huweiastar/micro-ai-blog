@@ -20,6 +20,7 @@ import {
 } from "../../../lib/seo";
 import { StructuredData } from "../../../components/StructuredData";
 import { ArticleLayout } from "../../../components/ArticleLayout";
+import { ArticleRail } from "../../../components/blog/ArticleRail";
 import SeriesNav from "../../../components/blog/SeriesNav";
 import { BookmarkButton } from "../../../components/blog/BookmarkButton";
 import { LikeButton } from "../../../components/blog/LikeButton";
@@ -89,9 +90,15 @@ export default async function PostPage(props: PostPageProps) {
       <StructuredData data={breadcrumbData} />
       <ReadingProgress />
       <ReadingPosition slug={post.slug} />
-      <Container className="py-12">
+      <Container size="wide" className="py-12">
         <ArticleLayout
           tocItems={post.toc}
+          rail={
+            <ArticleRail
+              readingTime={post.readingTime}
+              wordCount={post.wordCount}
+            />
+          }
           backLink={
             <Link
               href={post.type === "note" ? "/notes" : "/blog"}

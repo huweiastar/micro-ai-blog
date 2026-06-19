@@ -3,7 +3,9 @@
 import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { ParticleNetwork } from "../components/ui/ParticleNetwork";
+import { Container } from "../components/ui/Container";
 import { AvatarDisplay } from "../components/ui/AvatarDisplay";
+import { CountUp } from "../components/ui/CountUp";
 import { useProfile } from "../components/ProfileProvider.client";
 import { Github, Mail, ArrowRight, Layers, FileText, BookOpen, FolderGit2, Eye, Users } from "lucide-react";
 import { getCategoryStyle } from "../lib/category-style";
@@ -77,48 +79,65 @@ export function HomeClient({ stats, columns, initialVisits }: HomeClientProps) {
   // 名字下方的一句话标语，同样在后台「关于我」可配置
   const tagline = profile?.tagline ?? "";
 
-  const wordsDisplay =
-    stats.totalWords > 10000 ? `${(stats.totalWords / 10000).toFixed(1)}万` : `${stats.totalWords}`;
+  const intFormat = (n: number) => Math.round(n).toLocaleString();
+  const wordsFormat = (n: number) =>
+    n > 10000 ? `${(n / 10000).toFixed(1)}万` : `${Math.round(n)}`;
 
   const statItems = [
-    { icon: FileText, value: `${stats.postCount}`, label: "文章" },
-    { icon: Layers, value: `${stats.columnCount}`, label: "专栏" },
-    { icon: FolderGit2, value: `${stats.projectCount}`, label: "项目" },
-    { icon: BookOpen, value: wordsDisplay, label: "字数" },
-    { icon: Eye, value: visitStats.pv.toLocaleString(), label: "访问量" },
-    { icon: Users, value: visitStats.uv.toLocaleString(), label: "访客" },
+    { icon: FileText, value: stats.postCount, format: intFormat, label: "文章" },
+    { icon: Layers, value: stats.columnCount, format: intFormat, label: "专栏" },
+    { icon: FolderGit2, value: stats.projectCount, format: intFormat, label: "项目" },
+    { icon: BookOpen, value: stats.totalWords, format: wordsFormat, label: "字数" },
+    { icon: Eye, value: visitStats.pv, format: intFormat, label: "访问量" },
+    { icon: Users, value: visitStats.uv, format: intFormat, label: "访客" },
   ];
 
   return (
     <>
       {/* Hero Section with Particle Background */}
       <section
-        className="relative min-h-[70vh] flex items-center justify-center overflow-hidden"
+        className="relative min-h-[58vh] flex items-center justify-center overflow-hidden py-16"
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
       >
         <ParticleNetwork mousePos={mousePos} />
 
-        {/* 渐变遮罩：保证文字可读性 */}
-        <div className="absolute inset-0 bg-[var(--background)]/50 pointer-events-none" />
+        {/* 放射状遮罩：中央偏浓护住文字可读性，周缘渐隐让粒子在外圈尽情呼吸，避免整片平板灰蒙 */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(ellipse 70% 60% at 50% 45%, var(--background) 0%, color-mix(in srgb, var(--background) 55%, transparent) 45%, transparent 80%)",
+          }}
+        />
 
         <div className="relative z-10 text-center px-4 sm:px-6 max-w-4xl mx-auto">
           {/* Avatar */}
-          <AvatarDisplay />
+          <div className="animate-fade-in-scale">
+            <AvatarDisplay />
+          </div>
 
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 mt-6 animate-fade-in-up">
-            <span className="bg-gradient-to-r from-[var(--primary)] via-[var(--accent)] to-[var(--primary)] bg-clip-text text-transparent animate-gradient bg-[length:200%_200%]">
+          <h1 className="hero-title-halo text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 mt-6 animate-fade-in-up" style={{ animationDelay: "0.08s" }}>
+            <span className="bg-gradient-to-r from-[var(--primary)] via-[var(--accent)] to-[var(--primary)] bg-clip-text text-transparent">
               {profile?.name ?? "微观AI"}
             </span>
           </h1>
 
           {tagline && (
-            <p className="text-base sm:text-lg text-[var(--muted)] max-w-2xl mx-auto mb-8 animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
+            <p className="text-base sm:text-lg text-[var(--muted)] max-w-2xl mx-auto mb-8 animate-fade-in-up" style={{ animationDelay: "0.16s" }}>
               {tagline}
             </p>
           )}
 
-          <div className="flex justify-center gap-3 mb-10 animate-fade-in-up" style={{ animationDelay: "0.4s" }}>
+          <div className="flex flex-wrap justify-center gap-3 mb-10 animate-fade-in-up" style={{ animationDelay: "0.24s" }}>
+            <Link
+              href="/blog"
+              className="group inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[var(--primary)] to-[var(--accent)] px-5 py-2.5 text-sm font-medium text-white shadow-lg shadow-[var(--glow-primary)]/30 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[var(--glow-primary)]/50"
+            >
+              <BookOpen className="w-4 h-4" />
+              阅读文章
+              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+            </Link>
             <a
               href={socialLinks.github}
               target="_blank"
@@ -139,7 +158,7 @@ export function HomeClient({ stats, columns, initialVisits }: HomeClientProps) {
 
           {/* Tech Tags */}
           {techTags.length > 0 && (
-            <div className="flex flex-wrap justify-center gap-3 mb-12 animate-fade-in-up" style={{ animationDelay: "0.6s" }}>
+            <div className="flex flex-wrap justify-center gap-3 mb-12 animate-fade-in-up" style={{ animationDelay: "0.32s" }}>
               {techTags.map((tag, i) => (
                 <div
                   key={tag.name + i}
@@ -155,7 +174,7 @@ export function HomeClient({ stats, columns, initialVisits }: HomeClientProps) {
           {/* Stats — 数据概览面板 */}
           <div
             className="glass mx-auto grid max-w-3xl grid-cols-3 gap-px overflow-hidden rounded-2xl border border-[var(--card-border)] bg-[var(--card-border)] sm:grid-cols-6 animate-fade-in-up"
-            style={{ animationDelay: "0.8s" }}
+            style={{ animationDelay: "0.4s" }}
           >
             {statItems.map((item) => (
               <div
@@ -163,8 +182,8 @@ export function HomeClient({ stats, columns, initialVisits }: HomeClientProps) {
                 className="group/stat relative flex flex-col items-center bg-[var(--card)] px-2 py-5 text-center transition-colors hover:bg-[var(--primary)]/[0.06]"
               >
                 <item.icon className="mb-2 h-4 w-4 text-[var(--muted)] transition-colors group-hover/stat:text-[var(--primary)]" />
-                <div className="text-xl font-bold tabular-nums text-[var(--foreground)] transition-colors group-hover/stat:text-[var(--primary)] sm:text-2xl">
-                  {item.value}
+                <div className="font-mono text-xl font-bold tabular-nums text-[var(--foreground)] transition-colors group-hover/stat:text-[var(--primary)] sm:text-2xl">
+                  <CountUp value={item.value} format={item.format} />
                 </div>
                 <div className="mt-1 text-[11px] text-[var(--muted)]">
                   {item.label}
@@ -176,7 +195,7 @@ export function HomeClient({ stats, columns, initialVisits }: HomeClientProps) {
       </section>
 
       {/* Column Themes */}
-      <section className="max-w-5xl mx-auto px-4 sm:px-6 mb-20">
+      <Container as="section" className="mt-10 mb-20 sm:mt-16">
         <div className="flex items-center justify-between mb-8">
           <h2 className="text-2xl font-bold">专栏主题</h2>
           <Link
@@ -186,45 +205,52 @@ export function HomeClient({ stats, columns, initialVisits }: HomeClientProps) {
             查看全部 <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {columns.slice(0, 8).map((theme) => {
-            const style = getCategoryStyle(theme.name);
-            const Icon = style.icon;
-            const grad = `linear-gradient(135deg, ${style.gradient[0]}, ${style.gradient[1]})`;
+        {columns.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-[var(--card-border)] bg-[var(--card)] px-6 py-12 text-center">
+            <Layers className="mx-auto mb-3 h-8 w-8 text-[var(--muted)]/60" />
+            <p className="text-sm text-[var(--muted)]">暂无专栏主题，敬请期待。</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+            {columns.slice(0, 8).map((theme) => {
+              const style = getCategoryStyle(theme.name);
+              const Icon = style.icon;
+              const grad = `linear-gradient(135deg, ${style.gradient[0]}, ${style.gradient[1]})`;
 
-            return (
-              <Link
-                key={theme.name}
-                href={`/categories/${encodeURIComponent(theme.name)}`}
-                style={{ "--cat": style.accent } as React.CSSProperties}
-                className="group relative overflow-hidden rounded-xl border border-[var(--card-border)] bg-[var(--card)] p-5 transition-all duration-300 hover:-translate-y-1 hover:border-[var(--cat)] hover:shadow-[0_14px_32px_-14px_var(--cat)]"
-              >
-                {/* Top accent bar */}
-                <div className="absolute inset-x-0 top-0 h-1 opacity-90" style={{ background: grad }} />
-                {/* Corner glow on hover */}
-                <div
-                  className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-0 blur-2xl transition-opacity duration-300 group-hover:opacity-30"
-                  style={{ background: style.accent }}
-                />
-                <div className="relative z-10">
-                  <div className="mb-3 flex items-center gap-3">
-                    <div
-                      className="flex h-10 w-10 items-center justify-center rounded-xl shadow-sm transition-transform duration-300 group-hover:scale-105"
-                      style={{ background: grad }}
-                    >
-                      <Icon className="h-5 w-5 text-white" />
+              return (
+                <Link
+                  key={theme.name}
+                  href={`/categories/${encodeURIComponent(theme.name)}`}
+                  style={{ "--cat": style.gradient[0] } as React.CSSProperties}
+                  className="group relative overflow-hidden rounded-xl border border-[var(--card-border)] bg-[var(--card)] p-5 transition-all duration-300 hover:-translate-y-1 hover:border-[var(--cat)] hover:shadow-[0_14px_32px_-14px_var(--cat)]"
+                >
+                  {/* Top accent bar */}
+                  <div className="absolute inset-x-0 top-0 h-1 opacity-90" style={{ background: grad }} />
+                  {/* Corner glow on hover — 与顶栏取同一起始色，避免色彩割裂 */}
+                  <div
+                    className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-0 blur-2xl transition-opacity duration-300 group-hover:opacity-30"
+                    style={{ background: style.gradient[0] }}
+                  />
+                  <div className="relative z-10">
+                    <div className="mb-3 flex items-center gap-3">
+                      <div
+                        className="flex h-10 w-10 items-center justify-center rounded-xl shadow-sm transition-transform duration-300 group-hover:scale-105"
+                        style={{ background: grad }}
+                      >
+                        <Icon className="h-5 w-5 text-white" />
+                      </div>
+                      <h3 className="font-semibold transition-colors group-hover:text-[var(--cat)]">
+                        {theme.name}
+                      </h3>
                     </div>
-                    <h3 className="font-semibold transition-colors group-hover:text-[var(--cat)]">
-                      {theme.name}
-                    </h3>
+                    <p className="text-sm leading-relaxed text-[var(--muted)]">{theme.desc}</p>
                   </div>
-                  <p className="text-sm leading-relaxed text-[var(--muted)]">{theme.desc}</p>
-                </div>
-              </Link>
-            );
-          })}
-        </div>
-      </section>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </Container>
     </>
   );
 }

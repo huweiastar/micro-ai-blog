@@ -17,7 +17,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
 
   return (
     <div
-      className="group relative glass rounded-xl p-6 overflow-hidden transition-all duration-300 hover:shadow-[var(--shadow-lg)] hover:-translate-y-1 active:scale-[0.99] cursor-pointer flex flex-col"
+      className="group relative rounded-xl border border-[var(--card-border)] bg-[var(--card)] p-6 overflow-hidden transition-all duration-300 hover:shadow-[var(--shadow-glow)] hover:-translate-y-1 active:scale-[0.99] cursor-pointer flex flex-col"
       onClick={() => router.push(`/projects/${project.slug}`)}
     >
       {/* Cover banner — falls back to deterministic generated artwork when absent or broken */}

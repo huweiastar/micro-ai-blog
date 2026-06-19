@@ -21,7 +21,7 @@ export function BlogCard({ post }: BlogCardProps) {
   return (
     <div
       style={{ "--cat": style.accent } as CSSProperties}
-      className="group relative glass cursor-pointer overflow-hidden rounded-xl p-6 pl-7 transition-all duration-300 hover:-translate-y-1 hover:border-[var(--cat)]/40 hover:shadow-[var(--shadow-lg)] active:scale-[0.99]"
+      className="group relative cursor-pointer overflow-hidden rounded-xl border border-[var(--card-border)] bg-[var(--card)] p-6 pl-7 transition-all duration-300 hover:-translate-y-1 hover:border-[var(--cat)]/40 hover:shadow-[var(--shadow-glow)] active:scale-[0.99]"
       onClick={() => router.push(`/blog/${post.slug}`)}
     >
       {/* Category accent spine */}
