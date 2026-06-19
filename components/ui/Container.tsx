@@ -1,14 +1,38 @@
 import { clsx } from "clsx";
 
+type ContainerSize = "prose" | "default" | "wide";
+
 interface ContainerProps {
   children: React.ReactNode;
   className?: string;
   as?: "div" | "section" | "main" | "header" | "footer" | "nav";
+  /**
+   * 宽度变体——全站唯一宽度来源（§1.3）：
+   * prose 长文/表单(≈max-w-3xl) · default 列表/常规页(≈max-w-5xl) · wide 宽布局(≈max-w-6xl)。
+   */
+  size?: ContainerSize;
 }
 
-export function Container({ children, className, as: Tag = "div" }: ContainerProps) {
+const SIZE_MAX_WIDTH: Record<ContainerSize, string> = {
+  prose: "max-w-3xl",
+  default: "max-w-5xl",
+  wide: "max-w-6xl",
+};
+
+export function Container({
+  children,
+  className,
+  as: Tag = "div",
+  size = "default",
+}: ContainerProps) {
   return (
-    <Tag className={clsx("mx-auto w-full max-w-5xl px-4 sm:px-6", className)}>
+    <Tag
+      className={clsx(
+        "mx-auto w-full px-4 sm:px-6",
+        SIZE_MAX_WIDTH[size],
+        className
+      )}
+    >
       {children}
     </Tag>
   );

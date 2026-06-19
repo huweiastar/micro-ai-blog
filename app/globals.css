@@ -4,7 +4,9 @@
 
 @layer base {
   :root {
-    --background: #f8fafc;
+    /* 纸/墨基调（§1.4）：从冷 slate(#f8fafc) 微调到带极轻暖灰的纸色，
+       降低长时间阅读的冷硬感；墨色正文维持高对比。暗色不变。 */
+    --background: #f7f6f3;
     --foreground: #0f172a;
     --card: #ffffff;
     --card-border: #e2e8f0;
@@ -24,6 +26,9 @@
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
     --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
     --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.12);
+    /* hover 主题辉光：随 --primary 自适应明暗，卡片/可交互元素 hover 统一引用，
+       取代散落的 shadow-2xl shadow-[var(--primary)]/20 硬编码（§1.3）。 */
+    --shadow-glow: 0 14px 40px -12px color-mix(in srgb, var(--primary) 35%, transparent);
     --ring: var(--primary);
     /* 语义色：成功/警告/危险/信息。callout、Toast、徽章、内容体检等统一引用，
        避免散落的 red-500 / emerald-400 硬编码。透明度写法 [var(--danger)]/10
@@ -39,6 +44,10 @@
     --terminal-border: #30363d;
     --terminal-text: #8b949e;
     --cyber-grid-color: rgba(99, 102, 241, 0.10);
+    /* 字体令牌（§1.1）：自托管 Inter / JetBrains Mono（仅拉丁），中文回落系统字栈。
+       --font-inter / --font-jbmono 由 next/font 注入到 <html> 上。 */
+    --font-sans: var(--font-inter), "PingFang SC", "HarmonyOS Sans SC", "Microsoft YaHei", "Hiragino Sans GB", sans-serif;
+    --font-mono: var(--font-jbmono), "SF Mono", Monaco, "Cascadia Code", Consolas, "Courier New", monospace;
   }
 
   .dark {
@@ -68,7 +77,8 @@
 
   body {
     @apply bg-[var(--background)] text-[var(--foreground)] transition-colors duration-300;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
   }
 
   ::selection {
@@ -126,7 +136,7 @@
 
   .glass-hover:hover {
     background-color: color-mix(in srgb, var(--card) 90%, transparent);
-    box-shadow: 0 10px 30px color-mix(in srgb, var(--glow-primary) 20%, transparent);
+    box-shadow: var(--shadow-glow);
     transform: translateY(-4px);
     transition: all 0.3s ease;
   }
@@ -160,7 +170,11 @@
   }
 
   .card-interactive {
-    @apply transition-all duration-500 hover:shadow-2xl hover:shadow-[var(--primary)]/20 hover:-translate-y-2 active:scale-[0.98];
+    @apply transition-all duration-500 hover:-translate-y-1 active:scale-[0.98];
+  }
+
+  .card-interactive:hover {
+    box-shadow: var(--shadow-glow);
   }
 
   .prose-custom {
@@ -193,12 +207,17 @@
   }
 
   .prose-custom h2 {
-    @apply relative text-2xl font-bold mt-10 mb-4 scroll-mt-20;
+    @apply relative font-bold mt-10 mb-4 scroll-mt-20;
+    /* 流式字号，与 h1 同写法，消除断点处的字号跳变 */
+    font-size: clamp(1.375rem, 1.15rem + 0.9vw, 1.5rem);
+    line-height: 1.3;
     text-wrap: balance;
   }
 
   .prose-custom h3 {
-    @apply relative text-xl font-semibold mt-8 mb-3 scroll-mt-20;
+    @apply relative font-semibold mt-8 mb-3 scroll-mt-20;
+    font-size: clamp(1.125rem, 1rem + 0.5vw, 1.25rem);
+    line-height: 1.35;
     text-wrap: balance;
   }
 
@@ -212,7 +231,9 @@
   }
 
   .prose-custom p {
-    @apply leading-8 mb-5;
+    @apply mb-5;
+    /* 正文阅读节奏：中英混排下 ~1.85 行高最稳，li/blockquote 随之对齐 */
+    line-height: 1.85;
     /* 收尾行避免孤字、长 URL 等溢出（渐进增强，不支持的浏览器忽略） */
     text-wrap: pretty;
     overflow-wrap: break-word;
@@ -232,7 +253,8 @@
   }
 
   .prose-custom li {
-    @apply mb-1.5 leading-7;
+    @apply mb-1.5;
+    line-height: 1.8;
   }
 
   .prose-custom a {
@@ -320,7 +342,7 @@
 
   .prose-custom pre code {
     @apply bg-transparent p-0;
-    font-family: "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace;
+    font-family: var(--font-mono);
     display: block;
     padding: 1.5rem;
     padding-top: 3rem;
@@ -343,7 +365,7 @@
 
   .prose-custom pre .code-lang-label {
     font-size: 0.65rem;
-    font-family: "SF Mono", Monaco, "Cascadia Code", monospace;
+    font-family: var(--font-mono);
     color: var(--muted);
     text-transform: uppercase;
     letter-spacing: 0.08em;
@@ -473,52 +495,12 @@
     overflow: hidden;
   }
 
-  .animate-blob {
-    animation: blob 7s infinite;
-  }
-
-  .animation-delay-2000 {
-    animation-delay: 2s;
-  }
-
-  .animation-delay-4000 {
-    animation-delay: 4s;
-  }
-
-  .animate-float {
-    animation: float 6s ease-in-out infinite;
-  }
-
-  .animate-float-delay {
-    animation: float 6s ease-in-out 2s infinite;
-  }
-
   .animate-pulse-glow {
     animation: pulse-glow 2s ease-in-out infinite;
   }
 
   .animate-spin-slow {
     animation: spin-slow 8s linear infinite;
-  }
-
-  .animate-bounce-slow {
-    animation: bounce-slow 2s ease-in-out infinite;
-  }
-
-  .animate-float-1 {
-    animation: float-particle-1 3s ease-in-out infinite;
-  }
-
-  .animate-float-2 {
-    animation: float-particle-2 3.5s ease-in-out infinite;
-  }
-
-  .animate-float-3 {
-    animation: float-particle-3 4s ease-in-out infinite;
-  }
-
-  .animate-shimmer {
-    animation: shimmer 2s infinite;
   }
 
   .ink-center {
@@ -611,57 +593,6 @@
   }
 }
 
-@keyframes blob {
-  0% {
-    transform: translate(0px, 0px) scale(1);
-  }
-  33% {
-    transform: translate(30px, -50px) scale(1.1);
-  }
-  66% {
-    transform: translate(-20px, 20px) scale(0.9);
-  }
-  100% {
-    transform: translate(0px, 0px) scale(1);
-  }
-}
-
-/* Slow, large-amplitude drift for background aurora layers */
-@keyframes aurora-drift {
-  0% {
-    transform: translate(0, 0) scale(1);
-  }
-  25% {
-    transform: translate(6%, -4%) scale(1.12);
-  }
-  50% {
-    transform: translate(-5%, 5%) scale(0.95);
-  }
-  75% {
-    transform: translate(4%, 3%) scale(1.08);
-  }
-  100% {
-    transform: translate(0, 0) scale(1);
-  }
-}
-
-.animate-aurora {
-  animation: aurora-drift 26s ease-in-out infinite;
-}
-
-.animate-aurora-slow {
-  animation: aurora-drift 38s ease-in-out infinite reverse;
-}
-
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-20px);
-  }
-}
-
 @keyframes pulse-glow {
   0%, 100% {
     box-shadow: 0 0 5px var(--glow-primary);
@@ -677,57 +608,6 @@
   }
   to {
     transform: rotate(360deg);
-  }
-}
-
-@keyframes bounce-slow {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
-@keyframes float-particle-1 {
-  0%, 100% {
-    transform: translate(0, 0) scale(1);
-    opacity: 0.7;
-  }
-  50% {
-    transform: translate(10px, -10px) scale(1.2);
-    opacity: 1;
-  }
-}
-
-@keyframes float-particle-2 {
-  0%, 100% {
-    transform: translate(0, 0) scale(1);
-    opacity: 0.7;
-  }
-  50% {
-    transform: translate(-10px, -15px) scale(1.3);
-    opacity: 1;
-  }
-}
-
-@keyframes float-particle-3 {
-  0%, 100% {
-    transform: translate(0, 0) scale(1);
-    opacity: 0.7;
-  }
-  50% {
-    transform: translate(15px, 10px) scale(1.1);
-    opacity: 1;
-  }
-}
-
-@keyframes shimmer {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(100%);
   }
 }
 
@@ -800,28 +680,44 @@
 @keyframes fade-in-up {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(24px);
+    filter: blur(6px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
-  }
-}
-
-@keyframes gradient-shift {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
+    filter: blur(0);
   }
 }
 
 .animate-fade-in-up {
-  animation: fade-in-up 0.6s ease-out forwards;
+  animation: fade-in-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  will-change: opacity, transform, filter;
+}
+
+/* 头像进场：缩放淡入，与下方内容的「上浮」形成层次差异，避免全屏同向单调 */
+@keyframes fade-in-scale {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+}
+
+.animate-fade-in-scale {
+  animation: fade-in-scale 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  will-change: opacity, transform, filter;
+}
+
+/* 标题光晕：用背景色描出文字外缘，把渐变标题从游动的粒子背景中「托」起来，
+   亮/暗色皆自适应（halo 即当前背景色），保证可读性又不污染渐变本身。 */
+.hero-title-halo {
+  filter: drop-shadow(0 1px 10px color-mix(in srgb, var(--background) 80%, transparent));
 }
 
 /* 路由切换：主内容进场过渡（淡入 + 轻微上浮 + 去模糊）。
@@ -851,11 +747,6 @@
     animation-duration: 0.35s;
     animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
   }
-}
-
-.animate-gradient {
-  background-size: 200% 200%;
-  animation: gradient-shift 3s ease infinite;
 }
 
 @keyframes terminal-blink {

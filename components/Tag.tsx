@@ -11,7 +11,7 @@ export function Tag({ name, count }: TagProps) {
       href={`/tags/${encodeURIComponent(name)}`}
       className="group inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg border border-[var(--card-border)] bg-[var(--card)]/60 backdrop-blur-sm text-sm font-medium text-[var(--foreground)] hover:border-[var(--primary)]/50 hover:bg-[var(--primary)]/10 hover:shadow-lg hover:shadow-[var(--primary)]/5 hover:-translate-y-0.5 transition-all duration-300"
     >
-      <span className="bg-gradient-to-r from-[var(--primary)] to-[var(--accent)] bg-clip-text text-transparent group-hover:from-[var(--accent)] group-hover:to-[var(--primary)] transition-all duration-300">
+      <span className="text-[var(--primary)] transition-colors duration-300">
         {name}
       </span>
       {count !== undefined && (

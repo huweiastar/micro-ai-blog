@@ -25,7 +25,7 @@ export function Header() {
           href="/"
           className="text-xl font-bold transition-transform duration-300 hover:scale-105 active:scale-95 inline-flex items-baseline"
         >
-          <span className="bg-gradient-to-r from-[var(--primary)] to-[var(--accent)] bg-clip-text text-transparent">
+          <span className="text-[var(--foreground)]">
             {profile?.name ?? "微观AI"}
           </span>
         </Link>

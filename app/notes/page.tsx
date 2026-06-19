@@ -34,7 +34,7 @@ export default async function NotesPage() {
         count={notes.length}
         countLabel="条"
       />
-      <Container className="pb-12 max-w-3xl">
+      <Container size="prose" className="pb-12">
         {rendered.length === 0 ? (
           <div className="text-center py-20 text-[var(--muted)]">
             <StickyNote className="w-10 h-10 mx-auto mb-4 opacity-50" />

@@ -4,7 +4,6 @@ import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 import { AnimatedBackground } from "../components/ui/AnimatedBackground";
 import { BackToTop } from "../components/ui/BackToTop";
-import { MouseFollow } from "../components/ui/MouseFollow";
 import { ClickRipple } from "../components/ui/ClickEffect";
 import { AssistantLauncher } from "../components/assistant/AssistantLauncher";
 import { SiteChrome } from "../components/SiteChrome";
@@ -16,6 +15,7 @@ import { PageViewTracker } from "../components/PageViewTracker";
 import { ProfileProvider } from "../components/ProfileProvider";
 import { getSiteUrl } from "../lib/seo";
 import { getAboutProfile } from "../lib/about";
+import { fontSans, fontMono } from "./fonts";
 import "./globals.css";
 
 const siteUrl = getSiteUrl();
@@ -87,7 +87,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="zh-CN" suppressHydrationWarning>
+    <html lang="zh-CN" className={`${fontSans.variable} ${fontMono.variable}`} suppressHydrationWarning>
       <head>
         {/* 同步执行（不加 async/defer），保证首帧前完成暗色判定，避免闪白 */}
         {/* eslint-disable-next-line @next/next/no-sync-scripts */}
@@ -98,7 +98,6 @@ export default function RootLayout({
           <ProfileProvider>
             <ThemeConfigProvider>
               <PageViewTracker />
-              <MouseFollow />
               <ClickRipple />
               <a
                 href="#main-content"

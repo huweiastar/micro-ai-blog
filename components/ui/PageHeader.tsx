@@ -42,7 +42,7 @@ export function PageHeader({
               {title}
               {typeof count === "number" && (
                 <span className="glass inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm font-medium text-[var(--muted)]">
-                  <span className="bg-gradient-to-r from-[var(--primary)] to-[var(--accent)] bg-clip-text font-semibold tabular-nums text-transparent">
+                  <span className="font-semibold tabular-nums text-[var(--primary)]">
                     {count}
                   </span>
                   {countLabel}
