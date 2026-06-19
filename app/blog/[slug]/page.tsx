@@ -2,8 +2,11 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import {
   getAllPostsSync,
+  getAllArticlesSync,
   getPostBySlug,
   getSeriesContext,
+  getRelatedPosts,
+  getAdjacentPosts,
 } from "../../../lib/posts";
 import { renderMarkdownToHtml } from "../../../lib/posts";
 import { Comment } from "../../../components/Comment";
@@ -22,6 +25,8 @@ import { StructuredData } from "../../../components/StructuredData";
 import { ArticleLayout } from "../../../components/ArticleLayout";
 import { ArticleRail } from "../../../components/blog/ArticleRail";
 import SeriesNav from "../../../components/blog/SeriesNav";
+import { RelatedPosts } from "../../../components/blog/RelatedPosts";
+import { PostNavigation } from "../../../components/blog/PostNavigation";
 import { BookmarkButton } from "../../../components/blog/BookmarkButton";
 import { LikeButton } from "../../../components/blog/LikeButton";
 import { ReadingPosition } from "../../../components/blog/ReadingPosition";
@@ -66,6 +71,12 @@ export default async function PostPage(props: PostPageProps) {
 
   const html = await renderMarkdownToHtml(post.content);
   const series = getSeriesContext(getAllPostsSync(), post.slug);
+  // 相关文章 + 上/下篇导航：仅对正文文章计算（随手记不展示）
+  const articles = post.type === "article" ? getAllArticlesSync() : [];
+  const related =
+    post.type === "article" ? getRelatedPosts(articles, post.slug, 4) : [];
+  const adjacent =
+    post.type === "article" ? getAdjacentPosts(articles, post.slug) : {};
   const siteUrl = getSiteUrl();
   const postUrl = `${siteUrl}/blog/${post.slug}`;
   const structuredData = generateArticleStructuredData(post, postUrl);
@@ -174,6 +185,16 @@ export default async function PostPage(props: PostPageProps) {
 
           {/* Series Navigation */}
           {series && <SeriesNav series={series} />}
+
+          {/* 相关文章（按共同标签/同分类） */}
+          {post.type === "article" && (
+            <RelatedPosts posts={related} title="相关文章" />
+          )}
+
+          {/* 上一篇 / 下一篇 */}
+          {post.type === "article" && (
+            <PostNavigation prev={adjacent.prev} next={adjacent.next} />
+          )}
 
           {/* Comments */}
           <Comment slug={post.slug} title={post.title} />

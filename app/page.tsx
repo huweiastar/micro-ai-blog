@@ -1,4 +1,4 @@
-import { getAllArticlesSync } from "../lib/posts";
+import { getAllArticlesSync, getAllPostsSync } from "../lib/posts";
 import { getProjects } from "../lib/projects";
 import { getAllCategories } from "../lib/categories";
 import { getAnalytics } from "../lib/analytics";
@@ -8,6 +8,7 @@ import { HomeClient } from "./page.client";
 import { BlogCard } from "../components/BlogCard";
 import { ProjectCard } from "../components/ProjectCard";
 import { RevealList } from "../components/RevealList";
+import { HomeActivity, type ActivityItem } from "../components/HomeActivity";
 import { Section } from "../components/ui/Section";
 import { StructuredData } from "../components/StructuredData";
 import type { Metadata } from "next";
@@ -28,6 +29,15 @@ export default function HomePage() {
   const allCategories = getAllCategories();
   const posts = allPosts.slice(0, 5);
   const projects = allProjects.slice(0, 3);
+  // 最新动态：文章 + 随手记按时间合并（getAllPostsSync 已按日期倒序）
+  const recentActivity: ActivityItem[] = getAllPostsSync()
+    .slice(0, 6)
+    .map((p) => ({
+      date: p.date,
+      type: p.type === "note" ? "note" : "article",
+      title: p.title,
+      href: `/blog/${p.slug}`,
+    }));
   const totalWords = allPosts.reduce((sum, post) => sum + post.wordCount, 0);
   const stats = {
     postCount: allPosts.length,
@@ -56,6 +66,11 @@ export default function HomePage() {
     <div className="relative">
       <StructuredData data={generateWebsiteStructuredData()} />
       <HomeClient stats={stats} columns={columns} initialVisits={initialVisits} />
+
+      {/* 最新动态：文章 + 随手记合并时间线 */}
+      <Section title="最新动态" moreHref="/footprint" className="mb-20">
+        <HomeActivity items={recentActivity} />
+      </Section>
 
       {/* Latest Posts */}
       <Section title="最新文章" moreHref="/blog" className="mb-20">
