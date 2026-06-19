@@ -23,43 +23,69 @@ export default function ArchivePage() {
         countLabel="篇"
       />
       <Container className="pb-12">
-        <div className="space-y-8">
-        {Object.entries(grouped)
-          .sort((a, b) => b[0].localeCompare(a[0]))
-          .map(([year, months]) => (
-            <div key={year}>
-              <h2 className="text-2xl font-bold mb-4 text-[var(--primary)]">
-                {year} 年
-              </h2>
-              <div className="space-y-6 pl-4">
-                {Object.entries(months)
-                  .sort((a, b) => b[0].localeCompare(a[0]))
-                  .map(([month, monthPosts]) => (
-                    <div key={month}>
-                      <h3 className="text-lg font-semibold mb-3 text-[var(--muted)]">
-                        {month} 月
-                      </h3>
-                      <ul className="space-y-2 ml-4">
-                        {monthPosts.map((post) => (
-                          <li key={post.slug}>
-                            <Link
-                              href={`/blog/${post.slug}`}
-                              className="text-sm text-[var(--foreground)] hover:text-[var(--primary)] transition-colors"
-                            >
-                              {post.title}
-                            </Link>
-                            <span className="text-xs text-[var(--muted)] ml-2">
-                              {post.date}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
+        {posts.length === 0 ? (
+          <p className="py-16 text-center text-[var(--muted)]">还没有文章</p>
+        ) : (
+          /* 归档时间线（§Phase3.2）：按年分组的竖向时间轴，左侧年份节点 + 发丝线 */
+          <div className="space-y-12">
+            {Object.entries(grouped)
+              .sort((a, b) => b[0].localeCompare(a[0]))
+              .map(([year, months]) => {
+                const yearCount = Object.values(months).reduce(
+                  (s, m) => s + m.length,
+                  0
+                );
+                return (
+                  <section key={year}>
+                    {/* 年份节点 */}
+                    <div className="mb-5 flex items-center gap-3">
+                      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--primary)] font-mono text-sm font-bold tabular-nums text-white">
+                        {year.slice(2)}
+                      </span>
+                      <h2 className="text-2xl font-bold">
+                        {year} 年
+                        <span className="ml-2 text-sm font-normal text-[var(--muted)]">
+                          {yearCount} 篇
+                        </span>
+                      </h2>
                     </div>
-                  ))}
-              </div>
-            </div>
-          ))}
-        </div>
+                    {/* 该年时间轴 */}
+                    <div className="ml-5 space-y-6 border-l-2 border-[var(--card-border)] pl-7">
+                      {Object.entries(months)
+                        .sort((a, b) => b[0].localeCompare(a[0]))
+                        .map(([month, monthPosts]) => (
+                          <div key={month}>
+                            <h3 className="mb-3 font-mono text-sm font-semibold tabular-nums text-[var(--muted)]">
+                              {month} 月
+                            </h3>
+                            <ul className="space-y-2.5">
+                              {monthPosts.map((post) => (
+                                <li key={post.slug} className="relative">
+                                  <span
+                                    aria-hidden
+                                    style={{ left: "-34px" }}
+                                    className="absolute top-1.5 h-2.5 w-2.5 rounded-full bg-[var(--card-border)] ring-4 ring-[var(--background)]"
+                                  />
+                                  <Link
+                                    href={`/blog/${post.slug}`}
+                                    className="text-sm text-[var(--foreground)] transition-colors hover:text-[var(--primary)]"
+                                  >
+                                    {post.title}
+                                  </Link>
+                                  <span className="ml-2 font-mono text-xs tabular-nums text-[var(--muted)]">
+                                    {post.date}
+                                  </span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        ))}
+                    </div>
+                  </section>
+                );
+              })}
+          </div>
+        )}
       </Container>
     </>
   );

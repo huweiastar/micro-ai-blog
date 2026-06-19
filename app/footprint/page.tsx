@@ -3,6 +3,7 @@ import { getProjects } from "../../lib/projects";
 import { generatePageMetadata } from "../../lib/seo";
 import { PageHeader } from "../../components/ui/PageHeader";
 import { Container } from "../../components/ui/Container";
+import { PublishHeatmap } from "../../components/ui/PublishHeatmap";
 import { FileText, FolderGit2, StickyNote } from "lucide-react";
 import type { Metadata } from "next";
 
@@ -77,6 +78,9 @@ export default function FootprintPage() {
         countLabel="条"
       />
       <Container className="pb-12">
+      <div className="mb-10">
+        <PublishHeatmap dates={items.map((i) => i.date)} />
+      </div>
       <div className="relative border-l-2 border-[var(--card-border)] ml-4 space-y-8">
         {items.length === 0 && (
           <p className="pl-6 text-[var(--muted)]">还没有足迹</p>
