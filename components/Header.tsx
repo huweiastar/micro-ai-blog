@@ -30,7 +30,7 @@ export function Header() {
           </span>
         </Link>
 
-        <div className="hidden md:flex items-center gap-1">
+        <div className="hidden lg:flex items-center gap-1">
           {navConfig.map((item) => {
             const active = isActive(item.href);
             return (
@@ -72,7 +72,7 @@ export function Header() {
           </div>
         </div>
 
-        <div className="flex items-center gap-1 md:hidden">
+        <div className="flex items-center gap-1 lg:hidden">
           <button
             onClick={openCommandPalette}
             aria-label="搜索"
@@ -93,7 +93,7 @@ export function Header() {
       </Container>
 
       {mobileOpen && (
-        <div className="md:hidden border-t border-[var(--card-border)] glass px-4 py-4 space-y-1">
+        <div className="lg:hidden border-t border-[var(--card-border)] glass px-4 py-4 space-y-1">
           {navConfig.map((item) => {
             const active = isActive(item.href);
             return (

@@ -1,0 +1,7 @@
+# 相册照片。后续直接往这里加条目即可（src 放 /public 下的路径）。
+# 示例：
+#   - src: /images/gallery/sunset.webp
+#     title: 某地的日落
+#     date: 2026-06-01
+#     location: 杭州
+photos: []
