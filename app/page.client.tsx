@@ -195,7 +195,7 @@ export function HomeClient({ stats, columns, initialVisits }: HomeClientProps) {
       </section>
 
       {/* Column Themes */}
-      <Container as="section" className="mt-10 mb-20 sm:mt-16">
+      <Container as="section" size="wide" className="mt-10 mb-20 sm:mt-16">
         <div className="flex items-center justify-between mb-8">
           <h2 className="text-2xl font-bold">专栏主题</h2>
           <Link

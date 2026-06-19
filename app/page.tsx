@@ -1,4 +1,4 @@
-import { getAllArticlesSync, getAllPostsSync } from "../lib/posts";
+import { getAllArticlesSync, getAllPostsSync, getAllTags } from "../lib/posts";
 import { getProjects } from "../lib/projects";
 import { getAllCategories } from "../lib/categories";
 import { getAnalytics } from "../lib/analytics";
@@ -9,7 +9,10 @@ import { BlogCard } from "../components/BlogCard";
 import { ProjectCard } from "../components/ProjectCard";
 import { RevealList } from "../components/RevealList";
 import { HomeActivity, type ActivityItem } from "../components/HomeActivity";
-import { Section } from "../components/ui/Section";
+import { LeftAside, RightAside } from "../components/home/HomeAside";
+import { Container } from "../components/ui/Container";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { StructuredData } from "../components/StructuredData";
 import type { Metadata } from "next";
 
@@ -38,6 +41,12 @@ export default function HomePage() {
       title: p.title,
       href: `/blog/${p.slug}`,
     }));
+  // 侧栏数据：热门标签 + 最新随手记
+  const topTags = getAllTags().slice(0, 12);
+  const recentNotes = getAllPostsSync()
+    .filter((p) => p.type === "note")
+    .slice(0, 5)
+    .map((p) => ({ slug: p.slug, title: p.title, date: p.date }));
   const totalWords = allPosts.reduce((sum, post) => sum + post.wordCount, 0);
   const stats = {
     postCount: allPosts.length,
@@ -67,28 +76,77 @@ export default function HomePage() {
       <StructuredData data={generateWebsiteStructuredData()} />
       <HomeClient stats={stats} columns={columns} initialVisits={initialVisits} />
 
-      {/* 最新动态：文章 + 随手记合并时间线 */}
-      <Section title="最新动态" moreHref="/footprint" className="mb-20">
-        <HomeActivity items={recentActivity} />
-      </Section>
+      {/* 主体三栏：左侧关于/专栏 · 中间内容流 · 右侧标签/随手记，填充宽屏两侧留白 */}
+      <Container size="wide" className="mb-20 mt-10">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:gap-10">
+          {/* 左栏 */}
+          <aside className="hidden lg:col-span-3 lg:block">
+            <LeftAside
+              profile={{
+                name: profile.name,
+                avatar: profile.avatar,
+                tagline: profile.tagline,
+                github: profile.github,
+                email: profile.email,
+              }}
+              categories={allCategories}
+            />
+          </aside>
 
-      {/* Latest Posts */}
-      <Section title="最新文章" moreHref="/blog" className="mb-20">
-        <RevealList className="grid gap-6">
-          {posts.map((post) => (
-            <BlogCard key={post.slug} post={post} />
-          ))}
-        </RevealList>
-      </Section>
+          {/* 中栏内容流 */}
+          <div className="space-y-16 lg:col-span-6">
+            {recentActivity.length > 0 && (
+              <section>
+                <HomeSectionHeader title="最新动态" moreHref="/footprint" />
+                <HomeActivity items={recentActivity} />
+              </section>
+            )}
 
-      {/* Featured Projects */}
-      <Section title="精选项目" moreHref="/projects" className="mb-20">
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {projects.map((project) => (
-            <ProjectCard key={project.name} project={project} />
-          ))}
+            <section>
+              <HomeSectionHeader title="最新文章" moreHref="/blog" />
+              <RevealList className="grid gap-6">
+                {posts.map((post) => (
+                  <BlogCard key={post.slug} post={post} />
+                ))}
+              </RevealList>
+            </section>
+
+            <section>
+              <HomeSectionHeader title="精选项目" moreHref="/projects" />
+              <div className="grid gap-6 sm:grid-cols-2">
+                {projects.map((project) => (
+                  <ProjectCard key={project.name} project={project} />
+                ))}
+              </div>
+            </section>
+          </div>
+
+          {/* 右栏 */}
+          <aside className="hidden lg:col-span-3 lg:block">
+            <RightAside tags={topTags} notes={recentNotes} />
+          </aside>
         </div>
-      </Section>
+      </Container>
+    </div>
+  );
+}
+
+function HomeSectionHeader({
+  title,
+  moreHref,
+}: {
+  title: string;
+  moreHref: string;
+}) {
+  return (
+    <div className="mb-6 flex items-center justify-between">
+      <h2 className="text-2xl font-bold">{title}</h2>
+      <Link
+        href={moreHref}
+        className="inline-flex items-center gap-1 text-sm text-[var(--primary)] hover:underline"
+      >
+        查看全部 <ArrowRight className="h-4 w-4" />
+      </Link>
     </div>
   );
 }
