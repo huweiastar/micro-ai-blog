@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { Menu, X, Search } from "lucide-react";
+import { Menu, X, Search, Palette } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { navConfig } from "../config/nav";
 import { useProfile } from "./ProfileProvider.client";
 import { Container } from "./ui/Container";
 import { openCommandPalette } from "./command-palette-bus";
+import { openAppearancePanel } from "./appearance-bus";
 
 export function Header() {
   const pathname = usePathname();
@@ -67,12 +68,26 @@ export function Header() {
               ⌘K
             </kbd>
           </button>
+          <button
+            onClick={openAppearancePanel}
+            aria-label="外观设置"
+            className="ml-1 inline-flex h-9 w-9 items-center justify-center rounded-lg text-[var(--muted)] transition-colors hover:text-[var(--primary)]"
+          >
+            <Palette className="h-4 w-4" />
+          </button>
           <div className="p-1">
             <ThemeToggle />
           </div>
         </div>
 
         <div className="flex items-center gap-1 lg:hidden">
+          <button
+            onClick={openAppearancePanel}
+            aria-label="外观设置"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center text-[var(--muted)]"
+          >
+            <Palette className="w-5 h-5" />
+          </button>
           <button
             onClick={openCommandPalette}
             aria-label="搜索"

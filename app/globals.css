@@ -75,6 +75,27 @@
     --cyber-grid-color: rgba(129, 140, 248, 0.12);
   }
 
+  /* ============ 访客外观自定义（data-* 覆盖令牌，由 appearance-init.js 早注入） ============ */
+  /* 强调色预设：violet 为基础(不覆盖)。每个预设覆盖 --primary/--primary-hover/--accent，
+     亮/暗各一档（暗色提亮）。--ring=var(--primary) 自动跟随；--shadow-glow 走 color-mix 亦自动跟随。 */
+  html[data-accent="blue"] { --primary: #3b82f6; --primary-hover: #2563eb; --accent: #6366f1; }
+  html[data-accent="blue"].dark { --primary: #60a5fa; --primary-hover: #3b82f6; --accent: #818cf8; }
+  html[data-accent="cyan"] { --primary: #0891b2; --primary-hover: #0e7490; --accent: #06b6d4; }
+  html[data-accent="cyan"].dark { --primary: #22d3ee; --primary-hover: #06b6d4; --accent: #67e8f9; }
+  html[data-accent="rose"] { --primary: #e11d48; --primary-hover: #be123c; --accent: #f43f5e; }
+  html[data-accent="rose"].dark { --primary: #fb7185; --primary-hover: #f43f5e; --accent: #fda4af; }
+  html[data-accent="green"] { --primary: #059669; --primary-hover: #047857; --accent: #10b981; }
+  html[data-accent="green"].dark { --primary: #34d399; --primary-hover: #10b981; --accent: #6ee7b7; }
+
+  /* 正文字体：衬线切换（覆盖 --font-sans，代码仍用 --font-mono 不变） */
+  html[data-font="serif"] {
+    --font-sans: "Noto Serif SC", "Songti SC", "SimSun", Georgia, "Times New Roman", serif;
+  }
+
+  /* 圆角强度：覆盖三档 radius 令牌（tailwind 的 rounded-lg/xl/2xl 已映射到这些变量） */
+  html[data-radius="compact"] { --radius-sm: 0.375rem; --radius: 0.5rem; --radius-lg: 0.625rem; }
+  html[data-radius="round"] { --radius-sm: 0.75rem; --radius: 1rem; --radius-lg: 1.25rem; }
+
   body {
     @apply bg-[var(--background)] text-[var(--foreground)] transition-colors duration-300;
     font-family: var(--font-sans);

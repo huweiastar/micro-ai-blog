@@ -6,6 +6,7 @@ import { AnimatedBackground } from "../components/ui/AnimatedBackground";
 import { BackToTop } from "../components/ui/BackToTop";
 import { ClickRipple } from "../components/ui/ClickEffect";
 import { AssistantLauncher } from "../components/assistant/AssistantLauncher";
+import { AppearancePanel } from "../components/AppearancePanel";
 import { SiteChrome } from "../components/SiteChrome";
 import { CommandPaletteLazy } from "../components/CommandPalette.lazy";
 import { ThemeConfigProvider } from "../components/ThemeContext";
@@ -92,6 +93,9 @@ export default function RootLayout({
         {/* 同步执行（不加 async/defer），保证首帧前完成暗色判定，避免闪白 */}
         {/* eslint-disable-next-line @next/next/no-sync-scripts */}
         <script src="/theme-init.js" />
+        {/* 外观偏好（强调色/字体/圆角）首帧前应用，避免闪烁 */}
+        {/* eslint-disable-next-line @next/next/no-sync-scripts */}
+        <script src="/appearance-init.js" />
       </head>
       <body>
         <ThemeProvider attribute="class" defaultTheme="dark" storageKey="theme">
@@ -117,6 +121,7 @@ export default function RootLayout({
               </SiteChrome>
               <CodeCopyButton />
               <ImageZoom />
+              <AppearancePanel />
             </ThemeConfigProvider>
           </ProfileProvider>
         </ThemeProvider>
