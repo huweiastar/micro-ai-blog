@@ -1,9 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { X } from "lucide-react";
-
-const HIDE_KEY = "pet-hidden";
 
 const HOVER_LINES = [
   "在写代码吗？记得喝水 💧",
@@ -25,17 +22,12 @@ const pick = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
 
 /**
  * 桌面宠物：左下角的小挂件。悬浮/点击会冒出气泡台词，点击还会蹦一下。
- * 关闭后本次会话不再出现（localStorage）。reduced-motion 下动画自动降级。
+ * 始终显示（不可关闭），reduced-motion 下动画自动降级。
  */
 export function DesktopPet() {
-  const [hidden, setHidden] = useState(true); // 默认隐藏，挂载后据 localStorage 决定
   const [message, setMessage] = useState<string | null>(null);
   const [jumping, setJumping] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    setHidden(localStorage.getItem(HIDE_KEY) === "1");
-  }, []);
 
   const showMessage = (text: string, ms = 3200) => {
     setMessage(text);
@@ -47,17 +39,10 @@ export function DesktopPet() {
     if (timer.current) clearTimeout(timer.current);
   }, []);
 
-  if (hidden) return null;
-
   const onClick = () => {
     setJumping(true);
     setTimeout(() => setJumping(false), 500);
     showMessage(pick(CLICK_LINES));
-  };
-
-  const close = () => {
-    localStorage.setItem(HIDE_KEY, "1");
-    setHidden(true);
   };
 
   return (
@@ -70,16 +55,7 @@ export function DesktopPet() {
         </div>
       )}
 
-      <div className="group relative">
-        {/* 关闭按钮（悬浮显出） */}
-        <button
-          onClick={close}
-          aria-label="赶走宠物"
-          className="absolute -right-1 -top-1 z-10 inline-flex h-5 w-5 items-center justify-center rounded-full border border-[var(--card-border)] bg-[var(--card)] text-[var(--muted)] opacity-0 transition-opacity duration-200 hover:text-[var(--danger)] group-hover:opacity-100"
-        >
-          <X className="h-3 w-3" />
-        </button>
-
+      <div className="relative">
         {/* 宠物本体 */}
         <button
           onClick={onClick}
