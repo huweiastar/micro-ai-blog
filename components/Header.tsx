@@ -21,7 +21,7 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-[var(--card-border)] glass">
-      <Container as="nav" className="h-16 flex items-center justify-between">
+      <Container as="nav" size="wide" className="h-16 flex items-center justify-between">
         <Link
           href="/"
           className="text-xl font-bold transition-transform duration-300 hover:scale-105 active:scale-95 inline-flex items-baseline"

@@ -14,22 +14,21 @@ export function ThemeToggle() {
 
   if (!mounted) return null;
 
+  const isDark = theme === "dark";
+
   const toggle = () => {
     localStorage.setItem("theme:auto", "false");
-    setTheme(theme === "dark" ? "light" : "dark");
+    setTheme(isDark ? "light" : "dark");
   };
 
   return (
     <button
       onClick={toggle}
-      className="text-[var(--muted)] hover:text-[var(--primary)] transition-colors"
-      aria-label="Toggle theme"
+      className="text-[var(--muted)] transition-all duration-300 hover:rotate-12 hover:text-[var(--primary)] active:scale-90"
+      aria-label={isDark ? "切换到亮色" : "切换到暗色"}
+      title={isDark ? "破晓 · 点亮纸页" : "入夜 · 流萤深空"}
     >
-      {theme === "dark" ? (
-        <Sun className="w-5 h-5" />
-      ) : (
-        <Moon className="w-5 h-5" />
-      )}
+      {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
     </button>
   );
 }

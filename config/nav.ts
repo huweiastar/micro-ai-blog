@@ -13,6 +13,7 @@ export const navConfig: NavItem[] = [
   { title: "相册", href: "/gallery" },
   { title: "标签", href: "/tags" },
   { title: "足迹", href: "/footprint" },
+  { title: "图谱", href: "/graph" },
   { title: "统计", href: "/stats" },
   { title: "留言板", href: "/guestbook" },
   { title: "关于我", href: "/about" },
