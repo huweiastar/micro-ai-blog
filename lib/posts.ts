@@ -34,6 +34,10 @@ export type BlogPost = {
   wordCount: number;
   cover?: string;
   toc: TocItem[];
+  // 说说（note）专用，可选
+  mood?: string;
+  location?: string;
+  images?: string[];
 };
 
 export type TocItem = {
@@ -84,6 +88,17 @@ export function generateToc(content: string): TocItem[] {
   });
 }
 
+export function extractMomentFields(data: Record<string, unknown>) {
+  const images = Array.isArray(data.images)
+    ? (data.images.filter((s) => typeof s === "string") as string[])
+    : [];
+  return {
+    mood: typeof data.mood === "string" ? data.mood : undefined,
+    location: typeof data.location === "string" ? data.location : undefined,
+    images,
+  };
+}
+
 function parsePostFile(file: string): BlogPost {
   const filePath = path.join(postsDirectory, file);
   const source = fs.readFileSync(filePath, "utf-8");
@@ -106,6 +121,7 @@ function parsePostFile(file: string): BlogPost {
     wordCount: calculateWordCount(content),
     toc: generateToc(content),
     cover: data.cover,
+    ...extractMomentFields(data as Record<string, unknown>),
   };
 }
 
