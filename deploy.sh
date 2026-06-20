@@ -23,9 +23,19 @@ SERVICE="micro-ai-blog"
 SITE_URL="https://huweiastar.deepai.icu"
 PORT=3000
 
-BUILD_DIR=".next.build"   # staging：本次构建输出
-LIVE_DIR=".next"          # 线上正在使用
-OLD_DIR=".next.old"       # 上一个版本，用于回滚
+# monorepo：博客在 apps/blog；content/ data/ 在仓库根（共享，生产 SQLite 不动）。
+# .next* 构建目录位于 apps/blog 下。
+BLOG_DIR="apps/blog"
+DIST_BUILD=".next.build"          # staging 目录名（相对 apps/blog 传给 next）
+BUILD_DIR="$BLOG_DIR/$DIST_BUILD" # staging：本次构建输出
+LIVE_DIR="$BLOG_DIR/.next"        # 线上正在使用
+OLD_DIR="$BLOG_DIR/.next.old"     # 上一个版本，用于回滚
+
+# ⚠️ 一次性：systemd 单元需指向 apps/blog 才能让 next start 找到 .next。
+#   将 micro-ai-blog.service 改为以下之一（改后 sudo systemctl daemon-reload）：
+#     A) WorkingDirectory=/home/ubuntu/projects/micro-ai-blog/apps/blog + ExecStart=.../next start -p 3000
+#     B) WorkingDirectory=/home/ubuntu/projects/micro-ai-blog + ExecStart=npm run start -w @app/blog
+#   运行时 CONTENT_DIR/DATA_DIR 由 apps/blog/next.config.mjs 自动注入（绝对路径），systemd 无需再设。
 
 cd "$APP_DIR"
 
@@ -47,10 +57,13 @@ rm -rf "$BUILD_DIR"
 # 删除可能由别的分支（如 Next16）构建/dev 留下的类型产物：tsconfig 的 include
 # 会把这些目录里的 validator.ts 一起做类型检查，旧版本残留会让本次 build 失败。
 # 这些目录仅用于构建/类型检查，运行时不依赖，删除对线上 .next 无影响。
-rm -rf "$LIVE_DIR/types" .next.dev
+rm -rf "$LIVE_DIR/types" "$BLOG_DIR/.next.dev"
 
 log "生产构建 → $BUILD_DIR（线上 $SITE_URL 全程正常）..."
-if ! NEXT_DIST_DIR="$BUILD_DIR" NEXT_PUBLIC_SITE_URL="$SITE_URL" NODE_ENV=production npm run build; then
+# NEXT_DIST_DIR 相对 apps/blog（next 以该目录为 cwd）；CONTENT_DIR/DATA_DIR 指向共享根，
+# 供 prebuild 的独立 tsx 脚本读取（next 运行时另由 next.config 注入）。
+if ! NEXT_DIST_DIR="$DIST_BUILD" CONTENT_DIR="$APP_DIR/content" DATA_DIR="$APP_DIR/data" \
+     NEXT_PUBLIC_SITE_URL="$SITE_URL" NODE_ENV=production npm run build -w @app/blog; then
   err "构建失败，线上站点未做任何改动。请修复后重试。"
   rm -rf "$BUILD_DIR"
   exit 1
