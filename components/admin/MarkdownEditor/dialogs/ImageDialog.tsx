@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 const escapeHtmlAttr = (s: string): string =>
   s.replace(/&/g, "&amp;")
@@ -24,16 +24,28 @@ interface ImageDialogProps {
   primaryUrl: string;
   /** Returns the markdown/HTML to insert at the cursor. */
   onConfirm: (markdown: string) => void;
+  uploadSecondImage?: (file: File) => Promise<string | null>;
+  uploading?: boolean;
+  error?: string | null;
 }
 
 const SIZE_STYLE: Record<ImageSize, (custom?: number) => string> = {
-  small: () => `width="33%"`,
-  medium: () => `width="66%"`,
-  full: () => `width="100%"`,
-  custom: (w = 400) => `width="${w}px"`,
+  small: () => "max-width: 33%;",
+  medium: () => "max-width: 66%;",
+  full: () => "max-width: 100%;",
+  custom: (w = 400) => `max-width: ${w}px;`,
 };
 
-export function ImageDialog({ open, onClose, primaryUrl, onConfirm }: ImageDialogProps) {
+export function ImageDialog({
+  open,
+  onClose,
+  primaryUrl,
+  onConfirm,
+  uploadSecondImage,
+  uploading = false,
+  error,
+}: ImageDialogProps) {
+  const secondFileRef = useRef<HTMLInputElement>(null);
   const [alt, setAlt] = useState("");
   const [size, setSize] = useState<ImageSize>("full");
   const [customWidth, setCustomWidth] = useState(400);
@@ -41,18 +53,28 @@ export function ImageDialog({ open, onClose, primaryUrl, onConfirm }: ImageDialo
   const [secondUrl, setSecondUrl] = useState("");
   if (!open) return null;
 
+  const safeWidth = Math.min(2000, Math.max(50, customWidth || 400));
+  const imageStyle = SIZE_STYLE[size](safeWidth);
+
   const handleInsert = () => {
-    const sa = SIZE_STYLE[size](customWidth);
     const cap = escapeHtmlText(alt || "在此输入图片描述...");
     const altText = escapeHtmlAttr(alt || "图片");
     let md = "";
     if (layout === "double" && secondUrl) {
-      md = `\n<div class="flex gap-4">\n<figure class="image-block flex-1"><img src="${escapeHtmlAttr(primaryUrl)}" alt="图片1" ${sa} /><figcaption class="image-caption">${cap}</figcaption></figure>\n<figure class="image-block flex-1"><img src="${escapeHtmlAttr(secondUrl)}" alt="${altText}" ${sa} /><figcaption class="image-caption">${cap}</figcaption></figure>\n</div>\n`;
+      md = `\n<div class="image-grid image-grid-2">\n  <figure class="image-block">\n    <img src="${escapeHtmlAttr(primaryUrl)}" alt="${altText}" style="${escapeHtmlAttr(imageStyle)}" />\n    <figcaption class="image-caption">${cap}</figcaption>\n  </figure>\n  <figure class="image-block">\n    <img src="${escapeHtmlAttr(secondUrl)}" alt="${altText}" style="${escapeHtmlAttr(imageStyle)}" />\n    <figcaption class="image-caption">${cap}</figcaption>\n  </figure>\n</div>\n`;
     } else {
-      md = `\n<figure class="image-block">\n  <img src="${escapeHtmlAttr(primaryUrl)}" alt="${altText}" ${sa} />\n  <figcaption class="image-caption">${cap}</figcaption>\n</figure>\n`;
+      md = `\n<figure class="image-block">\n  <img src="${escapeHtmlAttr(primaryUrl)}" alt="${altText}" style="${escapeHtmlAttr(imageStyle)}" />\n  <figcaption class="image-caption">${cap}</figcaption>\n</figure>\n`;
     }
     onConfirm(md);
     onClose();
+  };
+
+  const handleSecondFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file || !uploadSecondImage) return;
+    const url = await uploadSecondImage(file);
+    if (url) setSecondUrl(url);
   };
 
   return (
@@ -119,14 +141,32 @@ export function ImageDialog({ open, onClose, primaryUrl, onConfirm }: ImageDialo
         </div>
         {layout === "double" && (
           <div className="mt-2">
-            <label className="text-xs text-[var(--muted)] block mb-1">第二张图片 URL</label>
+            <label className="text-xs text-[var(--muted)] block mb-1">第二张图片</label>
             <input
-              type="text"
-              value={secondUrl}
-              onChange={(e) => setSecondUrl(e.target.value)}
-              placeholder="https://..."
-              className="w-full px-2 py-1.5 rounded border border-[var(--card-border)] bg-[var(--card)] text-sm text-[var(--foreground)]"
+              ref={secondFileRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleSecondFile}
             />
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => secondFileRef.current?.click()}
+                disabled={!uploadSecondImage || uploading}
+                className="shrink-0 rounded border border-[var(--card-border)] px-2 py-1.5 text-xs text-[var(--muted)] transition-colors hover:text-[var(--primary)] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {uploading ? "上传中..." : "上传"}
+              </button>
+              <input
+                type="text"
+                value={secondUrl}
+                onChange={(e) => setSecondUrl(e.target.value)}
+                placeholder="或粘贴图片 URL"
+                className="min-w-0 flex-1 px-2 py-1.5 rounded border border-[var(--card-border)] bg-[var(--card)] text-sm text-[var(--foreground)]"
+              />
+            </div>
+            {error && <p className="mt-1 text-xs text-red-400">{error}</p>}
           </div>
         )}
       </div>

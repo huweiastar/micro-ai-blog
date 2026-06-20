@@ -67,7 +67,7 @@ export function MarkdownEditor({
   const { wrap, insert, insertTable, insertCodeBlock, insertHeading } =
     useMarkdownInsert(textareaRef, value, onChange);
   const { isFullscreen, toggle } = useFullscreen(wrapRef);
-  const { upload } = useImageUpload(uploadEndpoint);
+  const { upload, uploading, lastError } = useImageUpload(uploadEndpoint);
   const { detectedDraft, restore, discard } = useDraftAutosave(draftKey, value);
   const { html: previewHtml } = usePreviewRender(value, previewOn);
 
@@ -185,6 +185,12 @@ export function MarkdownEditor({
           primaryUrl={pendingImageUrl}
           onClose={() => setPendingImageUrl(null)}
           onConfirm={(md) => insert(md)}
+          uploadSecondImage={async (file) => {
+            const result = await upload(file, uploadMeta);
+            return result?.url ?? null;
+          }}
+          uploading={uploading}
+          error={lastError}
         />
       )}
 

@@ -328,6 +328,32 @@
 
   .prose-custom img {
     @apply rounded-lg mx-auto cursor-zoom-in;
+    height: auto;
+  }
+
+  .prose-custom .image-block {
+    @apply my-6 text-center;
+  }
+
+  .prose-custom .image-block img {
+    @apply my-0 inline-block max-w-full;
+  }
+
+  .prose-custom .image-caption {
+    @apply mt-2 text-center text-sm text-[var(--muted)];
+    line-height: 1.6;
+  }
+
+  .prose-custom .image-grid {
+    @apply my-6 grid gap-4;
+  }
+
+  .prose-custom .image-grid-2 {
+    @apply grid-cols-1 sm:grid-cols-2;
+  }
+
+  .prose-custom .image-grid .image-block {
+    @apply my-0;
   }
 
   /* 外链：正文中的站外链接追加箭头图标，区别于站内链接 */
@@ -611,6 +637,33 @@
   .reveal.reveal-visible {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+.friend-bottle {
+  animation:
+    friend-bottle-float var(--friend-duration, 3.4s) ease-in-out var(--friend-delay, 0ms) infinite,
+    friend-bottle-fade 420ms ease-out var(--friend-delay, 0ms) both;
+}
+
+@keyframes friend-bottle-float {
+  0%, 100% {
+    transform: translate(-50%, -50%) translateY(0) rotate(var(--friend-rotation, 0deg));
+  }
+  35% {
+    transform: translate(-50%, -50%) translateY(-9px) rotate(calc(var(--friend-rotation, 0deg) + 1.2deg));
+  }
+  75% {
+    transform: translate(-50%, -50%) translateY(5px) rotate(calc(var(--friend-rotation, 0deg) - 1deg));
+  }
+}
+
+@keyframes friend-bottle-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
 
