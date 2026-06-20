@@ -1,0 +1,6 @@
+friends:
+  - name: 示例朋友
+    url: https://example.com
+    description: 这里是一句简短的站点介绍。
+    avatar: ""
+    themeColor: "rgba(99,102,241,0.5)"
