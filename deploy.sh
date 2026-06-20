@@ -47,6 +47,14 @@ BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo '?')"
 COMMIT="$(git rev-parse --short HEAD 2>/dev/null || echo '?')"
 log "准备部署：分支 $BRANCH @ $COMMIT"
 
+# --- 0.5 确保 apps/blog 能读到根 .env.local ---
+# monorepo 下 Next 从 app 目录（apps/blog）加载 .env.local，而密钥文件在仓库根。
+# 缺它会导致 ADMIN_PASSWORD/SESSION_SECRET/NEXT_PUBLIC_GISCUS 等在构建+运行时丢失。
+if [ -f "$APP_DIR/.env.local" ] && [ ! -e "$BLOG_DIR/.env.local" ]; then
+  ln -sf ../../.env.local "$BLOG_DIR/.env.local"
+  log "已建 $BLOG_DIR/.env.local → 根 .env.local 符号链接"
+fi
+
 # --- 1. 依赖（按 lockfile 精确安装，避免分支间依赖漂移）---
 log "按 lockfile 安装依赖（npm ci）..."
 npm ci --no-audit --no-fund
