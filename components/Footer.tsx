@@ -15,7 +15,7 @@ export function Footer() {
   return (
     <footer className="border-t border-[var(--card-border)] glass mt-20">
       <Container className="py-10">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-8">
           {/* Brand */}
           <div className="col-span-2 md:col-span-1">
             <h3 className="font-semibold text-[var(--foreground)] mb-3">
@@ -57,6 +57,24 @@ export function Footer() {
                 </a>
               ))}
             </div>
+          </div>
+
+          {/* Explore */}
+          <div>
+            <h3 className="font-semibold text-[var(--foreground)] mb-3">探索</h3>
+            <ul className="space-y-1.5">
+              {[
+                { title: "知识图谱", href: "/graph" },
+                { title: "数据统计", href: "/stats" },
+                { title: "归档", href: "/archive" },
+              ].map((item) => (
+                <li key={item.href}>
+                  <Link href={item.href} className="text-xs text-[var(--muted)] hover:text-[var(--primary)] transition-colors">
+                    {item.title}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
 
           {/* RSS */}
