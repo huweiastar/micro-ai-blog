@@ -38,7 +38,7 @@ export default function ChattersPage() {
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={c.cover} alt={c.title} className="h-40 w-full object-cover" loading="lazy" />
                   )}
-                  <div className="p-5">
+                  <div className="p-5 pb-0">
                     <div className="mb-2 flex items-center gap-2 text-xs text-[var(--muted)]">
                       <time>{formatShortDate(c.date)}</time>
                       {c.mood && (
@@ -49,15 +49,16 @@ export default function ChattersPage() {
                     {c.summary && (
                       <p className="mt-2 line-clamp-2 text-sm text-[var(--muted)]">{c.summary}</p>
                     )}
-                    {c.tags.length > 0 && (
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {c.tags.map((t) => (
-                          <Tag key={t} name={t} />
-                        ))}
-                      </div>
-                    )}
                   </div>
                 </Link>
+                {/* 标签放在卡片 Link 之外，避免 <a> 嵌套 <a> 的水合错误 */}
+                {c.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-2 px-5 pb-5 pt-3">
+                    {c.tags.map((t) => (
+                      <Tag key={t} name={t} />
+                    ))}
+                  </div>
+                )}
               </GlassCard>
             ))}
           </RevealList>
