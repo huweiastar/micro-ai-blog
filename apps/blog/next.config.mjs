@@ -1,5 +1,13 @@
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
+
+// monorepo：blog 运行于 apps/blog，content/ 与 data/ 在仓库根（共享）。
+// 为运行时（dev / build SSG / start）注入默认共享根路径；
+// prebuild 的独立 tsx 脚本另在 package.json 里设置同样的 env。
+const __dir = path.dirname(fileURLToPath(import.meta.url));
+process.env.CONTENT_DIR ||= path.resolve(__dir, "../../content");
+process.env.DATA_DIR ||= path.resolve(__dir, "../../data");
 
 function loadRedirects() {
   const filePath = path.join(process.cwd(), "config", "redirects.json");

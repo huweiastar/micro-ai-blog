@@ -1,7 +1,12 @@
-import { describe, it, expect, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import path from "path";
 import { contentDir, dataDir } from "./paths";
 
+// 清掉运行器注入的 CONTENT_DIR/DATA_DIR，确保"默认值"用例确定性。
+beforeEach(() => {
+  delete process.env.CONTENT_DIR;
+  delete process.env.DATA_DIR;
+});
 afterEach(() => {
   delete process.env.CONTENT_DIR;
   delete process.env.DATA_DIR;

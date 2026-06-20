@@ -83,3 +83,15 @@ next-env.d.ts
 
 # superpowers 插件本地目录
 .superpowers/
+
+# ── monorepo（apps/*）下的同类忽略（根部 /xxx 规则不覆盖子工作区）──
+node_modules/
+apps/*/.next/
+apps/*/.next.build/
+apps/*/.next.old/
+apps/*/.next.dev/
+apps/*/.next.verify/
+apps/*/public/search-index.json
+apps/*/public/sitemap.xml
+apps/*/public/rss.xml
+apps/*/public/knowledge-index.json
