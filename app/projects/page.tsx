@@ -1,5 +1,5 @@
 import { getProjects } from "../../lib/projects";
-import { ProjectCard } from "../../components/ProjectCard";
+import { ProjectListItem } from "../../components/ProjectListItem";
 import { PageHeader } from "../../components/ui/PageHeader";
 import { Container } from "../../components/ui/Container";
 import { generatePageMetadata } from "../../lib/seo";
@@ -22,9 +22,9 @@ export default function ProjectsPage() {
         countLabel="个"
       />
       <Container className="pb-12">
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="space-y-5">
           {projects.map((project) => (
-            <ProjectCard key={project.name} project={project} />
+            <ProjectListItem key={project.slug} project={project} />
           ))}
         </div>
       </Container>
