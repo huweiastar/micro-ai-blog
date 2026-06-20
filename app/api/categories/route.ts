@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCategoryConfigs, saveCategoryConfigs } from "../../../lib/categories";
+import { revalidateContentPaths } from "../../../lib/regenerate";
 
 // 后台保存后立即生效：禁止 GET 被静态缓存成旧值。
 export const dynamic = "force-dynamic";
@@ -34,6 +35,7 @@ export async function POST(req: NextRequest) {
       draft: draft || undefined,
     });
     saveCategoryConfigs(categories);
+    revalidateContentPaths();
 
     return NextResponse.json({ success: true, message: "专栏已添加" });
   } catch (error) {
@@ -67,6 +69,7 @@ export async function PUT(req: NextRequest) {
       draft: draft || undefined,
     };
     saveCategoryConfigs(categories);
+    revalidateContentPaths();
 
     return NextResponse.json({ success: true, message: "专栏已更新" });
   } catch (error) {
@@ -87,6 +90,7 @@ export async function DELETE(req: NextRequest) {
     let categories = getCategoryConfigs();
     categories = categories.filter((c) => c.name !== name);
     saveCategoryConfigs(categories);
+    revalidateContentPaths();
 
     return NextResponse.json({ success: true, message: "专栏已删除" });
   } catch (error) {

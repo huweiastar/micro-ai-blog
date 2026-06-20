@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 import { atomicWriteFile } from "../../../lib/atomic-file";
+import { refreshAfterContentChange } from "../../../lib/regenerate";
 import { slugifyCjk } from "../../../lib/utils";
 
 export async function POST(req: NextRequest) {
@@ -61,6 +62,9 @@ ${content}
 
     // Write file
     atomicWriteFile(path.join(blogDir, finalFileName), mdContent);
+
+    // 重建索引/sitemap/RSS + 失效页面缓存，发布即生效
+    refreshAfterContentChange(finalFileName.replace(/\.md$/, ""));
 
     return NextResponse.json({
       success: true,

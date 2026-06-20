@@ -131,6 +131,10 @@ export function revalidateContentPaths(slug?: string) {
     ["/categories/[category]", "page"],
     ["/projects", "page"],
     ["/projects/[slug]", "page"],
+    // 派生自文章数据的页面：足迹时间线、数据统计、知识图谱
+    ["/footprint", "page"],
+    ["/stats", "page"],
+    ["/graph", "page"],
   ];
   for (const [p, type] of paths) {
     try {
