@@ -1,8 +1,9 @@
 import fs from "fs";
 import path from "path";
+import { contentDir } from "./paths";
 import matter from "gray-matter";
 
-const dir = path.join(process.cwd(), "content/chatters");
+const dir = path.join(contentDir(), "chatters");
 
 export interface Chatter {
   slug: string;

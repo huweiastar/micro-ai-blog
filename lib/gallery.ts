@@ -1,8 +1,9 @@
 import fs from "fs";
 import path from "path";
+import { contentDir } from "./paths";
 import yaml from "js-yaml";
 
-const galleryPath = path.join(process.cwd(), "content/gallery.yaml");
+const galleryPath = path.join(contentDir(), "gallery.yaml");
 
 export interface GalleryPhoto {
   src: string;

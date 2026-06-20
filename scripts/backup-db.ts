@@ -15,12 +15,13 @@
 import Database from "better-sqlite3";
 import fs from "fs";
 import path from "path";
+import { dataDir } from "../lib/paths";
 import { execFileSync } from "child_process";
 
 const DB_PATH =
-  process.env.BLOG_DB_PATH || path.join(process.cwd(), "data", "blog.db");
+  process.env.BLOG_DB_PATH || path.join(dataDir(), "blog.db");
 const OUT_DIR =
-  process.env.BACKUP_DIR || path.join(process.cwd(), "data", "backups");
+  process.env.BACKUP_DIR || path.join(dataDir(), "backups");
 const KEEP = Number(process.env.BACKUP_KEEP || 14);
 const REMOTE = process.env.BACKUP_RCLONE_REMOTE;
 

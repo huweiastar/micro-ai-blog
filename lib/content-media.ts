@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { contentDir } from "./paths";
 import matter from "gray-matter";
 
 const LOCAL_IMAGE_PREFIX = "/images/";
@@ -78,7 +79,8 @@ export function findMediaReferences(url: string): MediaReference[] {
   const cleanUrl = stripHashAndQuery(url);
   const files: string[] = [];
   for (const root of SCAN_ROOTS) {
-    walkTextFiles(path.join(process.cwd(), root), files);
+    const base = root === "content" ? contentDir() : path.join(process.cwd(), root);
+    walkTextFiles(base, files);
   }
 
   const refs: MediaReference[] = [];
@@ -106,7 +108,7 @@ function canonicalPostSlug(data: Record<string, unknown>, filePath: string): str
   return path.basename(filePath).replace(/\.(md|mdx)$/, "");
 }
 
-export function findMissingPostImages(postsDir: string = path.join(process.cwd(), "content", "blog")): MissingPostImage[] {
+export function findMissingPostImages(postsDir: string = path.join(contentDir(), "blog")): MissingPostImage[] {
   if (!fs.existsSync(postsDir)) return [];
   const missing: MissingPostImage[] = [];
   const files = fs.readdirSync(postsDir).filter((file) => file.endsWith(".md") || file.endsWith(".mdx"));

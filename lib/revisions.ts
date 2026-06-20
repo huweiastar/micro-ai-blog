@@ -1,8 +1,9 @@
 import fs from "fs";
 import path from "path";
+import { dataDir } from "./paths";
 import { atomicWriteFile } from "./atomic-file";
 
-const REV_ROOT = path.join(process.cwd(), "data", "revisions");
+const REV_ROOT = path.join(dataDir(), "revisions");
 const MAX_REVISIONS = 20;
 // 与 /api/posts 一致：仅允许字母数字、下划线、短横、中文，杜绝路径穿越。
 const SLUG_OK = /^[\w一-龥-]+$/;

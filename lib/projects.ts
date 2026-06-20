@@ -1,10 +1,11 @@
 import fs from "fs";
 import path from "path";
+import { contentDir } from "./paths";
 import yaml from "js-yaml";
 import { atomicWriteFile } from "./atomic-file";
 import type { Project } from "../types/project";
 
-const projectsPath = path.join(process.cwd(), "content/projects/projects.yaml");
+const projectsPath = path.join(contentDir(), "projects/projects.yaml");
 
 // 读取全部项目（含草稿）——仅供后台使用。
 export function getAllProjects(): Project[] {

@@ -1,8 +1,9 @@
 import fs from "fs";
 import path from "path";
+import { contentDir } from "./paths";
 import yaml from "js-yaml";
 
-const friendsPath = path.join(process.cwd(), "content/friends.yaml");
+const friendsPath = path.join(contentDir(), "friends.yaml");
 
 export type Friend = {
   name: string;

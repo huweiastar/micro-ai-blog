@@ -1,9 +1,10 @@
 import fs from "fs";
 import path from "path";
+import { contentDir } from "../lib/paths";
 import matter from "gray-matter";
 import { extractImageUrls, localImagePath } from "../lib/content-media";
 
-const postsDirectory = path.join(process.cwd(), "content/blog");
+const postsDirectory = path.join(contentDir(), "blog");
 let hasError = false;
 
 function error(msg: string) {

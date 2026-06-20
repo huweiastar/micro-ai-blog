@@ -1,10 +1,11 @@
 import fs from "fs";
 import path from "path";
+import { contentDir } from "./paths";
 import yaml from "js-yaml";
 import { atomicWriteFile } from "./atomic-file";
 import type { AboutProfile } from "../types/about";
 
-const profilePath = path.join(process.cwd(), "content/about/profile.yaml");
+const profilePath = path.join(contentDir(), "about/profile.yaml");
 
 const DEFAULT_PROFILE: AboutProfile = {
   name: "微观AI",

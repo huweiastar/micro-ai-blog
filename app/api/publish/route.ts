@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import { contentDir } from "../../../lib/paths";
 import { atomicWriteFile } from "../../../lib/atomic-file";
 import { refreshAfterContentChange } from "../../../lib/regenerate";
 import { slugifyCjk } from "../../../lib/utils";
@@ -24,7 +25,7 @@ export async function POST(req: NextRequest) {
     const fileName = `${safeSlug}.md`;
 
     // Ensure directory exists
-    const blogDir = path.join(process.cwd(), "content/blog");
+    const blogDir = path.join(contentDir(), "blog");
     if (!fs.existsSync(blogDir)) {
       fs.mkdirSync(blogDir, { recursive: true });
     }

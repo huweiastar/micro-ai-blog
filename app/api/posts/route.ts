@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import { contentDir } from "../../../lib/paths";
 import matter from "gray-matter";
 import { atomicWriteFile } from "../../../lib/atomic-file";
 import { refreshAfterContentChange } from "../../../lib/regenerate";
 import { snapshotPost } from "../../../lib/revisions";
 import { countWords as calculateWordCount } from "../../../lib/word-count";
 
-const postsDirectory = path.join(process.cwd(), "content/blog");
+const postsDirectory = path.join(contentDir(), "blog");
 const redirectsFile = path.join(process.cwd(), "config", "redirects.json");
 
 // Only allow alphanumeric, underscore, dash, and CJK characters in slugs

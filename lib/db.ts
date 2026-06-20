@@ -1,6 +1,7 @@
 import Database from "better-sqlite3";
 import fs from "fs";
 import path from "path";
+import { dataDir } from "./paths";
 
 // 缓存挂在 globalThis 上：next dev 热重载会重新执行模块，模块级变量会丢失旧连接
 // 导致句柄泄漏，globalThis 跨热重载存活（与 Prisma 官方推荐的单例模式一致）。
@@ -16,7 +17,7 @@ const globalForDb = globalThis as typeof globalThis & {
 export function getDb(): Database.Database {
   if (globalForDb.__blogDb) return globalForDb.__blogDb;
   const dbPath =
-    process.env.BLOG_DB_PATH || path.join(process.cwd(), "data", "blog.db");
+    process.env.BLOG_DB_PATH || path.join(dataDir(), "blog.db");
   fs.mkdirSync(path.dirname(dbPath), { recursive: true });
   const db = new Database(dbPath);
   db.pragma("journal_mode = WAL");

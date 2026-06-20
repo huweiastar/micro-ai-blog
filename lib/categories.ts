@@ -1,10 +1,11 @@
 import fs from "fs";
 import path from "path";
+import { contentDir } from "./paths";
 import yaml from "js-yaml";
 import { atomicWriteFile } from "./atomic-file";
 import { getAllPostsSync } from "./posts";
 
-const categoriesPath = path.join(process.cwd(), "content/categories.yaml");
+const categoriesPath = path.join(contentDir(), "categories.yaml");
 
 export type CategoryConfig = {
   name: string;

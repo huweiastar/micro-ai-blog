@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import { contentDir } from "../../../lib/paths";
 import yaml from "js-yaml";
 import { atomicWriteFile } from "../../../lib/atomic-file";
 import { refreshAfterContentChange } from "../../../lib/regenerate";
@@ -10,7 +11,7 @@ import type { Project } from "../../../types/project";
 // 后台保存后立即生效：禁止 GET 被静态缓存成旧值。
 export const dynamic = "force-dynamic";
 
-const projectsPath = path.join(process.cwd(), "content/projects/projects.yaml");
+const projectsPath = path.join(contentDir(), "projects/projects.yaml");
 
 function readProjects(): Project[] {
   if (!fs.existsSync(projectsPath)) return [];

@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { contentDir } from "./paths";
 import matter from "gray-matter";
 import { remark } from "remark";
 import remarkGfm from "remark-gfm";
@@ -61,7 +62,7 @@ export type Tag = {
   count: number;
 };
 
-const postsDirectory = path.join(process.cwd(), "content/blog");
+const postsDirectory = path.join(contentDir(), "blog");
 
 export function getSlug(filePath: string): string {
   return path.basename(filePath).replace(/\.(md|mdx)$/, "");

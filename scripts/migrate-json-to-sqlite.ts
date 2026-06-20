@@ -5,6 +5,7 @@
  */
 import fs from "fs";
 import path from "path";
+import { dataDir } from "../lib/paths";
 import { getDb, closeDb } from "../lib/db";
 
 const GLOBAL_PATH = "__global__";
@@ -23,7 +24,7 @@ type JsonLikes = {
 };
 
 function readJson<T>(file: string): T | null {
-  const p = path.join(process.cwd(), "data", file);
+  const p = path.join(dataDir(), file);
   if (!fs.existsSync(p)) return null;
   return JSON.parse(fs.readFileSync(p, "utf-8")) as T;
 }
