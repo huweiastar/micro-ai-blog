@@ -37,3 +37,15 @@ export function slugifyCjk(text: string): string {
     .replace(/[^\w一-龥]+/g, "-")
     .replace(/^-+|-+$/g, "");
 }
+
+/** 相对时间：刚刚 / N 分钟前 / N 小时前 / 超过一天显示 年.月.日。 */
+export function timeAgo(dateStr: string, nowMs: number = Date.now()): string {
+  const t = new Date(dateStr).getTime();
+  const diff = Math.floor((nowMs - t) / 1000);
+  if (diff < 60) return "刚刚";
+  if (diff < 3600) return `${Math.floor(diff / 60)} 分钟前`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)} 小时前`;
+  const d = new Date(dateStr);
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}.${p(d.getMonth() + 1)}.${p(d.getDate())}`;
+}
