@@ -1,4 +1,5 @@
 import { getAllPostsSync } from "../lib/posts";
+import { getAllChattersSync } from "../lib/chatters";
 import { getSiteUrl, latestContentDate } from "../lib/seo";
 import type { MetadataRoute } from "next";
 
@@ -51,6 +52,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 0.5,
     },
+    {
+      url: `${siteUrl}/chatters`,
+      lastModified: lastContent,
+      changeFrequency: "weekly" as const,
+      priority: 0.6,
+    },
+    ...getAllChattersSync().map((c) => ({
+      url: `${siteUrl}/chatters/${c.slug}`,
+      lastModified: new Date(c.date),
+      changeFrequency: "monthly" as const,
+      priority: 0.5,
+    })),
     ...posts.map((post) => ({
       url: `${siteUrl}/blog/${post.slug}`,
       lastModified: new Date(post.updated || post.date),
