@@ -25,6 +25,7 @@
     "migrate:images": "tsx scripts/migrate-images-to-s3.ts"
   },
   "dependencies": {
+    "@pkg/auth": "*",
     "@aws-sdk/client-s3": "^3.1066.0",
     "better-sqlite3": "^12.10.0",
     "clsx": "^2.1.1",
