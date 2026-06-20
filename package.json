@@ -20,6 +20,7 @@
     "prebuild": "npm run generate:knowledge && npm run generate:search && npm run generate:sitemap && npm run generate:rss",
     "test": "vitest run",
     "migrate:db": "tsx scripts/migrate-json-to-sqlite.ts",
+    "backup:db": "tsx scripts/backup-db.ts",
     "check:media": "tsx scripts/check-media.ts",
     "migrate:images": "tsx scripts/migrate-images-to-s3.ts"
   },
