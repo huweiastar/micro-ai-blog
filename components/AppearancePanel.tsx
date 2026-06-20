@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { X, Check, RotateCcw } from "lucide-react";
 import {
   APPEARANCE_OPEN_EVENT,
@@ -26,6 +26,8 @@ const RADIUS_OPTIONS: { key: RadiusKey; label: string }[] = [
 export function AppearancePanel() {
   const [open, setOpen] = useState(false);
   const [prefs, setPrefs] = useState<AppearancePrefs>(DEFAULT_APPEARANCE);
+  const closeBtnRef = useRef<HTMLButtonElement>(null);
+  const lastFocus = useRef<HTMLElement | null>(null);
 
   // 挂载后同步当前偏好（init 脚本已应用到 <html>，这里只为面板回显）
   useEffect(() => {
@@ -35,11 +37,19 @@ export function AppearancePanel() {
     return () => window.removeEventListener(APPEARANCE_OPEN_EVENT, onOpen);
   }, []);
 
+  // 打开时：Esc 关闭、锁定 body 滚动、焦点移入抽屉；关闭时把焦点还给触发元素
   useEffect(() => {
     if (!open) return;
+    lastFocus.current = document.activeElement as HTMLElement | null;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
     document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    closeBtnRef.current?.focus();
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+      lastFocus.current?.focus?.();
+    };
   }, [open]);
 
   const update = (patch: Partial<AppearancePrefs>) => {
@@ -71,6 +81,7 @@ export function AppearancePanel() {
         role="dialog"
         aria-label="外观设置"
         aria-hidden={!open}
+        inert={!open || undefined}
         className={`fixed right-0 top-0 z-[121] flex h-full w-80 max-w-[85vw] flex-col border-l border-[var(--card-border)] bg-[var(--card)] shadow-2xl transition-transform duration-300 ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
@@ -78,6 +89,7 @@ export function AppearancePanel() {
         <header className="flex items-center justify-between border-b border-[var(--card-border)] px-5 py-4">
           <h2 className="text-sm font-semibold text-[var(--foreground)]">外观设置</h2>
           <button
+            ref={closeBtnRef}
             onClick={() => setOpen(false)}
             aria-label="关闭"
             className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-[var(--muted)] transition-colors hover:bg-[var(--primary)]/10 hover:text-[var(--primary)]"

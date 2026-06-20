@@ -139,12 +139,20 @@ export function KnowledgeGraph({ articles }: { articles: GraphArticle[] }) {
   }
 
   return (
+    <div className="relative">
     <svg
       viewBox={`0 0 ${W} ${H}`}
       className="h-auto w-full select-none"
       role="img"
       aria-label="文章与标签的知识关系图谱"
     >
+      {/* 背景：点击空白处清除高亮（移动端轻点退出） */}
+      <rect
+        width={W}
+        height={H}
+        fill="transparent"
+        onClick={() => setHover(null)}
+      />
       {/* 边 */}
       {linksRef.current.map((l, i) => {
         const a = posById.get(l.s);
@@ -172,10 +180,14 @@ export function KnowledgeGraph({ articles }: { articles: GraphArticle[] }) {
             key={n.id}
             transform={`translate(${n.x},${n.y})`}
             opacity={dim ? 0.25 : 1}
-            style={{ cursor: isArticle ? "pointer" : "default", transition: "opacity .2s" }}
+            style={{ cursor: "pointer", transition: "opacity .2s" }}
             onMouseEnter={() => setHover(n.id)}
             onMouseLeave={() => setHover(null)}
-            onClick={() => isArticle && n.slug && router.push(`/blog/${n.slug}`)}
+            onClick={() => {
+              // 文章节点 → 跳转；标签节点 → 切换高亮（移动端无 hover 时也可用）
+              if (isArticle && n.slug) router.push(`/blog/${n.slug}`);
+              else setHover((h) => (h === n.id ? null : n.id));
+            }}
           >
             <circle
               r={r}
@@ -197,5 +209,17 @@ export function KnowledgeGraph({ articles }: { articles: GraphArticle[] }) {
         );
       })}
     </svg>
+      {/* 图例：DOM 渲染，保证各尺寸下清晰可读 */}
+      <div className="pointer-events-none absolute left-3 top-3 flex flex-col gap-1.5 rounded-lg border border-[var(--card-border)] bg-[var(--card)]/80 px-3 py-2 text-xs text-[var(--muted)] backdrop-blur">
+        <span className="flex items-center gap-2">
+          <span className="h-2.5 w-2.5 rounded-full bg-[var(--primary)]" />
+          文章
+        </span>
+        <span className="flex items-center gap-2">
+          <span className="h-2.5 w-2.5 rounded-full border-2 border-[var(--accent)] bg-[var(--card)]" />
+          标签
+        </span>
+      </div>
+    </div>
   );
 }
