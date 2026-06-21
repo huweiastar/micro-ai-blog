@@ -62,15 +62,15 @@ function AssistantWidget() {
       <button
         ref={buttonRef}
         onClick={() => (isOpen ? close() : open())}
-        className="w-14 h-14 rounded-full glass border border-[var(--card-border)] shadow-lg flex items-center justify-center transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--primary)]/50 hover:shadow-xl hover:shadow-[var(--primary)]/10"
+        className="flex h-14 w-14 items-center justify-center rounded-full border border-[var(--primary)]/40 bg-gradient-to-br from-[var(--primary)] to-[var(--accent)] text-white shadow-lg shadow-[var(--primary)]/20 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-[var(--primary)]/30"
         aria-label={isOpen ? "关闭助手" : "打开AI助手"}
       >
         {isLoading ? (
-          <Loader2 className="w-6 h-6 text-[var(--primary)] animate-spin" />
+          <Loader2 className="w-6 h-6 text-white animate-spin" />
         ) : isOpen ? (
-          <X className="w-6 h-6 text-[var(--foreground)]" />
+          <X className="w-6 h-6 text-white" />
         ) : (
-          <Bot className="w-6 h-6 text-[var(--foreground)]" />
+          <Bot className="w-6 h-6 text-white" />
         )}
       </button>
 
