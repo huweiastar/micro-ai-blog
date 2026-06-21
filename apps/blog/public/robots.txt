@@ -1,0 +1,10 @@
+# https://huweiastar.deepai.icu
+User-agent: *
+Allow: /
+
+# 后台：禁止索引 + 禁止抓取
+User-agent: *
+Disallow: /admin/
+
+# Sitemap
+Sitemap: https://huweiastar.deepai.icu/sitemap.xml
