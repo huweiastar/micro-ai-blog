@@ -10,6 +10,7 @@ const WRITE_API_PATHS = [
   "/api/categories",
   "/api/projects",
   "/api/theme",
+  "/api/barrage",
   "/api/feishu",
   "/api/admin/reindex",
   "/api/admin/media",

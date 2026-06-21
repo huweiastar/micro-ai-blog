@@ -1,13 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import path from "path";
 import { revalidatePath } from "next/cache";
 import { atomicWriteFile } from "../../../lib/atomic-file";
-import { readBarrage, sanitizeBarrageInput } from "../../../lib/barrage";
+import { readBarrage, sanitizeBarrageInput, barragePath } from "../../../lib/barrage";
 
 // 保存后需立即生效：禁止把 GET 静态缓存成构建期旧值。
 export const dynamic = "force-dynamic";
-
-const barragePath = path.join(process.cwd(), "config/barrage.json");
 
 export async function GET() {
   return NextResponse.json(readBarrage());

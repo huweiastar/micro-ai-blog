@@ -9,7 +9,7 @@ export interface BarrageConfig {
 const MAX_LEN = 120;
 const MAX_ITEMS = 200;
 
-const barragePath = path.join(process.cwd(), "config/barrage.json");
+export const barragePath = path.join(process.cwd(), "config/barrage.json");
 
 /** 清洗任意外部输入为合法 BarrageConfig：布尔化 enabled、过滤非字符串、trim、去空、限长限量。 */
 export function sanitizeBarrageInput(body: unknown): BarrageConfig {
