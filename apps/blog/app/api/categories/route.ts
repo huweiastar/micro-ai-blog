@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
       draft: draft || undefined,
     });
     saveCategoryConfigs(categories);
-    revalidateContentPaths();
+    revalidateContentPaths(undefined, 'category');
 
     return NextResponse.json({ success: true, message: "专栏已添加" });
   } catch (error) {
@@ -69,7 +69,7 @@ export async function PUT(req: NextRequest) {
       draft: draft || undefined,
     };
     saveCategoryConfigs(categories);
-    revalidateContentPaths();
+    revalidateContentPaths(undefined, 'category');
 
     return NextResponse.json({ success: true, message: "专栏已更新" });
   } catch (error) {
@@ -90,7 +90,7 @@ export async function DELETE(req: NextRequest) {
     let categories = getCategoryConfigs();
     categories = categories.filter((c) => c.name !== name);
     saveCategoryConfigs(categories);
-    revalidateContentPaths();
+    revalidateContentPaths(undefined, 'category');
 
     return NextResponse.json({ success: true, message: "专栏已删除" });
   } catch (error) {

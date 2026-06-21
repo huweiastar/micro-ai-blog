@@ -18,3 +18,13 @@ export const navConfig: NavItem[] = [
   { title: "留言板", href: "/guestbook" },
   { title: "关于我", href: "/about" },
 ];
+
+// Footer「导航」列：跟随 navConfig 顺序，增删入口自动同步。
+export const footerNav: NavItem[] = navConfig.slice(1, 5);
+
+// Footer「探索」列：衍生功能入口（不在主导航内）。
+export const footerExplore: NavItem[] = [
+  { title: "知识图谱", href: "/graph" },
+  { title: "数据统计", href: "/stats" },
+  { title: "归档", href: "/archive" },
+];

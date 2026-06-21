@@ -297,7 +297,7 @@ export async function POST(req: NextRequest) {
 
     atomicWriteFile(path.join(postsDirectory, fileName), mdContent);
 
-    refreshAfterContentChange(finalSlug);
+    refreshAfterContentChange(finalSlug, 'post');
 
     return NextResponse.json({
       success: true,
@@ -383,7 +383,7 @@ export async function PUT(req: NextRequest) {
       recordSlugRedirect(slug, finalSlug);
     }
 
-    refreshAfterContentChange(finalSlug);
+    refreshAfterContentChange(finalSlug, 'post');
 
     return NextResponse.json({ success: true, slug: finalSlug });
   } catch (error) {
@@ -420,7 +420,7 @@ export async function DELETE(req: NextRequest) {
     }
     fs.unlinkSync(filePath);
 
-    refreshAfterContentChange(slug);
+    refreshAfterContentChange(slug, "post");
 
     return NextResponse.json({ success: true });
   } catch (error) {

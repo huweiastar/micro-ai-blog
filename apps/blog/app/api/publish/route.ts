@@ -65,7 +65,7 @@ ${content}
     atomicWriteFile(path.join(blogDir, finalFileName), mdContent);
 
     // 重建索引/sitemap/RSS + 失效页面缓存，发布即生效
-    refreshAfterContentChange(finalFileName.replace(/\.md$/, ""));
+    refreshAfterContentChange(finalFileName.replace(/\.md$/, ""), "post");
 
     return NextResponse.json({
       success: true,
