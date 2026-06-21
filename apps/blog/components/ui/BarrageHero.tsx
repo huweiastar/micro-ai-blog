@@ -25,8 +25,8 @@ export function BarrageHero({ items }: BarrageHeroProps) {
       {items.map((text, i) => {
         const track = i % TRACKS;
         const topPct = 8 + track * (84 / TRACKS); // 8%~92% 纵向均分
-        const duration = 10 + (hash(i) % 7); // 10~16s
-        const delay = (hash(i * 7) % 120) / 10; // 0~12s
+        const duration = 18 + (hash(i) % 8); // 18~25s，降低密度，更像逐条飘过
+        const delay = Math.floor(i / TRACKS) * 5.5 + track * 1.4;
         const tone = ["var(--primary)", "var(--accent)", "var(--muted)"][hash(i * 3) % 3];
         return (
           <span
@@ -34,7 +34,7 @@ export function BarrageHero({ items }: BarrageHeroProps) {
             className="absolute whitespace-nowrap text-sm sm:text-base font-medium select-none"
             style={{
               top: `${topPct}%`,
-              left: 0,
+              left: "100%",
               color: tone,
               opacity: 0.55,
               animation: `barrage-scroll ${duration}s linear ${delay}s infinite`,
