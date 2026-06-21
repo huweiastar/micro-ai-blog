@@ -70,11 +70,11 @@ export function DesktopPet() {
             {/* 身体 */}
             <rect x="8" y="16" width="44" height="40" rx="16" fill="var(--primary)" />
             <rect x="8" y="16" width="44" height="40" rx="16" fill="url(#petglow)" opacity="0.25" />
-            {/* 脸盘 */}
-            <rect x="15" y="24" width="30" height="22" rx="11" fill="#0f172a" />
+            {/* 脸盘（随主题：亮色深墨蓝 / 暗色亮 slate，避免与背景同色） */}
+            <rect x="15" y="24" width="30" height="22" rx="11" fill="var(--pet-face)" />
             {/* 眼睛 */}
-            <circle className="pet-eye" cx="25" cy="35" r="3.4" fill="#fff" />
-            <circle className="pet-eye" cx="37" cy="35" r="3.4" fill="#fff" />
+            <circle className="pet-eye" cx="25" cy="35" r="3.4" fill="var(--pet-eye)" />
+            <circle className="pet-eye" cx="37" cy="35" r="3.4" fill="var(--pet-eye)" />
             {/* 腮红 */}
             <circle cx="18" cy="41" r="2.2" fill="var(--accent)" opacity="0.6" />
             <circle cx="44" cy="41" r="2.2" fill="var(--accent)" opacity="0.6" />
