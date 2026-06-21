@@ -29,21 +29,19 @@ export function ArticleLayout({
     localStorage.setItem("blog-toc-collapsed", String(collapsed));
   };
 
-  // 三栏列宽：左 TOC（折叠时收窄）· 居中正文 · 右栏阅读辅助。
-  // 折叠 TOC 时把空间让给正文，右栏宽度恒定。
-  const tocSpan = tocCollapsed ? "lg:col-span-1" : "lg:col-span-3";
-  const articleSpan = rail
+  // 三栏列宽：左右辅助栏使用固定舒适宽度，剩余空间全部给正文。
+  const gridColumns = rail
     ? tocCollapsed
-      ? "lg:col-span-8"
-      : "lg:col-span-6"
+      ? "lg:grid-cols-[3.5rem_minmax(0,1fr)_10rem] xl:grid-cols-[3.5rem_minmax(0,1fr)_11rem]"
+      : "lg:grid-cols-[12rem_minmax(0,1fr)_10rem] xl:grid-cols-[14rem_minmax(0,1fr)_11rem]"
     : tocCollapsed
-      ? "lg:col-span-11"
-      : "lg:col-span-9";
+      ? "lg:grid-cols-[3.5rem_minmax(0,1fr)]"
+      : "lg:grid-cols-[12rem_minmax(0,1fr)] xl:grid-cols-[14rem_minmax(0,1fr)]";
 
   return (
-    <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:gap-10">
+    <div className={`grid grid-cols-1 gap-8 lg:gap-10 ${gridColumns}`}>
       {/* Sidebar TOC */}
-      <aside className={`hidden transition-all duration-300 lg:block ${tocSpan}`}>
+      <aside className="hidden min-w-0 transition-all duration-300 lg:block">
         <div className="relative">
           {/* Back link placed in sidebar, above TOC */}
           {backLink && <div className="mb-3">{backLink}</div>}
@@ -52,14 +50,14 @@ export function ArticleLayout({
       </aside>
 
       {/* Main Content */}
-      <article className={`transition-all duration-300 ${articleSpan}`}>
+      <article className="min-w-0 transition-all duration-300">
         <MobileToc items={tocItems} />
         {children}
       </article>
 
       {/* Right rail — reading aids (lg+) */}
       {rail && (
-        <aside className="hidden lg:col-span-3 lg:block">{rail}</aside>
+        <aside className="hidden min-w-0 lg:block">{rail}</aside>
       )}
     </div>
   );

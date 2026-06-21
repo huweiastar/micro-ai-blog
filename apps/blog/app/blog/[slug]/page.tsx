@@ -179,7 +179,7 @@ export default async function PostPage(props: PostPageProps) {
           </header>
 
           <div
-            className="prose-custom mx-auto max-w-[72ch]"
+            className="prose-custom mx-auto max-w-[88ch]"
             dangerouslySetInnerHTML={{ __html: html }}
           />
 

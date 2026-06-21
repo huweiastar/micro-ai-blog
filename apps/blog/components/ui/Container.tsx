@@ -8,15 +8,15 @@ interface ContainerProps {
   as?: "div" | "section" | "main" | "header" | "footer" | "nav";
   /**
    * 宽度变体——全站唯一宽度来源（§1.3）：
-   * prose 长文/表单(≈max-w-3xl) · default 列表/常规页(≈max-w-5xl) · wide 宽布局(≈max-w-6xl)。
+   * prose 长文/表单(≈max-w-4xl) · default 列表/常规页(≈max-w-6xl) · wide 宽布局(≈max-w-screen-2xl)。
    */
   size?: ContainerSize;
 }
 
 const SIZE_MAX_WIDTH: Record<ContainerSize, string> = {
-  prose: "max-w-3xl",
-  default: "max-w-5xl",
-  wide: "max-w-6xl",
+  prose: "max-w-4xl",
+  default: "max-w-6xl",
+  wide: "max-w-screen-2xl",
 };
 
 export function Container({
