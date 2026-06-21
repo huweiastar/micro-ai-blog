@@ -95,8 +95,8 @@ export default function HomePage() {
             />
           </aside>
 
-          {/* 中栏内容流 */}
-          <div className="space-y-16 lg:col-span-6">
+          {/* 中栏内容流：最新动态 · 最新文章 · 精选项目 */}
+          <div className="space-y-10 lg:col-span-6">
             {recentActivity.length > 0 && (
               <section>
                 <HomeSectionHeader title="最新动态" moreHref="/footprint" />

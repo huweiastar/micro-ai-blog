@@ -9,12 +9,14 @@ interface SiteChromeProps {
   backToTop: React.ReactNode;
   launcher: React.ReactNode;
   commandPalette: React.ReactNode;
+  appearancePanel: React.ReactNode;
+  desktopPet: React.ReactNode;
   children: React.ReactNode;
 }
 
 /**
- * 根据路由决定是否渲染前台外壳（Header/Footer/背景/返回顶部/AI助手浮窗）。
- * 后台 `/admin/*`（含登录页）使用独立全屏布局，不显示前台外壳。
+ * 根据路由决定是否渲染前台外壳（Header/Footer/背景/返回顶部/AI助手浮窗/
+ * 外观面板/桌面宠物）。后台 `/admin/*`（含登录页）使用独立全屏布局，不显示前台外壳。
  */
 export function SiteChrome({
   background,
@@ -23,6 +25,8 @@ export function SiteChrome({
   backToTop,
   launcher,
   commandPalette,
+  appearancePanel,
+  desktopPet,
   children,
 }: SiteChromeProps) {
   const pathname = usePathname();
@@ -47,6 +51,8 @@ export function SiteChrome({
       </div>
       {!isAdmin && launcher}
       {!isAdmin && commandPalette}
+      {!isAdmin && appearancePanel}
+      {!isAdmin && desktopPet}
     </>
   );
 }

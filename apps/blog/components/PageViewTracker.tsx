@@ -10,6 +10,9 @@ export function PageViewTracker() {
   // Skip tracking on home page to avoid double counting
   if (pathname === "/") return null;
 
+  // 后台页面不计入站点访问统计：站长浏览 /admin 不应虚增 PV/UV。
+  if (pathname?.startsWith("/admin")) return null;
+
   return <TrackingEnabled />;
 }
 

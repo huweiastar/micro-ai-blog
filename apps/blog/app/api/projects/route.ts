@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
     projects.push(project);
     writeProjects(projects);
 
-    refreshAfterContentChange();
+    refreshAfterContentChange(undefined, 'project');
 
     return NextResponse.json({ success: true, project });
   } catch (error) {
@@ -97,7 +97,7 @@ export async function PUT(req: NextRequest) {
     projects[index] = { ...projects[index], ...updates };
     writeProjects(projects);
 
-    refreshAfterContentChange();
+    refreshAfterContentChange(undefined, 'project');
 
     return NextResponse.json({ success: true });
   } catch (error) {
@@ -115,7 +115,7 @@ export async function DELETE(req: NextRequest) {
     projects = projects.filter((p) => p.slug !== slug);
     writeProjects(projects);
 
-    refreshAfterContentChange();
+    refreshAfterContentChange(undefined, 'project');
 
     return NextResponse.json({ success: true });
   } catch (error) {

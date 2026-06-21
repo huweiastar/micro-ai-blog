@@ -80,6 +80,7 @@ export default function AdminDashboard() {
           <Link
             href="/"
             target="_blank"
+            rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[var(--card-border)] text-sm text-[var(--muted)] hover:text-[var(--primary)]"
           >
             <ExternalLink className="w-4 h-4" />查看站点

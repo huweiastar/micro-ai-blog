@@ -115,11 +115,19 @@ export function regenerateContentArtifacts(): { ok: boolean; errors: string[] } 
 }
 
 /**
- * 失效所有依赖文章数据的页面缓存，使 `next start` 下静态生成的页面
- * 在下次访问时重新渲染，新文章立即可见。
+ * 失效依赖内容数据的页面缓存，使 `next start` 下静态生成的页面
+ * 在下次访问时重新渲染，新内容立即可见。
+ *
+ * @param slug - 具体文章/项目的 slug（精确 invalidate 详情页）
+ * @param scope - 变更范围，缩小 invalidate 半径：
+ *   - 'post': 文章变更（ invalidate 文章相关页面 + 派生页）
+ *   - 'project': 项目变更（只 invalidate 项目相关页面）
+ *   - 'category': 分类变更（只 invalidate 分类相关页面）
+ *   - 不传: 全量 invalidate（兼容旧调用）
  */
-export function revalidateContentPaths(slug?: string) {
-  const paths: Array<[string, "page" | "layout"]> = [
+export function revalidateContentPaths(slug?: string, scope?: "post" | "project" | "category") {
+  // 全量 invalidate 路径（scope 未指定时）
+  const allPaths: Array<[string, "page" | "layout"]> = [
     ["/", "page"],
     ["/blog", "page"],
     ["/blog/[slug]", "page"],
@@ -131,11 +139,30 @@ export function revalidateContentPaths(slug?: string) {
     ["/categories/[category]", "page"],
     ["/projects", "page"],
     ["/projects/[slug]", "page"],
-    // 派生自文章数据的页面：足迹时间线、数据统计、知识图谱
     ["/footprint", "page"],
     ["/stats", "page"],
     ["/graph", "page"],
   ];
+
+  // 按 scope 缩小 invalidate 范围
+  let paths: Array<[string, "page" | "layout"]> = allPaths;
+  if (scope === "project") {
+    paths = [
+      ["/", "page"],
+      ["/projects", "page"],
+      ["/projects/[slug]", "page"],
+    ];
+  } else if (scope === "category") {
+    paths = [
+      ["/", "page"],
+      ["/categories", "page"],
+      ["/categories/[category]", "page"],
+    ];
+  } else if (scope === "post") {
+    // 文章变更：去掉项目路径，保留其他
+    paths = allPaths.filter(([p]) => !p.startsWith("/projects"));
+  }
+
   for (const [p, type] of paths) {
     try {
       revalidatePath(p, type);
@@ -153,11 +180,11 @@ export function revalidateContentPaths(slug?: string) {
 }
 
 /** 内容变更后的统一刷新入口：重建产物 + 失效页面缓存 + git 自动提交。 */
-export function refreshAfterContentChange(slug?: string) {
+export function refreshAfterContentChange(slug?: string, scope?: "post" | "project" | "category") {
   // 先失效文章缓存，确保下面重建搜索索引/sitemap/RSS 时读到的是刚写入的新内容。
   invalidatePostsCache();
   const result = regenerateContentArtifacts();
-  revalidateContentPaths(slug);
+  revalidateContentPaths(slug, scope);
   commitContentChange(`chore(content): 后台更新 ${slug ?? "内容"}`);
   return result;
 }

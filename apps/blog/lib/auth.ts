@@ -37,7 +37,7 @@ export async function verifySession(): Promise<boolean> {
 
   const result = verifyToken(sessionCookie.value);
   if (!result.valid) return false;
-  // Node 侧实时校验版本（middleware 侧有 ≤60s 缓存，这里无延迟兜底）
+  // Node 侧实时校验版本（proxy 侧有 ≤60s 缓存，这里无延迟兜底）
   return result.version === getSessionVersion();
 }
 

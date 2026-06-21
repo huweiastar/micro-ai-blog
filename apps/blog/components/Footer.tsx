@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Github, Mail } from "lucide-react";
-import { navConfig } from "../config/nav";
+import { footerNav, footerExplore } from "../config/nav";
 import { getAboutProfile } from "../lib/about";
 import { siteConfig } from "../config/site";
 import { Container } from "./ui/Container";
@@ -30,7 +30,7 @@ export function Footer() {
           <div>
             <h3 className="mb-3 font-semibold text-[var(--foreground)]">导航</h3>
             <ul className="space-y-1.5">
-              {navConfig.slice(1, 5).map((item) => (
+              {footerNav.map((item) => (
                 <li key={item.href}>
                   <Link href={item.href} className="text-xs text-[var(--muted)] transition-colors hover:text-[var(--primary)]">
                     {item.title}
@@ -63,11 +63,7 @@ export function Footer() {
           <div>
             <h3 className="mb-3 font-semibold text-[var(--foreground)]">探索</h3>
             <ul className="space-y-1.5">
-              {[
-                { title: "知识图谱", href: "/graph" },
-                { title: "数据统计", href: "/stats" },
-                { title: "归档", href: "/archive" },
-              ].map((item) => (
+              {footerExplore.map((item) => (
                 <li key={item.href}>
                   <Link href={item.href} className="text-xs text-[var(--muted)] transition-colors hover:text-[var(--primary)]">
                     {item.title}
