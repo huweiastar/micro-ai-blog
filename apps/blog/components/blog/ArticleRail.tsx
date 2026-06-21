@@ -32,7 +32,7 @@ export function ArticleRail({ readingTime, wordCount }: ArticleRailProps) {
   }, []);
 
   return (
-    <div className="sticky top-24 flex flex-col items-center gap-5 rounded-xl border border-[var(--card-border)] bg-[var(--card)] p-5">
+    <div className="flex flex-col items-center gap-5 rounded-xl border border-[var(--card-border)] bg-[var(--card)] p-5">
       {/* 环形阅读进度 */}
       <div className="relative h-[68px] w-[68px]">
         <svg className="h-full w-full -rotate-90" viewBox="0 0 68 68" aria-hidden>

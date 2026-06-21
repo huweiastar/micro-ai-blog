@@ -104,11 +104,60 @@ export default async function PostPage(props: PostPageProps) {
       <Container size="wide" className="py-12">
         <ArticleLayout
           tocItems={post.toc}
+          leftRail={
+            post.type === "article" ? (
+              <nav className="rounded-xl border border-[var(--card-border)] bg-[var(--card)]/70 p-3 shadow-sm backdrop-blur">
+                <h2 className="mb-3 px-1 text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
+                  文章列表
+                </h2>
+                <div className="space-y-1">
+                  {articles.slice(0, 12).map((item) => {
+                    const active = item.slug === post.slug;
+                    return (
+                      <Link
+                        key={item.slug}
+                        href={`/blog/${item.slug}`}
+                        className={`block rounded-lg px-3 py-2 text-sm transition-colors ${
+                          active
+                            ? "bg-[var(--primary)]/10 text-[var(--primary)]"
+                            : "text-[var(--muted)] hover:bg-[var(--primary)]/5 hover:text-[var(--foreground)]"
+                        }`}
+                      >
+                        <span className="line-clamp-2 leading-snug">{item.title}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </nav>
+            ) : undefined
+          }
           rail={
-            <ArticleRail
-              readingTime={post.readingTime}
-              wordCount={post.wordCount}
-            />
+            <>
+              <ArticleRail
+                readingTime={post.readingTime}
+                wordCount={post.wordCount}
+              />
+              {post.toc.length > 0 && (
+                <nav className="rounded-xl border border-[var(--card-border)] bg-[var(--card)]/70 p-4 shadow-sm backdrop-blur">
+                  <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
+                    章节目录
+                  </h2>
+                  <div className="space-y-1">
+                    {post.toc.map((item) => (
+                      <Link
+                        key={item.id}
+                        href={`#${item.id}`}
+                        className={`block border-l-2 border-transparent py-1.5 text-sm leading-snug text-[var(--muted)] transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)] ${
+                          item.level === 3 ? "pl-5" : "pl-3"
+                        }`}
+                      >
+                        {item.text}
+                      </Link>
+                    ))}
+                  </div>
+                </nav>
+              )}
+            </>
           }
           backLink={
             <Link
@@ -143,11 +192,6 @@ export default async function PostPage(props: PostPageProps) {
               </h1>
             )}
 
-            {post.summary && post.summary !== post.title && (
-              <p className="mb-6 leading-relaxed text-[var(--muted)]">
-                {post.summary}
-              </p>
-            )}
 
             <PostMeta
               date={post.date}
@@ -176,6 +220,15 @@ export default async function PostPage(props: PostPageProps) {
               />
               <ShareButtons />
             </div>
+
+            {post.summary && post.summary !== post.title && (
+              <section className="mt-6 rounded-xl border border-[var(--primary)]/15 bg-[var(--primary)]/[0.04] px-4 py-3 text-sm leading-relaxed text-[var(--muted)]">
+                <h2 className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-[var(--primary)]">
+                  内容概览
+                </h2>
+                <p>{post.summary}</p>
+              </section>
+            )}
           </header>
 
           <div
