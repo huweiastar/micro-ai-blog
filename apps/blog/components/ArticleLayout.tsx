@@ -29,29 +29,38 @@ export function ArticleLayout({
     localStorage.setItem("blog-toc-collapsed", String(collapsed));
   };
 
+  const hasToc = tocItems.length > 0;
+
   // 三栏列宽：左右辅助栏使用固定舒适宽度，剩余空间全部给正文。
-  const gridColumns = rail
-    ? tocCollapsed
-      ? "lg:grid-cols-[3.5rem_minmax(0,1fr)_10rem] xl:grid-cols-[3.5rem_minmax(0,1fr)_11rem]"
-      : "lg:grid-cols-[12rem_minmax(0,1fr)_10rem] xl:grid-cols-[14rem_minmax(0,1fr)_11rem]"
-    : tocCollapsed
-      ? "lg:grid-cols-[3.5rem_minmax(0,1fr)]"
-      : "lg:grid-cols-[12rem_minmax(0,1fr)] xl:grid-cols-[14rem_minmax(0,1fr)]";
+  const gridColumns = hasToc
+    ? rail
+      ? tocCollapsed
+        ? "lg:grid-cols-[3.5rem_minmax(0,1fr)_10rem] xl:grid-cols-[3.5rem_minmax(0,1fr)_11rem]"
+        : "lg:grid-cols-[12rem_minmax(0,1fr)_10rem] xl:grid-cols-[14rem_minmax(0,1fr)_11rem]"
+      : tocCollapsed
+        ? "lg:grid-cols-[3.5rem_minmax(0,1fr)]"
+        : "lg:grid-cols-[12rem_minmax(0,1fr)] xl:grid-cols-[14rem_minmax(0,1fr)]"
+    : rail
+      ? "lg:grid-cols-[minmax(0,1fr)_10rem] xl:grid-cols-[minmax(0,1fr)_11rem]"
+      : "";
 
   return (
     <div className={`grid grid-cols-1 gap-8 lg:gap-10 ${gridColumns}`}>
       {/* Sidebar TOC */}
-      <aside className="hidden min-w-0 transition-all duration-300 lg:block">
-        <div className="relative">
-          {/* Back link placed in sidebar, above TOC */}
-          {backLink && <div className="mb-3">{backLink}</div>}
-          <Toc items={tocItems} collapsed={tocCollapsed} onToggle={handleToggle} />
-        </div>
-      </aside>
+      {hasToc && (
+        <aside className="hidden min-w-0 transition-all duration-300 lg:block">
+          <div className="relative">
+            {/* Back link placed in sidebar, above TOC */}
+            {backLink && <div className="mb-3">{backLink}</div>}
+            <Toc items={tocItems} collapsed={tocCollapsed} onToggle={handleToggle} />
+          </div>
+        </aside>
+      )}
 
       {/* Main Content */}
       <article className="min-w-0 transition-all duration-300">
-        <MobileToc items={tocItems} />
+        {hasToc && <MobileToc items={tocItems} />}
+        {!hasToc && backLink && <div className="mb-6">{backLink}</div>}
         {children}
       </article>
 
