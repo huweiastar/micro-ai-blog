@@ -21,9 +21,8 @@ export function passwordMatches(input: string, expected: string): boolean {
 }
 
 /** 写入会话 cookie（与 blog 同名 admin_session、同属性）。 */
-export async function createManagerSession(): Promise<void> {
-  // A2：会话版本固定为 1（manager 暂无 SQLite；版本失效机制留 A3）。
-  const token = signToken(1);
+export async function createManagerSession(version = 1, domain?: string): Promise<void> {
+  const token = signToken(version);
   const store = await cookies();
   store.set(COOKIE_NAME, token, {
     httpOnly: true,
@@ -31,5 +30,6 @@ export async function createManagerSession(): Promise<void> {
     sameSite: "strict",
     expires: new Date(Date.now() + SESSION_MAX_AGE * 1000),
     path: "/",
+    ...(domain ? { domain } : {}),
   });
 }
