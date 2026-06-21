@@ -18,7 +18,8 @@ export function ProjectListItem({ project }: { project: Project }) {
   const cover = project.cover || project.image;
 
   return (
-    <article className="group relative rounded-xl border border-[var(--card-border)] bg-[var(--card)] p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-[var(--primary)]/40 hover:shadow-[var(--shadow-glow)] sm:p-6">
+    <article className="surface-card group relative overflow-hidden rounded-xl p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-[var(--primary)]/40 hover:shadow-[var(--shadow-glow)] sm:p-6">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--primary)]/40 to-transparent" />
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
         {/* 图标 / 封面 */}
         <div className="shrink-0">
@@ -27,7 +28,7 @@ export function ProjectListItem({ project }: { project: Project }) {
             <img
               src={cover}
               alt={project.name}
-              className="h-14 w-14 rounded-xl object-cover sm:h-16 sm:w-16"
+              className="h-14 w-14 rounded-xl object-cover ring-1 ring-[var(--card-border)] sm:h-16 sm:w-16"
             />
           ) : (
             <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--primary)] to-[var(--accent)] sm:h-16 sm:w-16">
@@ -54,7 +55,7 @@ export function ProjectListItem({ project }: { project: Project }) {
                   href={project.githubUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--card-border)] bg-[var(--background)] px-2.5 py-1 text-xs text-[var(--muted)] transition-colors hover:border-[var(--primary)]/50 hover:text-[var(--primary)]"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--card-border)] bg-[var(--card)]/70 px-2.5 py-1 text-xs text-[var(--muted)] shadow-sm transition-colors hover:border-[var(--primary)]/50 hover:text-[var(--primary)]"
                 >
                   <Github className="h-3.5 w-3.5" />
                   <span className="font-mono">{repo}</span>
@@ -84,7 +85,7 @@ export function ProjectListItem({ project }: { project: Project }) {
               {project.techStack.map((t) => (
                 <span
                   key={t}
-                  className="rounded-md bg-[var(--primary)]/10 px-2 py-0.5 text-xs text-[var(--primary)]"
+                  className="rounded-md border border-[var(--primary)]/15 bg-[var(--primary)]/10 px-2 py-0.5 text-xs text-[var(--primary)]"
                 >
                   {t}
                 </span>

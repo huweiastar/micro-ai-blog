@@ -18,19 +18,34 @@ export function AnimatedBackground() {
         />
       )}
 
-      {/* Light-mode readability wash: the user's background photo is bright in light
-          mode, so bare text rendered directly over it (page headers, archive timeline,
-          tag pills, intro copy) loses contrast. This lifts the photo toward --background
-          much like dark mode's navy does, keeping it visible while restoring WCAG contrast.
-          Disabled in dark mode (opacity-0) so the richer dark look is untouched. */}
-      <div className="absolute inset-0 bg-[var(--background)] opacity-60 dark:opacity-70" />
+      {/* Theme wash keeps custom background images readable while preserving atmosphere. */}
+      <div className="absolute inset-0 bg-[var(--background)] opacity-75 dark:opacity-[0.62]" />
+
+      <div
+        className="absolute inset-0 opacity-[0.45] dark:opacity-[0.55]"
+        style={{
+          backgroundImage:
+            "linear-gradient(180deg, color-mix(in srgb, var(--foreground) 5%, transparent) 0, transparent 1px), linear-gradient(90deg, color-mix(in srgb, var(--foreground) 4%, transparent) 0, transparent 1px)",
+          backgroundSize: "48px 48px",
+          maskImage: "linear-gradient(180deg, transparent 0%, black 18%, black 72%, transparent 100%)",
+        }}
+      />
+
+      <div
+        className="absolute inset-0 opacity-20 dark:opacity-40"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--foreground) 24%, transparent) 1px, transparent 0)",
+          backgroundSize: "34px 34px",
+        }}
+      />
 
       {/* Edge vignette to settle content against the background */}
       <div
         className="absolute inset-0"
         style={{
           background:
-            "radial-gradient(ellipse at center, transparent 46%, color-mix(in srgb, var(--background) 68%, transparent) 100%)",
+            "linear-gradient(180deg, color-mix(in srgb, var(--background) 72%, transparent), transparent 16rem), radial-gradient(ellipse at center, transparent 48%, color-mix(in srgb, var(--background) 72%, transparent) 100%)",
         }}
       />
     </div>

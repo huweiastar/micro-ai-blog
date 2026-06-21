@@ -47,7 +47,7 @@ export function NoteCard({ slug, date, dateLabel, tags, html, commentsEnabled }:
   }, [slug]);
 
   return (
-    <article className="group relative glass overflow-hidden rounded-xl transition-all duration-300 hover:-translate-y-1 hover:border-sky-400/40 hover:shadow-[var(--shadow-lg)] active:scale-[0.99]">
+    <article className="surface-card group relative overflow-hidden rounded-xl transition-all duration-300 hover:-translate-y-1 hover:border-sky-400/40 hover:shadow-[var(--shadow-glow)] active:scale-[0.99]">
       {/* 左侧天青色脊：与博客卡片的分类色脊同语言 */}
       <span
         aria-hidden
@@ -80,7 +80,7 @@ export function NoteCard({ slug, date, dateLabel, tags, html, commentsEnabled }:
         <div className="relative">
           <div
             ref={contentRef}
-            className="note-card-content prose prose-sm sm:prose-base dark:prose-invert max-w-none overflow-hidden"
+            className="note-card-content prose-custom max-w-none overflow-hidden"
             style={overflowing ? { maxHeight: COLLAPSE_HEIGHT } : undefined}
             dangerouslySetInnerHTML={{ __html: html }}
           />

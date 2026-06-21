@@ -13,12 +13,12 @@ export function Footer() {
   ].filter((l) => l.href);
 
   return (
-    <footer className="border-t border-[var(--card-border)] glass mt-20">
-      <Container className="py-10">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-8">
+    <footer className="glass mt-24 border-t border-[var(--card-border)]">
+      <Container size="wide" className="py-12">
+        <div className="grid grid-cols-2 gap-8 md:grid-cols-5">
           {/* Brand */}
           <div className="col-span-2 md:col-span-1">
-            <h3 className="font-semibold text-[var(--foreground)] mb-3">
+            <h3 className="mb-3 font-semibold text-[var(--foreground)]">
               {profile.name}
             </h3>
             <p className="text-xs leading-relaxed text-[var(--muted)]">
@@ -28,11 +28,11 @@ export function Footer() {
 
           {/* Nav */}
           <div>
-            <h3 className="font-semibold text-[var(--foreground)] mb-3">导航</h3>
+            <h3 className="mb-3 font-semibold text-[var(--foreground)]">导航</h3>
             <ul className="space-y-1.5">
               {navConfig.slice(1, 5).map((item) => (
                 <li key={item.href}>
-                  <Link href={item.href} className="text-xs text-[var(--muted)] hover:text-[var(--primary)] transition-colors">
+                  <Link href={item.href} className="text-xs text-[var(--muted)] transition-colors hover:text-[var(--primary)]">
                     {item.title}
                   </Link>
                 </li>
@@ -42,7 +42,7 @@ export function Footer() {
 
           {/* Contact */}
           <div>
-            <h3 className="font-semibold text-[var(--foreground)] mb-3">联系我</h3>
+            <h3 className="mb-3 font-semibold text-[var(--foreground)]">联系我</h3>
             <div className="flex gap-3">
               {socialLinks.map((link) => (
                 <a
@@ -61,7 +61,7 @@ export function Footer() {
 
           {/* Explore */}
           <div>
-            <h3 className="font-semibold text-[var(--foreground)] mb-3">探索</h3>
+            <h3 className="mb-3 font-semibold text-[var(--foreground)]">探索</h3>
             <ul className="space-y-1.5">
               {[
                 { title: "知识图谱", href: "/graph" },
@@ -69,7 +69,7 @@ export function Footer() {
                 { title: "归档", href: "/archive" },
               ].map((item) => (
                 <li key={item.href}>
-                  <Link href={item.href} className="text-xs text-[var(--muted)] hover:text-[var(--primary)] transition-colors">
+                  <Link href={item.href} className="text-xs text-[var(--muted)] transition-colors hover:text-[var(--primary)]">
                     {item.title}
                   </Link>
                 </li>
@@ -79,10 +79,10 @@ export function Footer() {
 
           {/* RSS */}
           <div>
-            <h3 className="font-semibold text-[var(--foreground)] mb-3">RSS</h3>
+            <h3 className="mb-3 font-semibold text-[var(--foreground)]">RSS</h3>
             <ul className="space-y-1.5">
               <li>
-                <a href="/rss.xml" className="text-xs text-[var(--muted)] hover:text-[var(--primary)] transition-colors">
+                <a href="/rss.xml" className="text-xs text-[var(--muted)] transition-colors hover:text-[var(--primary)]">
                   订阅 RSS
                 </a>
               </li>

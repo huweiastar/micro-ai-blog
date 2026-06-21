@@ -14,8 +14,8 @@ export function CategoryBar({ categories }: { categories: CategoryBarItem[] }) {
   if (total === 0) return null;
 
   return (
-    <div>
-      <div className="flex h-3 w-full overflow-hidden rounded-full border border-[var(--card-border)]">
+    <div className="surface-card rounded-xl p-4">
+      <div className="flex h-3 w-full overflow-hidden rounded-full border border-[var(--card-border)] bg-[var(--background)]">
         {categories.map((c) => {
           const pct = (c.count / total) * 100;
           if (pct === 0) return null;

@@ -6,16 +6,17 @@
   :root {
     /* 纸/墨基调（§1.4）：从冷 slate(#f8fafc) 微调到带极轻暖灰的纸色，
        降低长时间阅读的冷硬感；墨色正文维持高对比。暗色不变。 */
-    --background: #f7f6f3;
+    --background: #f8fafc;
     --foreground: #0f172a;
     --card: #ffffff;
-    --card-border: #e2e8f0;
+    --card-border: #dbe3ee;
     /* 桌面宠物「屏幕脸」：亮色用深墨蓝形成强对比，眼睛近白。暗色见 .dark。 */
     --pet-face: #0f172a;
     --pet-eye: #f8fafc;
     --primary: #4f46e5;
     --primary-hover: #4338ca;
     --muted: #475569;
+    --ambient-bg: linear-gradient(180deg, color-mix(in srgb, var(--primary) 7%, transparent), transparent 22rem), linear-gradient(90deg, color-mix(in srgb, var(--accent) 5%, transparent), transparent 30rem), linear-gradient(180deg, #fbfcff 0%, var(--background) 42%, #f4f7fb 100%);
     --accent: #7c3aed;
     --code-bg: #020617;
     --code-text: #e5e7eb;
@@ -26,11 +27,11 @@
     --radius-sm: 0.5rem;
     --radius: 0.75rem;
     --radius-lg: 1rem;
-    --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
-    --shadow-md: 0 8px 24px rgba(15, 23, 42, 0.10);
-    --shadow-lg: 0 18px 50px rgba(15, 23, 42, 0.14);
-    --surface-highlight: color-mix(in srgb, var(--foreground) 4%, transparent);
-    --surface-shadow: rgba(15, 23, 42, 0.10);
+    --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
+    --shadow-md: 0 10px 30px rgba(15, 23, 42, 0.09);
+    --shadow-lg: 0 24px 70px rgba(15, 23, 42, 0.13);
+    --surface-highlight: rgba(255, 255, 255, 0.72);
+    --surface-shadow: rgba(15, 23, 42, 0.09);
     /* hover 主题辉光：随 --primary 自适应明暗，卡片/可交互元素 hover 统一引用，
        取代散落的 shadow-2xl shadow-[var(--primary)]/20 硬编码（§1.3）。 */
     --shadow-glow: 0 14px 40px -12px color-mix(in srgb, var(--primary) 35%, transparent);
@@ -56,16 +57,17 @@
   }
 
   .dark {
-    --background: #090f1d;
-    --foreground: #f1f5f9;
-    --card: #111827;
-    --card-border: #334155;
+    --background: #050817;
+    --foreground: #f4f7fb;
+    --card: #0d1425;
+    --card-border: #273449;
     /* 暗色脸盘用比页面背景(#0f172a)更亮的 slate，避免脸与背景同色糊成一团。 */
     --pet-face: #334155;
     --pet-eye: #f8fafc;
     --primary: #818cf8;
     --primary-hover: #6366f1;
     --muted: #cbd5e1;
+    --ambient-bg: linear-gradient(180deg, rgba(15, 23, 42, 0.0), rgba(5, 8, 23, 0.92) 34rem), linear-gradient(120deg, color-mix(in srgb, var(--primary) 18%, transparent), transparent 36rem), linear-gradient(240deg, color-mix(in srgb, var(--accent) 12%, transparent), transparent 34rem), #050817;
     --accent: #a78bfa;
     --code-bg: #0f172a;
     --code-text: #e2e8f0;
@@ -81,11 +83,11 @@
     --neon-cyan: #22d3ee;
     --neon-purple: #c4b5fd;
     --cyber-grid-color: rgba(129, 140, 248, 0.12);
-    --surface-highlight: rgba(255, 255, 255, 0.055);
-    --surface-shadow: rgba(0, 0, 0, 0.32);
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.24);
-    --shadow-md: 0 14px 36px rgba(0, 0, 0, 0.32);
-    --shadow-lg: 0 24px 70px rgba(0, 0, 0, 0.42);
+    --surface-highlight: rgba(255, 255, 255, 0.08);
+    --surface-shadow: rgba(0, 0, 0, 0.42);
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.26);
+    --shadow-md: 0 18px 46px rgba(0, 0, 0, 0.36);
+    --shadow-lg: 0 30px 86px rgba(0, 0, 0, 0.48);
     --shadow-glow: 0 22px 54px -20px color-mix(in srgb, var(--primary) 55%, transparent);
   }
 
@@ -112,9 +114,8 @@
 
   body {
     @apply bg-[var(--background)] text-[var(--foreground)] transition-colors duration-300;
-    background-image:
-      linear-gradient(180deg, color-mix(in srgb, var(--primary) 6%, transparent), transparent 18rem),
-      linear-gradient(90deg, color-mix(in srgb, var(--accent) 4%, transparent), transparent 24rem);
+    background-image: var(--ambient-bg);
+    background-attachment: fixed;
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
   }
@@ -167,10 +168,10 @@
 @layer components {
   .glass {
     background:
-      linear-gradient(180deg, var(--surface-highlight), transparent),
-      color-mix(in srgb, var(--card) 88%, transparent);
-    backdrop-filter: blur(18px) saturate(1.15);
-    border: 1px solid color-mix(in srgb, var(--card-border) 82%, var(--foreground) 8%);
+      linear-gradient(180deg, var(--surface-highlight), transparent 70%),
+      color-mix(in srgb, var(--card) 84%, transparent);
+    backdrop-filter: blur(20px) saturate(1.2);
+    border: 1px solid color-mix(in srgb, var(--card-border) 78%, var(--foreground) 7%);
     box-shadow: var(--shadow-sm);
   }
 
@@ -185,10 +186,24 @@
 
   .surface-card {
     background:
-      linear-gradient(180deg, var(--surface-highlight), transparent 58%),
-      var(--card);
-    border: 1px solid color-mix(in srgb, var(--card-border) 84%, var(--foreground) 8%);
+      linear-gradient(180deg, var(--surface-highlight), transparent 62%),
+      color-mix(in srgb, var(--card) 94%, transparent);
+    border: 1px solid color-mix(in srgb, var(--card-border) 82%, var(--foreground) 8%);
     box-shadow: var(--shadow-md);
+  }
+
+  .dark .glass {
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 72%),
+      color-mix(in srgb, var(--card) 74%, transparent);
+    border-color: color-mix(in srgb, var(--card-border) 70%, white 8%);
+  }
+
+  .dark .surface-card {
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.075), transparent 60%),
+      color-mix(in srgb, var(--card) 88%, transparent);
+    border-color: color-mix(in srgb, var(--card-border) 74%, white 7%);
   }
 
   .focus-ring-soft {
@@ -233,6 +248,8 @@
 
   .prose-custom {
     @apply max-w-none;
+    color: color-mix(in srgb, var(--foreground) 88%, var(--muted));
+    font-size: 1.0625rem;
   }
 
   /* 随手记整卡可点（stretched-link）：正文内的链接需抬升到卡片链接层之上 */
@@ -261,7 +278,7 @@
   }
 
   .prose-custom h2 {
-    @apply relative font-bold mt-10 mb-4 scroll-mt-20;
+    @apply relative font-bold mt-12 mb-5 scroll-mt-20 border-b border-[var(--card-border)] pb-2;
     /* 流式字号，与 h1 同写法，消除断点处的字号跳变 */
     font-size: clamp(1.375rem, 1.15rem + 0.9vw, 1.5rem);
     line-height: 1.3;
@@ -269,7 +286,7 @@
   }
 
   .prose-custom h3 {
-    @apply relative font-semibold mt-8 mb-3 scroll-mt-20;
+    @apply relative font-semibold mt-9 mb-3 scroll-mt-20;
     font-size: clamp(1.125rem, 1rem + 0.5vw, 1.25rem);
     line-height: 1.35;
     text-wrap: balance;
@@ -285,7 +302,7 @@
   }
 
   .prose-custom p {
-    @apply mb-5;
+    @apply mb-5 text-[color:color-mix(in_srgb,var(--foreground)_88%,var(--muted))];
     /* 正文阅读节奏：中英混排下 ~1.85 行高最稳，li/blockquote 随之对齐 */
     line-height: 1.85;
     /* 收尾行避免孤字、长 URL 等溢出（渐进增强，不支持的浏览器忽略） */
@@ -316,7 +333,8 @@
   }
 
   .prose-custom blockquote {
-    @apply border-l-4 border-[var(--primary)] pl-4 italic text-[var(--muted)];
+    @apply my-6 rounded-r-xl border-l-4 border-[var(--primary)] px-4 py-3 italic text-[var(--muted)];
+    background: color-mix(in srgb, var(--primary) 6%, transparent);
   }
 
   /* GitHub-style callouts / admonitions */
@@ -399,16 +417,19 @@
   }
 
   .prose-custom table {
-    @apply w-full border-collapse mb-4 overflow-hidden rounded-lg;
+    @apply mb-6 w-full overflow-hidden rounded-lg border border-[var(--card-border)];
+    border-collapse: separate;
+    border-spacing: 0;
   }
 
   .prose-custom th,
   .prose-custom td {
-    @apply border border-[var(--card-border)] px-4 py-2;
+    @apply border-b border-r border-[var(--card-border)] px-4 py-2;
   }
 
   .prose-custom th {
-    @apply bg-[var(--card)] font-semibold;
+    @apply font-semibold text-[var(--foreground)];
+    background: color-mix(in srgb, var(--primary) 8%, transparent);
   }
 
   /* Code block — premium style */
