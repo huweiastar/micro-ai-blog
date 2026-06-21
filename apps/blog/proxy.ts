@@ -88,9 +88,10 @@ async function getSessionSecretEdge(): Promise<string> {
   return sha256Hex(process.env.ADMIN_PASSWORD || "");
 }
 
-// 会话版本：从 /api/auth/version 拉取并缓存 60s。middleware 是 edge runtime
-// 读不了 SQLite，用内部 fetch 间接读；接口故障时沿用旧缓存或 fail-open
-// （只验签名），避免把管理员锁在门外。该 fetch 不带 cookie，不会递归触发鉴权。
+// 会话版本：从 /api/auth/version 拉取并缓存 60s。proxy 运行在 nodejs runtime，
+// 但仍沿用内部 fetch 间接读版本号（与会话存储解耦，避免 proxy 直连 SQLite）；
+// 接口故障时沿用旧缓存或 fail-open（只验签名），避免把管理员锁在门外。
+// 该 fetch 不带 cookie，不会递归触发鉴权。
 let cachedVersion: number | null = null;
 let cachedAt = 0;
 
@@ -135,7 +136,7 @@ async function verifyToken(token: string, origin: string): Promise<boolean> {
   return true;
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
   const sessionCookie = request.cookies.get("admin_session");
   const isAuthenticated =

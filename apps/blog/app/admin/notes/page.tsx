@@ -305,7 +305,7 @@ export default function AdminNotesPage() {
                   <a
                     href={`/blog/${note.slug}`}
                     target="_blank"
-                    rel="noreferrer"
+                    rel="noopener noreferrer"
                     className="p-1.5 rounded-lg text-[var(--muted)] transition-colors hover:text-sky-500"
                     title="查看"
                   >

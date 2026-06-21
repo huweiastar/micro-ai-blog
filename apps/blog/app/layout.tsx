@@ -117,13 +117,13 @@ export default function RootLayout({
                 backToTop={<BackToTop />}
                 launcher={<AssistantLauncher />}
                 commandPalette={<CommandPaletteLazy />}
+                appearancePanel={<AppearancePanel />}
+                desktopPet={<DesktopPet />}
               >
                 {children}
               </SiteChrome>
               <CodeCopyButton />
               <ImageZoom />
-              <AppearancePanel />
-              <DesktopPet />
             </ThemeConfigProvider>
           </ProfileProvider>
         </ThemeProvider>
