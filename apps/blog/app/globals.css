@@ -845,3 +845,13 @@
 .pet-jump {
   animation: pet-jump 0.5s ease-out;
 }
+
+/* 首页 Hero 弹幕：从右侧屏外飘到左侧屏外，纯 transform（GPU 友好）。 */
+@keyframes barrage-scroll {
+  from {
+    transform: translateX(100vw);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
