@@ -15,7 +15,7 @@
     "start": "npm run start -w @app/blog",
     "lint": "npm run lint -w @app/blog",
     "type-check": "npm run type-check -w @app/blog",
-    "test": "npm run test -w @app/blog",
+    "test": "npm run test -w @app/blog && npm run test -w @pkg/content",
     "format": "npm run format -w @app/blog",
     "backup:db": "npm run backup:db -w @app/blog",
     "check:content": "npm run check:content -w @app/blog"
