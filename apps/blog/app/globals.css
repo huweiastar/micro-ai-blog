@@ -10,6 +10,9 @@
     --foreground: #0f172a;
     --card: #ffffff;
     --card-border: #e2e8f0;
+    /* 桌面宠物「屏幕脸」：亮色用深墨蓝形成强对比，眼睛近白。暗色见 .dark。 */
+    --pet-face: #0f172a;
+    --pet-eye: #f8fafc;
     --primary: #4f46e5;
     --primary-hover: #4338ca;
     --muted: #475569;
@@ -55,6 +58,9 @@
     --foreground: #e2e8f0;
     --card: #1e293b;
     --card-border: #334155;
+    /* 暗色脸盘用比页面背景(#0f172a)更亮的 slate，避免脸与背景同色糊成一团。 */
+    --pet-face: #334155;
+    --pet-eye: #f8fafc;
     --primary: #818cf8;
     --primary-hover: #6366f1;
     --muted: #94a3b8;
