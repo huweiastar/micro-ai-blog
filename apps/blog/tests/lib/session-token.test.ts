@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { signToken, verifyToken, SESSION_MAX_AGE } from "../../lib/session-token";
+import { signToken, verifyToken, SESSION_MAX_AGE } from "@pkg/auth";
 
 beforeEach(() => {
   process.env.SESSION_SECRET = "a".repeat(48);

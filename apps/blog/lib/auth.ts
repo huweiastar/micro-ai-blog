@@ -1,6 +1,6 @@
 import { createHash, timingSafeEqual } from "crypto";
 import { cookies } from "next/headers";
-import { signToken, verifyToken, SESSION_MAX_AGE } from "./session-token";
+import { signToken, verifyToken, SESSION_MAX_AGE } from "@pkg/auth";
 import { getSessionVersion } from "./auth-version";
 
 const COOKIE_NAME = "admin_session";

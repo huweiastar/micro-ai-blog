@@ -27,6 +27,8 @@ const s3Host = process.env.S3_PUBLIC_BASE_URL
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // monorepo 共享 TS 包需 Next 转译。
+  transpilePackages: ["@pkg/auth"],
   // Next 15 起从 experimental 转正为顶层配置。
   serverExternalPackages: ["better-sqlite3"],
   // 构建输出目录可通过 NEXT_DIST_DIR 覆盖，用于蓝绿部署（先构建到 staging 目录，

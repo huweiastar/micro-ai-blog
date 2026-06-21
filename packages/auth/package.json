@@ -1,0 +1,10 @@
+{
+  "name": "@pkg/auth",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./src/session-token.ts",
+  "types": "./src/session-token.ts",
+  "exports": {
+    ".": "./src/session-token.ts"
+  }
+}
