@@ -17,8 +17,8 @@
     --primary-hover: #4338ca;
     --muted: #475569;
     --accent: #7c3aed;
-    --code-bg: #0f172a;
-    --code-text: #e2e8f0;
+    --code-bg: #020617;
+    --code-text: #e5e7eb;
     --link: #2563eb;
     --link-hover: #1d4ed8;
     --glow-primary: rgba(79, 70, 229, 0.15);
@@ -26,9 +26,11 @@
     --radius-sm: 0.5rem;
     --radius: 0.75rem;
     --radius-lg: 1rem;
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
-    --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.12);
+    --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+    --shadow-md: 0 8px 24px rgba(15, 23, 42, 0.10);
+    --shadow-lg: 0 18px 50px rgba(15, 23, 42, 0.14);
+    --surface-highlight: color-mix(in srgb, var(--foreground) 4%, transparent);
+    --surface-shadow: rgba(15, 23, 42, 0.10);
     /* hover 主题辉光：随 --primary 自适应明暗，卡片/可交互元素 hover 统一引用，
        取代散落的 shadow-2xl shadow-[var(--primary)]/20 硬编码（§1.3）。 */
     --shadow-glow: 0 14px 40px -12px color-mix(in srgb, var(--primary) 35%, transparent);
@@ -54,16 +56,16 @@
   }
 
   .dark {
-    --background: #0f172a;
-    --foreground: #e2e8f0;
-    --card: #1e293b;
+    --background: #090f1d;
+    --foreground: #f1f5f9;
+    --card: #111827;
     --card-border: #334155;
     /* 暗色脸盘用比页面背景(#0f172a)更亮的 slate，避免脸与背景同色糊成一团。 */
     --pet-face: #334155;
     --pet-eye: #f8fafc;
     --primary: #818cf8;
     --primary-hover: #6366f1;
-    --muted: #94a3b8;
+    --muted: #cbd5e1;
     --accent: #a78bfa;
     --code-bg: #0f172a;
     --code-text: #e2e8f0;
@@ -79,6 +81,12 @@
     --neon-cyan: #22d3ee;
     --neon-purple: #c4b5fd;
     --cyber-grid-color: rgba(129, 140, 248, 0.12);
+    --surface-highlight: rgba(255, 255, 255, 0.055);
+    --surface-shadow: rgba(0, 0, 0, 0.32);
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.24);
+    --shadow-md: 0 14px 36px rgba(0, 0, 0, 0.32);
+    --shadow-lg: 0 24px 70px rgba(0, 0, 0, 0.42);
+    --shadow-glow: 0 22px 54px -20px color-mix(in srgb, var(--primary) 55%, transparent);
   }
 
   /* ============ 访客外观自定义（data-* 覆盖令牌，由 appearance-init.js 早注入） ============ */
@@ -104,6 +112,9 @@
 
   body {
     @apply bg-[var(--background)] text-[var(--foreground)] transition-colors duration-300;
+    background-image:
+      linear-gradient(180deg, color-mix(in srgb, var(--primary) 6%, transparent), transparent 18rem),
+      linear-gradient(90deg, color-mix(in srgb, var(--accent) 4%, transparent), transparent 24rem);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
   }
@@ -155,17 +166,33 @@
 
 @layer components {
   .glass {
-    background-color: color-mix(in srgb, var(--card) 85%, transparent);
-    backdrop-filter: blur(16px);
-    border: 1px solid var(--card-border);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
+    background:
+      linear-gradient(180deg, var(--surface-highlight), transparent),
+      color-mix(in srgb, var(--card) 88%, transparent);
+    backdrop-filter: blur(18px) saturate(1.15);
+    border: 1px solid color-mix(in srgb, var(--card-border) 82%, var(--foreground) 8%);
+    box-shadow: var(--shadow-sm);
   }
 
   .glass-hover:hover {
-    background-color: color-mix(in srgb, var(--card) 90%, transparent);
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--primary) 8%, transparent), transparent),
+      color-mix(in srgb, var(--card) 92%, transparent);
     box-shadow: var(--shadow-glow);
     transform: translateY(-4px);
     transition: all 0.3s ease;
+  }
+
+  .surface-card {
+    background:
+      linear-gradient(180deg, var(--surface-highlight), transparent 58%),
+      var(--card);
+    border: 1px solid color-mix(in srgb, var(--card-border) 84%, var(--foreground) 8%);
+    box-shadow: var(--shadow-md);
+  }
+
+  .focus-ring-soft {
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary) 18%, transparent), var(--shadow-md);
   }
 
   .btn-interactive {

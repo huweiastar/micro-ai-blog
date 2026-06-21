@@ -32,7 +32,7 @@ export function ArticleRail({ readingTime, wordCount }: ArticleRailProps) {
   }, []);
 
   return (
-    <div className="flex flex-col items-center gap-5 rounded-xl border border-[var(--card-border)] bg-[var(--card)] p-5">
+    <div className="surface-card flex flex-col items-center gap-5 rounded-xl p-5">
       {/* 环形阅读进度 */}
       <div className="relative h-[68px] w-[68px]">
         <svg className="h-full w-full -rotate-90" viewBox="0 0 68 68" aria-hidden>
@@ -68,13 +68,13 @@ export function ArticleRail({ readingTime, wordCount }: ArticleRailProps) {
         <div className="flex w-full flex-col gap-2 border-t border-[var(--card-border)] pt-4 text-xs text-[var(--muted)]">
           {readingTime && (
             <span className="flex items-center gap-2">
-              <Clock className="h-3.5 w-3.5" />
+              <Clock className="h-3.5 w-3.5 text-[var(--primary)]" />
               {readingTime}
             </span>
           )}
           {typeof wordCount === "number" && (
             <span className="flex items-center gap-2">
-              <FileText className="h-3.5 w-3.5" />
+              <FileText className="h-3.5 w-3.5 text-[var(--primary)]" />
               <span className="tabular-nums">{wordCount}</span> 字
             </span>
           )}

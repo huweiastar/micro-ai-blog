@@ -106,7 +106,7 @@ export default async function PostPage(props: PostPageProps) {
           tocItems={post.toc}
           leftRail={
             post.type === "article" ? (
-              <nav className="rounded-xl border border-[var(--card-border)] bg-[var(--card)]/70 p-3 shadow-sm backdrop-blur">
+              <nav className="surface-card rounded-xl p-3">
                 <h2 className="mb-3 px-1 text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
                   文章列表
                 </h2>
@@ -119,7 +119,7 @@ export default async function PostPage(props: PostPageProps) {
                         href={`/blog/${item.slug}`}
                         className={`block rounded-lg px-3 py-2 text-sm transition-colors ${
                           active
-                            ? "bg-[var(--primary)]/10 text-[var(--primary)]"
+                            ? "bg-[var(--primary)]/12 text-[var(--primary)] ring-1 ring-[var(--primary)]/20"
                             : "text-[var(--muted)] hover:bg-[var(--primary)]/5 hover:text-[var(--foreground)]"
                         }`}
                       >
@@ -138,7 +138,7 @@ export default async function PostPage(props: PostPageProps) {
                 wordCount={post.wordCount}
               />
               {post.toc.length > 0 && (
-                <nav className="rounded-xl border border-[var(--card-border)] bg-[var(--card)]/70 p-4 shadow-sm backdrop-blur">
+                <nav className="surface-card rounded-xl p-4">
                   <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
                     章节目录
                   </h2>
@@ -162,7 +162,7 @@ export default async function PostPage(props: PostPageProps) {
           backLink={
             <Link
               href={post.type === "note" ? "/notes" : "/blog"}
-              className="hover:border-[var(--primary)]/50 hover:shadow-[var(--primary)]/10 group inline-flex h-9 w-9 items-center justify-center rounded-full border border-[var(--card-border)] text-[var(--muted)] transition-all duration-200 hover:text-[var(--primary)] hover:shadow-md"
+              className="surface-card group inline-flex h-9 w-9 items-center justify-center rounded-full text-[var(--muted)] transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--primary)]/50 hover:text-[var(--primary)] hover:shadow-[var(--shadow-glow)]"
               title={post.type === "note" ? "返回随手记" : "返回博客列表"}
             >
               <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
@@ -222,7 +222,7 @@ export default async function PostPage(props: PostPageProps) {
             </div>
 
             {post.summary && post.summary !== post.title && (
-              <section className="mt-6 rounded-xl border border-[var(--primary)]/15 bg-[var(--primary)]/[0.04] px-4 py-3 text-sm leading-relaxed text-[var(--muted)]">
+              <section className="mt-6 rounded-xl border border-[var(--primary)]/20 bg-[var(--primary)]/[0.07] px-4 py-3 text-sm leading-relaxed text-[var(--muted)] shadow-sm">
                 <h2 className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-[var(--primary)]">
                   内容概览
                 </h2>

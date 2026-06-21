@@ -7,7 +7,7 @@ import { AssistantInput } from "./AssistantInput";
 
 export function AssistantPanel() {
   return (
-    <div className="flex flex-col h-full bg-[var(--background)] rounded-xl overflow-hidden border border-[var(--card-border)] shadow-2xl shadow-black/20">
+    <div className="surface-card flex h-full flex-col overflow-hidden rounded-2xl">
       <AssistantHeader />
       <AssistantModeSwitch />
       <AssistantMessageList />

@@ -134,14 +134,14 @@ export function HomeClient({ stats, columns, initialVisits, barrage }: HomeClien
               href={socialLinks.github}
               target="_blank"
               rel="noopener noreferrer"
-              className="glass inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm text-[var(--muted)] hover:text-[var(--primary)] hover:border-[var(--primary)]/50 transition-all duration-300"
+              className="glass glass-hover inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm text-[var(--foreground)] transition-all duration-300 hover:border-[var(--primary)]/50 hover:text-[var(--primary)]"
             >
               <Github className="w-4 h-4" />
               GitHub
             </a>
             <a
               href={socialLinks.email}
-              className="glass inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm text-[var(--muted)] hover:text-[var(--primary)] hover:border-[var(--primary)]/50 transition-all duration-300"
+              className="glass glass-hover inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm text-[var(--foreground)] transition-all duration-300 hover:border-[var(--primary)]/50 hover:text-[var(--primary)]"
             >
               <Mail className="w-4 h-4" />
               Email
@@ -214,13 +214,13 @@ export function HomeClient({ stats, columns, initialVisits, barrage }: HomeClien
                   key={theme.name}
                   href={`/categories/${encodeURIComponent(theme.name)}`}
                   style={{ "--cat": style.gradient[0] } as React.CSSProperties}
-                  className="group relative overflow-hidden rounded-xl border border-[var(--card-border)] bg-[var(--card)] p-5 transition-all duration-300 hover:-translate-y-1 hover:border-[var(--cat)] hover:shadow-[0_14px_32px_-14px_var(--cat)]"
+                  className="surface-card group relative overflow-hidden rounded-xl p-5 transition-all duration-300 hover:-translate-y-1 hover:border-[var(--cat)] hover:shadow-[0_18px_40px_-18px_var(--cat)]"
                 >
                   {/* Top accent bar */}
                   <div className="absolute inset-x-0 top-0 h-1 opacity-90" style={{ background: grad }} />
                   {/* Corner glow on hover — 与顶栏取同一起始色，避免色彩割裂 */}
                   <div
-                    className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-0 blur-2xl transition-opacity duration-300 group-hover:opacity-30"
+                    className="pointer-events-none absolute inset-x-0 top-0 h-16 opacity-0 blur-xl transition-opacity duration-300 group-hover:opacity-20"
                     style={{ background: style.gradient[0] }}
                   />
                   <div className="relative z-10">

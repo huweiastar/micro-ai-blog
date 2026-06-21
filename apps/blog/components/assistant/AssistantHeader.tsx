@@ -10,13 +10,13 @@ export function AssistantHeader() {
   const hint = getPageContextHint(pageCtx);
 
   return (
-    <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--card-border)]">
+    <div className="flex items-center justify-between border-b border-[var(--card-border)] bg-[var(--card)]/55 px-4 py-3">
       <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[var(--primary)] to-[var(--accent)] flex items-center justify-center">
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[var(--primary)] to-[var(--accent)] shadow-lg shadow-[var(--primary)]/20">
           <Bot className="w-4 h-4 text-white" />
         </div>
         <div>
-          <h3 className="font-semibold text-sm">微观AI 助手</h3>
+          <h3 className="text-sm font-semibold text-[var(--foreground)]">微观AI 助手</h3>
           <p className="text-xs text-[var(--muted)]">{hint}</p>
         </div>
       </div>

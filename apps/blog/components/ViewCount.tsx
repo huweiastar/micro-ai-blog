@@ -27,11 +27,11 @@ export function ViewCount({ path, className = "" }: ViewCountProps) {
   }, [path]);
 
   if (!stats) {
-    return <span className={`inline-flex items-center gap-1 text-xs text-gray-500 ${className}`}>加载中...</span>;
+    return <span className={`inline-flex items-center gap-1 text-xs text-[var(--muted)] ${className}`}>加载中...</span>;
   }
 
   return (
-    <span className={`inline-flex items-center gap-3 text-xs text-gray-500 ${className}`}>
+    <span className={`inline-flex items-center gap-3 text-xs text-[var(--muted)] ${className}`}>
       <span className="inline-flex items-center gap-1" title="浏览量 (PV)">
         <Eye className="w-3.5 h-3.5" />
         {stats.pv}

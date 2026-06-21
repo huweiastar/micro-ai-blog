@@ -23,11 +23,11 @@ export function CopyButton({ text }: CopyButtonProps) {
   return (
     <button
       onClick={handleCopy}
-      className="absolute top-2 right-2 p-1.5 rounded-md text-gray-400 hover:text-gray-200 bg-transparent hover:bg-white/10 transition-colors"
+      className="absolute top-2 right-2 p-1.5 rounded-md text-[var(--muted)] hover:text-[var(--foreground)] bg-transparent hover:bg-[var(--card-border)]/40 transition-colors"
       aria-label={copied ? "Copied" : "Copy"}
     >
       {copied ? (
-        <Check className="w-4 h-4 text-green-400" />
+        <Check className="w-4 h-4 text-[var(--success)]" />
       ) : (
         <Copy className="w-4 h-4" />
       )}
