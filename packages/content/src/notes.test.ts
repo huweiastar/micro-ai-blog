@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { deriveNoteTitle, deriveNoteSlug } from "../../lib/notes";
+import { deriveNoteTitle, deriveNoteSlug } from "./notes";
 
 const CUSTOM_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 

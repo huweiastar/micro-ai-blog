@@ -18,7 +18,11 @@
     "./word-count": "./src/word-count.ts",
     "./atomic-file": "./src/atomic-file.ts",
     "./types/project": "./src/types/project.ts",
-    "./types/about": "./src/types/about.ts"
+    "./types/about": "./src/types/about.ts",
+    "./rehype-callouts": "./src/rehype-callouts.ts",
+    "./rehype-mark": "./src/rehype-mark.ts",
+    "./rehype-content-enhance": "./src/rehype-content-enhance.ts",
+    "./rehype-code-header": "./src/rehype-code-header.ts"
   },
   "dependencies": {
     "gray-matter": "^4.0.3",
