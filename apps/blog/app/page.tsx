@@ -5,6 +5,7 @@ import { getAnalytics } from "../lib/analytics";
 import { generatePageMetadata, generateWebsiteStructuredData, getSiteUrl } from "../lib/seo";
 import { getAboutProfile } from "../lib/about";
 import { HomeClient } from "./page.client";
+import { readBarrage } from "../lib/barrage";
 import { BlogCard } from "../components/BlogCard";
 import { ProjectCard } from "../components/ProjectCard";
 import { RevealList } from "../components/RevealList";
@@ -70,11 +71,12 @@ export default function HomePage() {
   } catch {
     // 保持默认值
   }
+  const barrage = readBarrage();
 
   return (
     <div className="relative">
       <StructuredData data={generateWebsiteStructuredData()} />
-      <HomeClient stats={stats} columns={columns} initialVisits={initialVisits} />
+      <HomeClient stats={stats} columns={columns} initialVisits={initialVisits} barrage={barrage} />
 
       {/* 主体三栏：左侧关于/专栏 · 中间内容流 · 右侧标签/随手记，填充宽屏两侧留白 */}
       <Container size="wide" className="mb-20 mt-10">

@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ParticleNetwork } from "../components/ui/ParticleNetwork";
+import { BarrageHero } from "../components/ui/BarrageHero";
+import type { BarrageConfig } from "../lib/barrage";
 import { Container } from "../components/ui/Container";
 import { AvatarDisplay } from "../components/ui/AvatarDisplay";
 import { CountUp } from "../components/ui/CountUp";
@@ -29,25 +30,16 @@ interface HomeClientProps {
   stats: StatsData;
   columns: ColumnTheme[];
   initialVisits: { pv: number; uv: number };
+  barrage: BarrageConfig;
 }
 
-export function HomeClient({ stats, columns, initialVisits }: HomeClientProps) {
-  const [mousePos, setMousePos] = useState({ x: -1000, y: -1000 });
+export function HomeClient({ stats, columns, initialVisits, barrage }: HomeClientProps) {
   const profile = useProfile();
   const socialLinks = {
     github: profile?.github || "https://github.com/huweiastar",
     email: profile?.email ? `mailto:${profile.email}` : "mailto:your-email@example.com",
   };
   const [visitStats, setVisitStats] = useState<{ pv: number; uv: number }>(initialVisits);
-
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    setMousePos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
-  }, []);
-
-  const handleMouseLeave = useCallback(() => {
-    setMousePos({ x: -1000, y: -1000 });
-  }, []);
 
   // Load visit stats — POST to record and get updated count atomically
   useEffect(() => {
@@ -94,15 +86,15 @@ export function HomeClient({ stats, columns, initialVisits }: HomeClientProps) {
 
   return (
     <>
-      {/* Hero Section with Particle Background */}
+      {/* Hero Section with Barrage Background */}
       <section
         className="relative min-h-[58vh] flex items-center justify-center overflow-hidden py-16"
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
       >
-        <ParticleNetwork mousePos={mousePos} />
+        {barrage.enabled && barrage.items.length > 0 && (
+          <BarrageHero items={barrage.items} />
+        )}
 
-        {/* 放射状遮罩：中央偏浓护住文字可读性，周缘渐隐让粒子在外圈尽情呼吸，避免整片平板灰蒙 */}
+        {/* 放射状遮罩：中央偏浓护住文字可读性，周缘渐隐让弹幕在外圈尽情呼吸，避免整片平板灰蒙 */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
