@@ -29,42 +29,20 @@ import { useEditorLayout } from "@pkg/admin-ui/hooks/useEditorLayout";
 import { useAssistStream } from "./hooks/useAssistStream";
 import { countWords } from "../../lib/word-count";
 import type { LinkSuggestion } from "../../lib/assistant/editor-assist";
+import {
+  type CategoryConfig,
+  type RevisionRow,
+  type ArticleEditorProps,
+  ARTICLE_TITLE_MAX,
+  ARTICLE_SUMMARY_MIN,
+  ARTICLE_SUMMARY_MAX,
+  ARTICLE_CONTENT_MIN,
+  todayStr,
+  toDatetimeLocal,
+  defaultScheduleStr,
+} from "@pkg/admin-ui/article-editor-base";
 
-export type CategoryConfig = { name: string; description: string };
-type RevisionRow = { id: string; savedAt: number; size: number; title: string };
-
-export interface ArticleEditorProps {
-  slug: string | null;
-  isNew: boolean;
-  categories: CategoryConfig[];
-  onSaved: (savedSlug: string) => void;
-  onDeleted: (slug: string) => void;
-  /** 全屏编辑页用：返回列表。 */
-  onBack?: () => void;
-}
-
-// —— 写作反馈阈值（与后台「内容体检」保持一致）——
-const TITLE_MAX = 60;
-const SUMMARY_MIN = 20;
-const SUMMARY_MAX = 160;
-const CONTENT_MIN = 150;
-
-function todayStr(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
-
-/** datetime-local 格式（本地时区）YYYY-MM-DDTHH:mm */
-function toDatetimeLocal(d: Date): string {
-  const p = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
-}
-
-/** 默认定时时间：次日同一时刻。 */
-function defaultScheduleStr(): string {
-  const d = new Date(Date.now() + 24 * 60 * 60 * 1000);
-  return toDatetimeLocal(d);
-}
+export type { CategoryConfig, ArticleEditorProps } from "@pkg/admin-ui/article-editor-base";
 
 
 export function ArticleEditor({ slug, isNew, categories, onSaved, onDeleted, onBack }: ArticleEditorProps) {
@@ -384,11 +362,11 @@ export function ArticleEditor({ slug, isNew, categories, onSaved, onDeleted, onB
   const summaryLen = articleSummary.trim().length;
   const tagCount = articleTags.split(/[,，]/).map((s) => s.trim()).filter(Boolean).length;
   const qualityChecks = [
-    titleLen > 0 && titleLen <= TITLE_MAX,
-    summaryLen >= SUMMARY_MIN && summaryLen <= SUMMARY_MAX,
+    titleLen > 0 && titleLen <= ARTICLE_TITLE_MAX,
+    summaryLen >= ARTICLE_SUMMARY_MIN && summaryLen <= ARTICLE_SUMMARY_MAX,
     tagCount >= 1,
     !!articleCover,
-    wordCount >= CONTENT_MIN,
+    wordCount >= ARTICLE_CONTENT_MIN,
   ];
   const qualityScore = qualityChecks.filter(Boolean).length;
   const quality =
@@ -620,11 +598,11 @@ export function ArticleEditor({ slug, isNew, categories, onSaved, onDeleted, onB
               <InspectorSection id="quality" title="质量与 SEO">
                 <div className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-xs ${quality.cls}`}>质量 {quality.label} · {qualityScore}/5</div>
                 <ul className="mt-1 space-y-1 text-xs">
-                  <li className={metricTone(titleLen > 0 && titleLen <= TITLE_MAX)}>标题 {titleLen}/{TITLE_MAX}</li>
-                  <li className={metricTone(summaryLen >= SUMMARY_MIN && summaryLen <= SUMMARY_MAX)}>摘要 {summaryLen}（建议 {SUMMARY_MIN}–{SUMMARY_MAX}）</li>
+                  <li className={metricTone(titleLen > 0 && titleLen <= ARTICLE_TITLE_MAX)}>标题 {titleLen}/{ARTICLE_TITLE_MAX}</li>
+                  <li className={metricTone(summaryLen >= ARTICLE_SUMMARY_MIN && summaryLen <= ARTICLE_SUMMARY_MAX)}>摘要 {summaryLen}（建议 {ARTICLE_SUMMARY_MIN}–{ARTICLE_SUMMARY_MAX}）</li>
                   <li className={metricTone(tagCount >= 1)}>标签 {tagCount} 个</li>
                   <li className={metricTone(!!articleCover)}>{articleCover ? "已设封面" : "缺少封面"}</li>
-                  <li className={metricTone(wordCount >= CONTENT_MIN)}>正文 {wordCount} 字（建议 ≥ {CONTENT_MIN}）</li>
+                  <li className={metricTone(wordCount >= ARTICLE_CONTENT_MIN)}>正文 {wordCount} 字（建议 ≥ {ARTICLE_CONTENT_MIN}）</li>
                 </ul>
               </InspectorSection>
 

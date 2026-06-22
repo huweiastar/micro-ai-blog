@@ -11,7 +11,8 @@
     "./hooks/useEditorLayout": "./src/hooks/useEditorLayout.ts",
     "./markdown-editor": "./src/markdown-editor/index.tsx",
     "./markdown-editor/utils": "./src/markdown-editor/utils.ts",
-    "./Toast": "./src/Toast.tsx"
+    "./Toast": "./src/Toast.tsx",
+    "./article-editor-base": "./src/article-editor-base.ts"
   },
   "dependencies": {
     "clsx": "^2.1.1"
