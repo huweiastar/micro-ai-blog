@@ -13,7 +13,12 @@ export function Footer() {
   ].filter((l) => l.href);
 
   return (
-    <footer className="glass mt-24 border-t border-[var(--card-border)]">
+    <footer className="glass relative mt-24 overflow-hidden">
+      {/* 顶部流光渐变边 */}
+      <span
+        aria-hidden
+        className="gradient-flow absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--primary)] to-transparent"
+      />
       <Container size="wide" className="py-12">
         <div className="grid grid-cols-2 gap-8 md:grid-cols-5">
           {/* Brand */}

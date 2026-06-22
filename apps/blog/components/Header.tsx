@@ -60,7 +60,7 @@ export function Header() {
           <button
             onClick={openCommandPalette}
             aria-label="搜索 (⌘K)"
-            className="group ml-2 inline-flex items-center gap-2 rounded-lg border border-[var(--card-border)] bg-[var(--card)]/70 py-1.5 pl-2.5 pr-2 text-[var(--muted)] shadow-sm transition-all duration-300 hover:border-[var(--primary)]/50 hover:text-[var(--primary)] hover:shadow-[var(--shadow-glow)]"
+            className="search-glow group ml-2 inline-flex items-center gap-2 rounded-lg border border-[var(--card-border)] bg-[var(--card)]/70 py-1.5 pl-2.5 pr-2 text-[var(--muted)] shadow-sm transition-all duration-300 hover:border-[var(--primary)]/50 hover:text-[var(--primary)] hover:shadow-[var(--shadow-glow)]"
           >
             <Search className="h-4 w-4 transition-transform duration-300 group-hover:rotate-12" />
             <span className="text-sm">搜索</span>

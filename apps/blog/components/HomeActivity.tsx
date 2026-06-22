@@ -40,7 +40,7 @@ export function HomeActivity({ items }: { items: ActivityItem[] }) {
             <span
               aria-hidden
               style={{ left: "-31px" }}
-              className={`absolute top-1.5 h-2.5 w-2.5 rounded-full ring-4 ring-[var(--background)] ${meta.dot}`}
+              className={`absolute top-1.5 h-2.5 w-2.5 rounded-full ring-4 ring-[var(--background)] ${meta.dot} ${i === 0 ? "dot-pulse" : ""}`}
             />
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
               <span
