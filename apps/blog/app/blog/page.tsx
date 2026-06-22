@@ -1,9 +1,9 @@
-import { getAllArticlesSync } from "../../lib/posts";
 import { BlogCard } from "../../components/BlogCard";
 import { Pagination } from "../../components/Pagination";
 import { PageHeader } from "../../components/ui/PageHeader";
 import { Container } from "../../components/ui/Container";
 import { generatePageMetadata, getSiteUrl } from "../../lib/seo";
+import { api } from "../../lib/api/client";
 import type { Metadata } from "next";
 
 const siteUrl = getSiteUrl();
@@ -22,12 +22,34 @@ interface BlogPageProps {
 
 export default async function BlogPage(props: BlogPageProps) {
   const searchParams = await props.searchParams;
-  const posts = getAllArticlesSync();
   const currentPage = Number(searchParams.page) || 1;
-  const totalPages = Math.ceil(posts.length / POSTS_PER_PAGE);
 
-  const startIndex = (currentPage - 1) * POSTS_PER_PAGE;
-  const pagePosts = posts.slice(startIndex, startIndex + POSTS_PER_PAGE);
+  let posts: any[] = [];
+  let totalPages = 1;
+
+  try {
+    const result = await api.posts.list({
+      page: currentPage,
+      limit: POSTS_PER_PAGE,
+      kind: "post",
+    });
+
+    posts = result.items.map((p) => ({
+      slug: p.slug,
+      title: p.title,
+      date: p.publishedAt,
+      summary: p.summary || "",
+      tags: p.tags,
+      category: p.category?.name || null,
+      cover: p.cover,
+      readingTime: p.readingMins,
+      type: "post" as const,
+    }));
+
+    totalPages = result.pages;
+  } catch (err) {
+    console.error("Failed to fetch posts from API:", err);
+  }
 
   return (
     <>
@@ -39,7 +61,7 @@ export default async function BlogPage(props: BlogPageProps) {
       />
       <Container className="pb-12">
         <div className="grid gap-6">
-          {pagePosts.map((post) => (
+          {posts.map((post) => (
             <BlogCard key={post.slug} post={post} />
           ))}
         </div>
