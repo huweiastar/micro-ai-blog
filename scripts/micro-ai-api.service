@@ -13,10 +13,10 @@ ExecStart=/usr/bin/npm run start -w @app/api
 Restart=on-failure
 RestartSec=5
 
-# —— 资源限制：防止单进程吃光整机，进程假死由 systemd 自动拉起 ——
+# —— 资源限制：防止单进程吃光整机 ——
+# 注：未启用 WatchdogSec，因 Hono 未实现 sd_notify；进程异常由 Restart=on-failure 兜底
 MemoryMax=1G
 CPUQuota=80%
-WatchdogSec=30
 LimitNOFILE=65535
 
 Environment=NODE_ENV=production

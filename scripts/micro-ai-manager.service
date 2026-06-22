@@ -13,9 +13,9 @@ Restart=always
 RestartSec=5
 
 # —— 资源限制 ——
+# 注：未启用 WatchdogSec，因 Next.js 未实现 sd_notify；进程异常由 Restart=always 兜底
 MemoryMax=512M
 CPUQuota=50%
-WatchdogSec=30
 LimitNOFILE=65535
 
 StandardOutput=journal
