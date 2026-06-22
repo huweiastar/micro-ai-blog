@@ -7,6 +7,14 @@ import { categoriesRoutes } from './routes/public/categories.js';
 import { tagsRoutes } from './routes/public/tags.js';
 import { notesRoutes } from './routes/public/notes.js';
 import { archiveRoutes } from './routes/public/archive.js';
+import { projectsRoutes } from './routes/public/projects.js';
+import { friendsRoutes } from './routes/public/friends.js';
+import { galleryRoutes } from './routes/public/gallery.js';
+import { aboutRoutes } from './routes/public/about.js';
+import { searchRoutes } from './routes/public/search.js';
+import { analyticsRoutes } from './routes/public/analytics.js';
+import { likesRoutes } from './routes/public/likes.js';
+import { barrageRoutes } from './routes/public/barrage.js';
 
 const app = new Hono();
 
@@ -23,6 +31,14 @@ app.route('/api/categories', categoriesRoutes);
 app.route('/api/tags', tagsRoutes);
 app.route('/api/notes', notesRoutes);
 app.route('/api/archive', archiveRoutes);
+app.route('/api/projects', projectsRoutes);
+app.route('/api/friends', friendsRoutes);
+app.route('/api/gallery', galleryRoutes);
+app.route('/api/about', aboutRoutes);
+app.route('/api/search', searchRoutes);
+app.route('/api/analytics', analyticsRoutes);
+app.route('/api/likes', likesRoutes);
+app.route('/api/barrage', barrageRoutes);
 
 // Error handler
 app.onError((err, c) => {
