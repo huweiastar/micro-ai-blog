@@ -19,5 +19,11 @@
     "format": "npm run format -w @app/blog",
     "backup:db": "npm run backup:db -w @app/blog",
     "check:content": "npm run check:content -w @app/blog"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/js-yaml": "^4.0.9",
+    "better-sqlite3": "^12.11.1",
+    "js-yaml": "^5.0.0"
   }
 }
