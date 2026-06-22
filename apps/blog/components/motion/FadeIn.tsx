@@ -75,11 +75,7 @@ export function FadeIn({
         ...(scale !== 1 ? SPRING_GENTLE : {}),
       }}
       className={clsx(className)}
-<<<<<<< HEAD
-      style={style}
-=======
       style={style as React.CSSProperties}
->>>>>>> feat/api-separation
       {...rest}
     >
       {children}
