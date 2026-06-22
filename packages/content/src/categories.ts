@@ -21,7 +21,7 @@ export type CategoryConfig = {
 export function getCategoryConfigs(): CategoryConfig[] {
   if (!fs.existsSync(categoriesPath)) return [];
   const content = fs.readFileSync(categoriesPath, "utf-8");
-  return (yaml.load(content, { schema: yaml.DEFAULT_SCHEMA }) as CategoryConfig[]) || [];
+  return (yaml.load(content) as CategoryConfig[]) || [];
 }
 
 export type Category = CategoryConfig & {

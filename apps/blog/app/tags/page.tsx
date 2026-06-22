@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { getAllTags } from "../../lib/posts";
 import { PageHeader } from "../../components/ui/PageHeader";
 import { Container } from "../../components/ui/Container";
 import { generatePageMetadata } from "../../lib/seo";
+import { api } from "../../lib/api/client";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = generatePageMetadata({
@@ -10,10 +10,17 @@ export const metadata: Metadata = generatePageMetadata({
   description: "所有文章标签",
 });
 
-export default function TagsPage() {
-  const tags = getAllTags();
+export default async function TagsPage() {
+  let tags: Array<{ name: string; count: number }> = [];
 
-  // 标签权重云（§Phase3.1）：字号/不透明度随文章数线性映射，越热的标签越大越实。
+  try {
+    const { items } = await api.tags.list();
+    tags = items.map((t) => ({ name: t.name, count: t.postCount }));
+  } catch (err) {
+    console.error("Failed to fetch tags from API:", err);
+  }
+
+  // 标签权重云：字号/不透明度随文章数线性映射，越热的标签越大越实。
   const counts = tags.map((t) => t.count);
   const max = Math.max(...counts, 1);
   const min = Math.min(...counts, 0);

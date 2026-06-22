@@ -55,7 +55,7 @@ export function FadeIn({
   // reduced-motion：直接输出终态，跳过一切动画。
   if (reduced) {
     return (
-      <div className={className} style={style}>
+      <div className={className} style={style as React.CSSProperties}>
         {children}
       </div>
     );
@@ -75,7 +75,11 @@ export function FadeIn({
         ...(scale !== 1 ? SPRING_GENTLE : {}),
       }}
       className={clsx(className)}
+<<<<<<< HEAD
       style={style}
+=======
+      style={style as React.CSSProperties}
+>>>>>>> feat/api-separation
       {...rest}
     >
       {children}

@@ -47,9 +47,7 @@ export function getFriendConfigs(): Friend[] {
   if (!fs.existsSync(friendsPath)) return [];
 
   const content = fs.readFileSync(friendsPath, "utf-8");
-  const data = yaml.load(content, {
-    schema: yaml.DEFAULT_SCHEMA,
-  }) as FriendsFile | null;
+  const data = yaml.load(content) as FriendsFile | null;
   const rawFriends = isRecord(data) ? data.friends : undefined;
   if (!Array.isArray(rawFriends)) return [];
 

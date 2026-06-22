@@ -1,9 +1,9 @@
 import { generatePageMetadata } from "../../lib/seo";
-import { getAboutProfile } from "../../lib/about";
 import { SkillGroup } from "../../components/profile/SkillGroup";
 import { ContactCard } from "../../components/profile/ContactCard";
 import { GlassCard } from "../../components/ui/GlassCard";
 import { Container } from "../../components/ui/Container";
+import { api } from "../../lib/api/client";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = generatePageMetadata({
@@ -11,8 +11,36 @@ export const metadata: Metadata = generatePageMetadata({
   description: "个人介绍、技术栈和联系方式",
 });
 
-export default function AboutPage() {
-  const profile = getAboutProfile();
+export default async function AboutPage() {
+  let profile: {
+    name: string;
+    avatar: string | null;
+    bio: string | null;
+    tagline: string | null;
+    skills: Array<{ title: string; items: string[] }>;
+  } = {
+    name: "博主",
+    avatar: null,
+    bio: null,
+    tagline: null,
+    skills: [],
+  };
+
+  try {
+    const data = await api.about.get();
+    profile = {
+      name: data.profile.name,
+      avatar: data.profile.avatar,
+      bio: data.profile.bio,
+      tagline: data.profile.tagline,
+      skills: data.profile.skills.map((s) => ({
+        title: (s as any).title || (s as any).category || "技能",
+        items: (s as any).items || [],
+      })),
+    };
+  } catch (err) {
+    console.error("Failed to fetch about profile from API:", err);
+  }
 
   return (
     <>
@@ -40,7 +68,7 @@ export default function AboutPage() {
         <GlassCard className="mb-8 p-6 sm:p-8">
           <h2 className="mb-4 text-xl font-semibold">个人简介</h2>
           <div className="prose-custom max-w-none">
-            {profile.bio.split("\n\n").map((para, i) => (
+            {(profile.bio || "").split("\n\n").map((para, i) => (
               <p key={i} className="mb-4 leading-relaxed text-[var(--muted)]">
                 {para}
               </p>

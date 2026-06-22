@@ -1,13 +1,5 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import {
-  getAllPostsSync,
-  getAllArticlesSync,
-  getPostBySlug,
-  getSeriesContext,
-  getRelatedPosts,
-  getAdjacentPosts,
-} from "../../../lib/posts";
 import { renderMarkdownToHtml } from "../../../lib/posts";
 import { Comment } from "../../../components/Comment";
 import { Tag } from "../../../components/Tag";
@@ -24,13 +16,13 @@ import {
 import { StructuredData } from "../../../components/StructuredData";
 import { ArticleLayout } from "../../../components/ArticleLayout";
 import { ArticleRail } from "../../../components/blog/ArticleRail";
-import SeriesNav from "../../../components/blog/SeriesNav";
 import { RelatedPosts } from "../../../components/blog/RelatedPosts";
 import { PostNavigation } from "../../../components/blog/PostNavigation";
 import { BookmarkButton } from "../../../components/blog/BookmarkButton";
 import { LikeButton } from "../../../components/blog/LikeButton";
 import { ReadingPosition } from "../../../components/blog/ReadingPosition";
 import { Container } from "../../../components/ui/Container";
+import { api } from "../../../lib/api/client";
 import { ArrowLeft, StickyNote } from "lucide-react";
 import type { Metadata } from "next";
 
@@ -38,195 +30,165 @@ interface PostPageProps {
   params: Promise<{ slug: string }>;
 }
 
-export function generateStaticParams() {
-  const posts = getAllPostsSync();
-  return posts.map((post) => ({ slug: post.slug }));
-}
-
 export async function generateMetadata(
   props: PostPageProps
 ): Promise<Metadata> {
   const params = await props.params;
-  const post = await getPostBySlug(params.slug);
-  if (!post) return { title: "文章未找到" };
-
-  const siteUrl = getSiteUrl();
-  const postUrl = `${siteUrl}/blog/${post.slug}`;
-
-  return generatePageMetadata({
-    title: post.title,
-    description: post.summary,
-    keywords: post.tags.join(", "),
-    type: "article",
-    url: postUrl,
-    category: post.category,
-    image: post.cover ? `${siteUrl}${post.cover}` : undefined,
-  });
+  try {
+    const { post } = await api.posts.get(params.slug);
+    const siteUrl = getSiteUrl();
+    return generatePageMetadata({
+      title: post.title,
+      description: post.summary || "",
+      keywords: post.tags.join(", "),
+      type: "article",
+      url: `${siteUrl}/blog/${post.slug}`,
+      category: post.category?.name,
+      image: post.cover ? `${siteUrl}${post.cover}` : undefined,
+    });
+  } catch {
+    return { title: "文章未找到" };
+  }
 }
 
 export default async function PostPage(props: PostPageProps) {
   const params = await props.params;
-  const post = await getPostBySlug(params.slug);
-  if (!post) notFound();
 
-  const html = await renderMarkdownToHtml(post.content);
-  const series = getSeriesContext(getAllPostsSync(), post.slug);
-  // 相关文章 + 上/下篇导航：仅对正文文章计算（随手记不展示）
-  const articles = post.type === "article" ? getAllArticlesSync() : [];
-  const related =
-    post.type === "article" ? getRelatedPosts(articles, post.slug, 4) : [];
-  const adjacent =
-    post.type === "article" ? getAdjacentPosts(articles, post.slug) : {};
+  let postData: any;
+  try {
+    const { post } = await api.posts.get(params.slug);
+    postData = post;
+  } catch {
+    notFound();
+  }
+
+  // 渲染 markdown 为 HTML（保留服务端渲染，因为 API 可能没有 contentHtml）
+  const html = await renderMarkdownToHtml(postData.contentMd);
+
+  // 获取相关文章
+  let related: any[] = [];
+  let adjacent: { prev?: any; next?: any } = {};
+  if (postData.kind === "post") {
+    try {
+      const { items } = await api.posts.related(postData.slug, 4);
+      related = items.map((p) => ({
+        slug: p.slug,
+        title: p.title,
+        date: p.publishedAt,
+        summary: p.summary,
+        cover: p.cover,
+        readingTime: p.readingMins,
+      }));
+    } catch {
+      // 忽略
+    }
+  }
+
   const siteUrl = getSiteUrl();
-  const postUrl = `${siteUrl}/blog/${post.slug}`;
-  const structuredData = generateArticleStructuredData(post, postUrl);
+  const postUrl = `${siteUrl}/blog/${postData.slug}`;
+  const currentPath = `/blog/${postData.slug}`;
+
+  const postForStructuredData = {
+    ...postData,
+    date: postData.publishedAt,
+    readingTime: postData.readingMins,
+    category: postData.category?.name || null,
+    type: postData.kind === "post" ? "article" : "note",
+    toc: [],
+    wordCount: postData.wordCount,
+  };
+
+  const structuredData = generateArticleStructuredData(postForStructuredData, postUrl);
   const breadcrumbData = generateBreadcrumbStructuredData([
     { name: "首页", url: siteUrl },
     { name: "博客", url: `${siteUrl}/blog` },
-    ...(post.category
-      ? [
-          {
-            name: post.category,
-            url: `${siteUrl}/categories/${encodeURIComponent(post.category)}`,
-          },
-        ]
+    ...(postData.category
+      ? [{ name: postData.category.name, url: `${siteUrl}/categories/${encodeURIComponent(postData.category.slug)}` }]
       : []),
-    { name: post.title, url: postUrl },
+    { name: postData.title, url: postUrl },
   ]);
-  const currentPath = `/blog/${post.slug}`;
 
   return (
     <>
       <StructuredData data={structuredData} />
       <StructuredData data={breadcrumbData} />
       <ReadingProgress />
-      <ReadingPosition slug={post.slug} />
+      <ReadingPosition slug={postData.slug} />
       <Container size="wide" className="py-12">
         <ArticleLayout
-          tocItems={post.toc}
-          leftRail={
-            post.type === "article" ? (
-              <nav className="surface-card rounded-xl p-3">
-                <h2 className="mb-3 px-1 text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
-                  文章列表
-                </h2>
-                <div className="space-y-1">
-                  {articles.slice(0, 12).map((item) => {
-                    const active = item.slug === post.slug;
-                    return (
-                      <Link
-                        key={item.slug}
-                        href={`/blog/${item.slug}`}
-                        className={`block rounded-lg px-3 py-2 text-sm transition-colors ${
-                          active
-                            ? "bg-[var(--primary)]/12 text-[var(--primary)] ring-1 ring-[var(--primary)]/20"
-                            : "text-[var(--muted)] hover:bg-[var(--primary)]/5 hover:text-[var(--foreground)]"
-                        }`}
-                      >
-                        <span className="line-clamp-2 leading-snug">{item.title}</span>
-                      </Link>
-                    );
-                  })}
-                </div>
-              </nav>
-            ) : undefined
-          }
+          tocItems={[]}
+          leftRail={undefined}
           rail={
-            <>
-              <ArticleRail
-                readingTime={post.readingTime}
-                wordCount={post.wordCount}
-              />
-              {post.toc.length > 0 && (
-                <nav className="surface-card rounded-xl p-4">
-                  <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
-                    章节目录
-                  </h2>
-                  <div className="space-y-1">
-                    {post.toc.map((item) => (
-                      <Link
-                        key={item.id}
-                        href={`#${item.id}`}
-                        className={`block border-l-2 border-transparent py-1.5 text-sm leading-snug text-[var(--muted)] transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)] ${
-                          item.level === 3 ? "pl-5" : "pl-3"
-                        }`}
-                      >
-                        {item.text}
-                      </Link>
-                    ))}
-                  </div>
-                </nav>
-              )}
-            </>
+            <ArticleRail
+              readingTime={postData.readingMins}
+              wordCount={postData.wordCount}
+            />
           }
           backLink={
             <Link
-              href={post.type === "note" ? "/notes" : "/blog"}
+              href={postData.kind === "note" ? "/notes" : "/blog"}
               className="surface-card group inline-flex h-9 w-9 items-center justify-center rounded-full text-[var(--muted)] transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--primary)]/50 hover:text-[var(--primary)] hover:shadow-[var(--shadow-glow)]"
-              title={post.type === "note" ? "返回随手记" : "返回博客列表"}
+              title={postData.kind === "note" ? "返回随手记" : "返回博客列表"}
             >
               <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
             </Link>
           }
         >
-          {post.cover && (
+          {postData.cover && (
             <div className="mb-8 overflow-hidden rounded-xl border border-[var(--card-border)]">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={post.cover}
-                alt={post.title}
+                src={postData.cover}
+                alt={postData.title}
                 className="h-56 w-full object-cover sm:h-72"
               />
             </div>
           )}
           <header className="mb-8">
-            {post.type === "note" ? (
-              // 随手记没有真正的标题（自动取自首行），详情页只标注类型，避免与正文首行重复
+            {postData.kind === "note" ? (
               <div className="mb-4 inline-flex items-center gap-1.5 rounded-full bg-sky-500/10 px-2.5 py-1 text-sm text-sky-500 dark:text-sky-400">
                 <StickyNote className="h-4 w-4" />
                 随手记
               </div>
             ) : (
               <h1 className="mb-4 text-3xl font-bold sm:text-4xl">
-                {post.title}
+                {postData.title}
               </h1>
             )}
 
-
             <PostMeta
-              date={post.date}
-              readingTime={post.readingTime}
-              wordCount={post.wordCount}
-              updated={post.updated}
-              category={post.category}
+              date={postData.publishedAt}
+              readingTime={postData.readingMins}
+              wordCount={postData.wordCount}
+              updated={postData.updatedAt}
+              category={postData.category?.name}
             >
               <ViewCount path={currentPath} />
             </PostMeta>
 
             <div className="mt-4 flex flex-wrap gap-2">
-              {post.tags.map((tag) => (
+              {postData.tags.map((tag: string) => (
                 <Tag key={tag} name={tag} />
               ))}
             </div>
 
             <div className="mt-4 flex flex-wrap items-center gap-3">
-              <LikeButton slug={post.slug} />
+              <LikeButton slug={postData.slug} />
               <BookmarkButton
-                slug={post.slug}
-                title={post.title}
-                date={post.date}
-                summary={post.summary}
-                category={post.category}
+                slug={postData.slug}
+                title={postData.title}
+                date={postData.publishedAt}
+                summary={postData.summary}
+                category={postData.category?.name}
               />
               <ShareButtons />
             </div>
 
-            {post.summary && post.summary !== post.title && (
+            {postData.summary && postData.summary !== postData.title && (
               <section className="mt-6 rounded-xl border border-[var(--primary)]/20 bg-[var(--primary)]/[0.07] px-4 py-3 text-sm leading-relaxed text-[var(--muted)] shadow-sm">
                 <h2 className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-[var(--primary)]">
                   内容概览
                 </h2>
-                <p>{post.summary}</p>
+                <p>{postData.summary}</p>
               </section>
             )}
           </header>
@@ -236,21 +198,13 @@ export default async function PostPage(props: PostPageProps) {
             dangerouslySetInnerHTML={{ __html: html }}
           />
 
-          {/* Series Navigation */}
-          {series && <SeriesNav series={series} />}
-
-          {/* 相关文章（按共同标签/同分类） */}
-          {post.type === "article" && (
+          {related.length > 0 && (
             <RelatedPosts posts={related} title="相关文章" />
           )}
 
-          {/* 上一篇 / 下一篇 */}
-          {post.type === "article" && (
-            <PostNavigation prev={adjacent.prev} next={adjacent.next} />
-          )}
+          <PostNavigation prev={adjacent.prev} next={adjacent.next} />
 
-          {/* Comments */}
-          <Comment slug={post.slug} title={post.title} />
+          <Comment slug={postData.slug} title={postData.title} />
         </ArticleLayout>
       </Container>
     </>

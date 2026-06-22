@@ -1,0 +1,94 @@
+/* ============================================================
+ * @pkg/design-tokens — blog 与 manager 共享的 CSS 变量地基。
+ * 两端 globals.css 顶部 `@import "@pkg/design-tokens/tokens.css"` 引入。
+ *
+ * 单一来源：修改 token 即两端联动。
+ * 各端特化的变量（blog 的访客外观 data-accent/font/radius、桌面宠物；
+ * manager 的兼容别名 --bg/--fg/--border）留在各自 globals.css。
+ * ============================================================ */
+
+/* 共享 design tokens — 通过 globals.css 顶部 @import 引入。
+   不包 @layer base：被导入文件在 Turbopack 下没有 @tailwind base 上下文，
+   直接声明的 CSS 变量同样生效。 */
+
+:root {
+    /* 纸/墨基调 */
+    --background: #f8fafc;
+    --foreground: #0f172a;
+    --card: #ffffff;
+    --card-border: #dbe3ee;
+    /* 品牌色 */
+    --primary: #4f46e5;
+    --primary-hover: #4338ca;
+    --muted: #475569;
+    --accent: #7c3aed;
+    /* 代码块 */
+    --code-bg: #020617;
+    --code-text: #e5e7eb;
+    /* 链接 */
+    --link: #2563eb;
+    --link-hover: #1d4ed8;
+    /* 辉光 */
+    --glow-primary: rgba(79, 70, 229, 0.15);
+    --glow-accent: rgba(124, 58, 237, 0.15);
+    /* 圆角令牌（tailwind rounded-lg/xl/2xl 已映射到这些变量） */
+    --radius-sm: 0.5rem;
+    --radius: 0.75rem;
+    --radius-lg: 1rem;
+    /* 阴影 */
+    --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
+    --shadow-md: 0 10px 30px rgba(15, 23, 42, 0.09);
+    --shadow-lg: 0 24px 70px rgba(15, 23, 42, 0.13);
+    --shadow-glow: 0 14px 40px -12px color-mix(in srgb, var(--primary) 35%, transparent);
+    /* 玻璃/卡片表面 */
+    --surface-highlight: rgba(255, 255, 255, 0.72);
+    --surface-shadow: rgba(15, 23, 42, 0.09);
+    /* focus 环 */
+    --ring: var(--primary);
+    /* 语义色 */
+    --success: #10b981;
+    --warning: #d946ef;
+    --danger: #ef4444;
+    --info: #3b82f6;
+    /* 霓虹/终端（知识图谱/项目页等复用） */
+    --neon-cyan: #06b6d4;
+    --neon-purple: #a78bfa;
+    --terminal-bg: #161b22;
+    --terminal-border: #30363d;
+    --terminal-text: #8b949e;
+    --cyber-grid-color: rgba(99, 102, 241, 0.10);
+    /* 字体令牌（--font-inter / --font-jbmono 由 next/font 注入到 <html>） */
+    --font-sans: var(--font-inter), "PingFang SC", "HarmonyOS Sans SC", "Microsoft YaHei", "Hiragino Sans GB", sans-serif;
+    --font-mono: var(--font-jbmono), "SF Mono", Monaco, "Cascadia Code", Consolas, "Courier New", monospace;
+  }
+
+  .dark {
+    --background: #050817;
+    --foreground: #f4f7fb;
+    --card: #0d1425;
+    --card-border: #273449;
+    --primary: #818cf8;
+    --primary-hover: #6366f1;
+    --muted: #cbd5e1;
+    --accent: #a78bfa;
+    --code-bg: #0f172a;
+    --code-text: #e2e8f0;
+    --link: #60a5fa;
+    --link-hover: #3b82f6;
+    --glow-primary: rgba(129, 140, 248, 0.4);
+    --glow-accent: rgba(167, 139, 250, 0.4);
+    --success: #34d399;
+    --warning: #e879f9;
+    --danger: #f87171;
+    --info: #60a5fa;
+    --neon-cyan: #22d3ee;
+    --neon-purple: #c4b5fd;
+    --cyber-grid-color: rgba(129, 140, 248, 0.12);
+    --surface-highlight: rgba(255, 255, 255, 0.08);
+    --surface-shadow: rgba(0, 0, 0, 0.42);
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.26);
+    --shadow-md: 0 18px 46px rgba(0, 0, 0, 0.36);
+    --shadow-lg: 0 30px 86px rgba(0, 0, 0, 0.48);
+    --shadow-glow: 0 22px 54px -20px color-mix(in srgb, var(--primary) 55%, transparent);
+  }
+

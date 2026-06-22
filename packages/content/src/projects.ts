@@ -11,7 +11,7 @@ const projectsPath = path.join(contentDir(), "projects/projects.yaml");
 export function getAllProjects(): Project[] {
   if (!fs.existsSync(projectsPath)) return [];
   const fileContent = fs.readFileSync(projectsPath, "utf-8");
-  const data = yaml.load(fileContent, { schema: yaml.DEFAULT_SCHEMA }) as Project[];
+  const data = yaml.load(fileContent) as Project[];
   return data || [];
 }
 
