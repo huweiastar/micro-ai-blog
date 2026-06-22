@@ -10,6 +10,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = generatePageMetadata({
   title: "足迹",
   description: "文章、随手记和项目的时间线记录",
+  url: "/footprint",
 });
 
 type FootprintItem = {

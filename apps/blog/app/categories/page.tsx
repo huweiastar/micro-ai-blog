@@ -12,6 +12,7 @@ import type { CSSProperties } from "react";
 export const metadata: Metadata = generatePageMetadata({
   title: "专栏主题",
   description: "所有专栏主题",
+  url: "/categories",
 });
 
 export default function CategoriesPage() {

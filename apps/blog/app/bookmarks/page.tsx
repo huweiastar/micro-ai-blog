@@ -7,6 +7,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = generatePageMetadata({
   title: "我的收藏",
   description: "你在本站收藏的文章（保存在本地浏览器）",
+  url: "/bookmarks",
 });
 
 export default function BookmarksPage() {

@@ -1,0 +1,29 @@
+[Unit]
+Description=micro-ai-manager - Next.js admin console
+Documentation=https://github.com/huweiastar
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu/projects/micro-ai-blog/apps/manager
+ExecStart=/usr/bin/npm run start -- -p 3002 -H 127.0.0.1
+Restart=always
+RestartSec=5
+
+# —— 资源限制 ——
+MemoryMax=512M
+CPUQuota=50%
+WatchdogSec=30
+LimitNOFILE=65535
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=micro-ai-manager
+
+Environment=NODE_ENV=production
+Environment=PORT=3002
+
+[Install]
+WantedBy=multi-user.target

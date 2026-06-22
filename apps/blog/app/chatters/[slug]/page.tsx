@@ -5,7 +5,8 @@ import { Container } from "../../../components/ui/Container";
 import { Comment } from "../../../components/Comment";
 import { Tag } from "../../../components/Tag";
 import { formatDate } from "../../../lib/utils";
-import { generatePageMetadata } from "../../../lib/seo";
+import { generatePageMetadata, generateBreadcrumbStructuredData, getSiteUrl, pageUrl } from "../../../lib/seo";
+import { StructuredData } from "../../../components/StructuredData";
 import type { Metadata } from "next";
 
 export function generateStaticParams() {
@@ -20,7 +21,11 @@ export async function generateMetadata({
   const { slug } = await params;
   const c = getChatterBySlug(slug);
   if (!c) return {};
-  return generatePageMetadata({ title: c.title, description: c.summary });
+  return generatePageMetadata({
+    title: c.title,
+    description: c.summary,
+    url: pageUrl(`/chatters/${encodeURIComponent(slug)}`),
+  });
 }
 
 export default async function ChatterDetail({
@@ -33,7 +38,17 @@ export default async function ChatterDetail({
   if (!c) notFound();
   const html = await renderMarkdownToHtml(c.content);
 
+  const siteUrl = getSiteUrl();
+  const chatterUrl = pageUrl(`/chatters/${encodeURIComponent(slug)}`);
+  const breadcrumbData = generateBreadcrumbStructuredData([
+    { name: "首页", url: siteUrl },
+    { name: "杂谈", url: `${siteUrl}/chatters` },
+    { name: c.title, url: chatterUrl },
+  ]);
+
   return (
+    <>
+    <StructuredData data={breadcrumbData} />
     <Container size="prose" className="py-12">
       <header className="mb-8">
         <div className="mb-3 flex items-center gap-2 text-sm text-[var(--muted)]">
@@ -59,5 +74,6 @@ export default async function ChatterDetail({
         <Comment slug={`chatter-${c.slug}`} title={c.title} />
       </div>
     </Container>
+    </>
   );
 }

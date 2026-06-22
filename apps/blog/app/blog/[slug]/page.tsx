@@ -21,6 +21,7 @@ import {
   generateBreadcrumbStructuredData,
   getSiteUrl,
 } from "../../../lib/seo";
+import { getAboutProfile } from "../../../lib/about";
 import { StructuredData } from "../../../components/StructuredData";
 import { ArticleLayout } from "../../../components/ArticleLayout";
 import { ArticleRail } from "../../../components/blog/ArticleRail";
@@ -52,6 +53,7 @@ export async function generateMetadata(
 
   const siteUrl = getSiteUrl();
   const postUrl = `${siteUrl}/blog/${post.slug}`;
+  const profile = getAboutProfile();
 
   return generatePageMetadata({
     title: post.title,
@@ -61,6 +63,13 @@ export async function generateMetadata(
     url: postUrl,
     category: post.category,
     image: post.cover ? `${siteUrl}${post.cover}` : undefined,
+    article: {
+      publishedTime: post.date,
+      modifiedTime: post.updated,
+      authors: [profile.name],
+      tags: post.tags,
+      section: post.category,
+    },
   });
 }
 

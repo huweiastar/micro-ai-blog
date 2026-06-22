@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Github, ExternalLink, Star, ArrowUpRight } from "lucide-react";
 import { GeneratedCover } from "./ui/GeneratedCover";
 import type { Project } from "../types/project";
@@ -10,17 +10,21 @@ interface ProjectCardProps {
   project: Project;
 }
 
+/**
+ * 项目卡片 —— 整卡为 `<Link>`，让搜索引擎可跟踪、Next.js 可 prefetch、
+ * 屏幕阅读器可识别为链接。GitHub / Demo 等外链通过 `z-index + pointer-events`
+ * 覆盖在整卡链接之上，点击时由自己的 `<a target="_blank">` 接管。
+ */
 export function ProjectCard({ project }: ProjectCardProps) {
-  const router = useRouter();
   const [coverFailed, setCoverFailed] = useState(false);
   const showCover = Boolean(project.cover) && !coverFailed;
 
   return (
-    <div
-      className="group relative rounded-xl border border-[var(--card-border)] bg-[var(--card)] p-6 overflow-hidden transition-all duration-300 hover:shadow-[var(--shadow-glow)] hover:-translate-y-1 active:scale-[0.99] cursor-pointer flex flex-col"
-      onClick={() => router.push(`/projects/${project.slug}`)}
+    <Link
+      href={`/projects/${project.slug}`}
+      className="group relative block rounded-xl border border-[var(--card-border)] bg-[var(--card)] p-6 overflow-hidden no-underline transition-all duration-300 hover:shadow-[var(--shadow-glow)] hover:-translate-y-1 active:scale-[0.99] cursor-pointer flex flex-col"
     >
-      {/* Cover banner — falls back to deterministic generated artwork when absent or broken */}
+      {/* Cover banner —— falls back to deterministic generated artwork when absent or broken */}
       <div className="mb-4 -mx-6 -mt-6 h-40 overflow-hidden rounded-t-xl">
         {showCover ? (
           /* eslint-disable-next-line @next/next/no-img-element */
@@ -71,13 +75,13 @@ export function ProjectCard({ project }: ProjectCardProps) {
           ))}
         </ul>
 
-        <div className="flex gap-4 pt-3 mt-auto border-t border-[var(--card-border)]">
+        {/* 底部链接区 —— GitHub / Demo 外链需覆盖整卡 Link */}
+        <div className="relative z-20 flex gap-4 pt-3 mt-auto border-t border-[var(--card-border)]">
           {project.githubUrl && (
             <a
               href={project.githubUrl}
               target="_blank"
               rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
               className="inline-flex items-center gap-2 text-sm text-[var(--muted)] hover:text-[var(--primary)] transition-colors duration-200 group/link"
             >
               <Github className="w-4 h-4" />
@@ -89,7 +93,6 @@ export function ProjectCard({ project }: ProjectCardProps) {
               href={project.demoUrl}
               target="_blank"
               rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
               className="inline-flex items-center gap-2 text-sm text-[var(--muted)] hover:text-[var(--primary)] transition-colors duration-200 group/link"
             >
               <ExternalLink className="w-4 h-4" />
@@ -102,6 +105,6 @@ export function ProjectCard({ project }: ProjectCardProps) {
           </span>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }

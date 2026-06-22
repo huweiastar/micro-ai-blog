@@ -3,7 +3,8 @@ import Link from "next/link";
 import { getPostsByTag, getAllTags } from "../../../lib/posts";
 import { BlogCard } from "../../../components/BlogCard";
 import { Container } from "../../../components/ui/Container";
-import { generatePageMetadata } from "../../../lib/seo";
+import { generatePageMetadata, generateBreadcrumbStructuredData, getSiteUrl, pageUrl } from "../../../lib/seo";
+import { StructuredData } from "../../../components/StructuredData";
 import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 
@@ -21,6 +22,7 @@ export async function generateMetadata(props: TagPageProps): Promise<Metadata> {
   return generatePageMetadata({
     title: tag,
     description: `${tag}标签下的所有文章`,
+    url: pageUrl(`/tags/${encodeURIComponent(tag)}`),
   });
 }
 
@@ -31,7 +33,17 @@ export default async function TagDetailPage(props: TagPageProps) {
 
   if (posts.length === 0) notFound();
 
+  const siteUrl = getSiteUrl();
+  const tagUrl = pageUrl(`/tags/${encodeURIComponent(tag)}`);
+  const breadcrumbData = generateBreadcrumbStructuredData([
+    { name: "首页", url: siteUrl },
+    { name: "标签", url: `${siteUrl}/tags` },
+    { name: tag, url: tagUrl },
+  ]);
+
   return (
+    <>
+    <StructuredData data={breadcrumbData} />
     <Container className="py-12">
       <Link
         href="/tags"
@@ -52,5 +64,6 @@ export default async function TagDetailPage(props: TagPageProps) {
         ))}
       </div>
     </Container>
+    </>
   );
 }

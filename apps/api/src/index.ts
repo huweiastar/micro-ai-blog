@@ -20,7 +20,19 @@ const app = new Hono();
 
 // Middleware
 app.use('*', logger());
-app.use('*', cors());
+app.use(
+  '*',
+  cors({
+    origin: [
+      'https://huweiastar.deepai.icu',
+      'https://admin.huweiastar.deepai.icu',
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://localhost:3002',
+    ],
+    credentials: true,
+  })
+);
 
 // Health check
 app.get('/health', (c) => c.json({ ok: true, status: 'healthy' }));
@@ -40,10 +52,10 @@ app.route('/api/analytics', analyticsRoutes);
 app.route('/api/likes', likesRoutes);
 app.route('/api/barrage', barrageRoutes);
 
-// Error handler
+// Error handler — 仅写日志，不回传内部错误信息
 app.onError((err, c) => {
   console.error('Unhandled error:', err.message, err.stack);
-  return c.json({ ok: false, error: err.message || 'Internal server error' }, 500);
+  return c.json({ ok: false, error: 'Internal server error' }, 500);
 });
 
 // 404 handler

@@ -7,6 +7,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = generatePageMetadata({
   title: "留言板",
   description: "有什么想说的、想问的、想吐槽的，都可以留在这里",
+  url: "/guestbook",
 });
 
 /**

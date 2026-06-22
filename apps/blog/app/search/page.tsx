@@ -6,10 +6,18 @@ import { generatePageMetadata } from "../../lib/seo";
 import type { SearchItem } from "../../lib/posts";
 import type { Metadata } from "next";
 
-export const metadata: Metadata = generatePageMetadata({
-  title: "搜索",
-  description: "搜索博客文章",
-});
+export const metadata: Metadata = {
+  ...generatePageMetadata({
+    title: "搜索",
+    description: "搜索博客文章",
+    url: "/search",
+  }),
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: { index: false, follow: false },
+  },
+};
 
 function getSearchIndex(): SearchItem[] {
   const indexPath = path.join(process.cwd(), "public/search-index.json");

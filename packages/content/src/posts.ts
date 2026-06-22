@@ -9,6 +9,7 @@ import rehypeSlug from "rehype-slug";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import rehypeStringify from "rehype-stringify";
 import rehypePrettyCode from "rehype-pretty-code";
+import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
 import { rehypeCallouts } from "./rehype-callouts";
 import { rehypeMark } from "./rehype-mark";
 import { rehypeContentEnhance } from "./rehype-content-enhance";
@@ -267,16 +268,63 @@ export function getPostsByCategory(category: string): BlogPost[] {
   return posts.filter((post) => post.category === category);
 }
 
-function sanitizeMarkdownHtml(content: string): string {
-  return content
-    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "")
-    .replace(/\son[a-z]+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, "")
-    .replace(/(href|src)\s*=\s*(["'])\s*javascript:[\s\S]*?\2/gi, '$1="#"')
-    .replace(/(href|src)\s*=\s*javascript:[^\s>]+/gi, '$1="#"');
-}
+/**
+ * rehype-sanitize schema：在 GitHub 默认白名单基础上，放行站点自家 rehype 插件
+ * 生成的元素与属性（callout 图标、代码块工具条、外链 target 等）。
+ *
+ * 仍会剥离 `<script>`、`on*` 事件、`javascript:` 等危险内容，
+ * 取代此前自写的正则 sanitizeMarkdownHtml（正则无法穷尽所有 XSS payload）。
+ */
+const blogSanitizeSchema = (() => {
+  const schema = structuredClone(defaultSchema);
+
+  // —— 全局属性扩展（"*" 表示所有标签） ——
+  const attrs = schema.attributes as Record<string, Array<string | [string, ...unknown[]]>>;
+  // className / style：rehype-pretty-code、callouts、code-header 等插件依赖
+  // （rehype-sanitize 本身已剥离 <script> / on* 事件 / javascript:，
+  //  此处再放开 style 主要承担视觉样式，注入风险极低）
+  attrs["*"] = [...(attrs["*"] ?? []), "className", "style"];
+
+  // —— 外链：<a target="_blank" rel="..."> (rehype-content-enhance) ——
+  attrs.a = [...(attrs.a ?? []), "target", "rel"];
+
+  // —— 图片：loading="lazy" decoding="async" (rehype-content-enhance) ——
+  attrs.img = [...(attrs.img ?? []), "loading", "decoding"];
+
+  // —— SVG：callout / code-header 图标 ——
+  const tagNames = (schema as unknown as { tagNames?: string[] }).tagNames;
+  if (tagNames) tagNames.push("svg", "path", "circle", "line", "rect");
+  attrs.svg = ["viewBox", "xmlns", "width", "height", "fill", "stroke", "strokeWidth", "strokeLinecap", "strokeLinejoin", "aria-hidden"];
+  attrs.path = ["d"];
+  attrs.circle = ["cx", "cy", "r"];
+  attrs.line = ["x1", "y1", "x2", "y2"];
+  attrs.rect = ["x", "y", "rx", "ry"];
+
+  // —— 代码块复制按钮 ——
+  if (tagNames) tagNames.push("button");
+  attrs.button = ["type"];
+
+  // —— rehype-pretty-code / callouts / code-header 的 data-* ——
+  const dataAttrs = [
+    "data-language",
+    "data-theme",
+    "data-line",
+    "data-highlighted",
+    "data-callout",
+    "data-code-copy",
+  ];
+  for (const tag of ["pre", "code", "div", "span"]) {
+    attrs[tag] = [...(attrs[tag] ?? []), ...dataAttrs];
+  }
+
+  // 防止 id/name 被覆盖导致 DOM clobbering（rehype-sanitize 默认已有前缀保护）
+  // clobber 字段在 Schema 中为 string[]（被禁止的 id 名），不是对象。
+  // 此处保留默认行为即可，无需覆盖。
+
+  return schema;
+})();
 
 export async function renderMarkdownToHtml(content: string): Promise<string> {
-  const safeContent = sanitizeMarkdownHtml(content);
   const result = await remark()
     .use(remarkGfm)
     .use(remarkRehype, { allowDangerousHtml: true })
@@ -295,8 +343,11 @@ export async function renderMarkdownToHtml(content: string): Promise<string> {
     })
     // 在 pretty-code 之后预渲染代码块工具条，保证 SSR 与客户端 DOM 一致（消除水合不匹配）
     .use(rehypeCodeHeader)
-    .use(rehypeStringify, { allowDangerousHtml: true })
-    .process(safeContent);
+    // ⚠️ 必须在所有 rehype 插件之后、rehype-stringify 之前：
+    // 统一剥离 <script> / on* 事件 / javascript: 等危险内容，替代原来自写正则
+    .use(rehypeSanitize, blogSanitizeSchema)
+    .use(rehypeStringify, { allowDangerousHtml: false })
+    .process(content);
 
   return result.toString();
 }

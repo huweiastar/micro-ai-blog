@@ -4,7 +4,9 @@
 
 ### 数据库连接
 ```bash
-DATABASE_URL=postgresql://blog:blog_dev_2026@localhost:5432/micro_ai_blog
+# ⚠️ 请勿在仓库内提交真实密码。配置到 .env.local（已 gitignore）：
+# apps/api/.env.local 中设置：
+DATABASE_URL=postgresql://blog:<替换为强密码>@localhost:5432/micro_ai_blog
 ```
 
 ### API 服务端口
@@ -14,21 +16,21 @@ API_PORT=3010
 
 ## 部署步骤
 
-### 1. 创建 PostgreSQL 数据库（已完成）
+### 1. 创建 PostgreSQL 数据库
 ```bash
-sudo -u postgres psql -c "CREATE USER blog WITH PASSWORD 'blog_dev_2026';"
+# 在生产环境用强密码替换 <STRONG_PASSWORD>
+sudo -u postgres psql -c "CREATE USER blog WITH PASSWORD '<STRONG_PASSWORD>';"
 sudo -u postgres psql -c "CREATE DATABASE micro_ai_blog OWNER blog;"
 sudo -u postgres psql -d micro_ai_blog -c "CREATE EXTENSION IF NOT EXISTS pg_trgm;"
+
+# 把密码写入 apps/api/.env.local（不要提交到 git）
+echo "DATABASE_URL=postgresql://blog:<STRONG_PASSWORD>@localhost:5432/micro_ai_blog" >> apps/api/.env.local
 ```
 
 ### 2. 运行数据库迁移
 ```bash
-# 确保 DATABASE_URL 已设置
+# 确保 apps/api/.env.local 中已配置 DATABASE_URL
 npm run migrate -w @app/api
-
-# 或者手动运行迁移脚本
-DATABASE_URL=postgresql://blog:blog_dev_2026@localhost:5432/micro_ai_blog \
-  npm run migrate:data
 ```
 
 ### 3. 启动 API 服务

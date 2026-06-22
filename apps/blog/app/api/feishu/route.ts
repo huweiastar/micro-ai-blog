@@ -17,8 +17,9 @@ export async function POST(req: NextRequest) {
       content,
     });
   } catch (error) {
+    console.error('feishu fetch error:', error);
     return NextResponse.json(
-      { success: false, message: (error as Error).message || "获取飞书文档失败" },
+      { success: false, message: "获取飞书文档失败，请稍后重试" },
       { status: 500 }
     );
   }

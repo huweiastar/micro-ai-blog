@@ -8,6 +8,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = generatePageMetadata({
   title: "项目展示",
   description: "个人项目经历展示",
+  url: "/projects",
 });
 
 export default function ProjectsPage() {

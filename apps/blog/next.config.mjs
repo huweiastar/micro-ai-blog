@@ -39,6 +39,11 @@ const nextConfig = {
   // 恢复 dev 期的副作用检查（利于后续 React/Next 升级）。
   reactStrictMode: true,
   poweredByHeader: false,
+  // RSC 路由缓存：静态页 30s、导航 10s 内复用已渲染的 RSC payload，
+  // 减少重复 fetch；访客体验无明显延迟（配合 revalidate 兜底数据新鲜度）。
+  experimental: {
+    staleTimes: { static: 30, navigation: 10 },
+  },
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
@@ -82,6 +87,31 @@ const nextConfig = {
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
           { key: "Content-Security-Policy", value: csp },
+        ],
+      },
+      // —— 静态资源缓存：让浏览器 / CDN 缓存不频繁变化的构建产物与内容索引 ——
+      {
+        source: "/search-index.json",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=300, stale-while-revalidate=600" },
+        ],
+      },
+      {
+        source: "/knowledge-index.json",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=300, stale-while-revalidate=600" },
+        ],
+      },
+      {
+        source: "/rss.xml",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=3600, stale-while-revalidate=7200" },
+        ],
+      },
+      {
+        source: "/sitemap.xml",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=3600, stale-while-revalidate=7200" },
         ],
       },
     ];

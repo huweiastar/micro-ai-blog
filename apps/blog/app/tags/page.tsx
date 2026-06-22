@@ -8,6 +8,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = generatePageMetadata({
   title: "标签",
   description: "所有文章标签",
+  url: "/tags",
 });
 
 export default function TagsPage() {

@@ -8,6 +8,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = generatePageMetadata({
   title: "归档",
   description: "文章归档",
+  url: "/archive",
 });
 
 export default function ArchivePage() {

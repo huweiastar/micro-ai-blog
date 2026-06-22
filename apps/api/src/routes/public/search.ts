@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { sql } from 'drizzle-orm';
 import { db } from '../../db/index.js';
-import { searchIndex, posts } from '../../db/schema.js';
+import { posts } from '../../db/schema.js';
 
 export const searchRoutes = new Hono();
 
@@ -37,12 +37,12 @@ searchRoutes.get('/', async (c) => {
     LIMIT ${limit}
   `);
 
-  const items = (results.rows || []).map((r: any) => ({
-    slug: r.slug,
-    title: r.title,
-    kind: r.kind,
-    summary: r.summary,
-    rank: parseFloat(r.rank) || 0,
+  const items = (results.rows || []).map((r) => ({
+    slug: (r as Record<string, unknown>).slug as string,
+    title: (r as Record<string, unknown>).title as string,
+    kind: (r as Record<string, unknown>).kind as string,
+    summary: (r as Record<string, unknown>).summary as string,
+    rank: parseFloat(String((r as Record<string, unknown>).rank)) || 0,
   }));
 
   return c.json({ ok: true, data: { items, total: items.length } });

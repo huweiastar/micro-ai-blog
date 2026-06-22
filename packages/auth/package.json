@@ -5,6 +5,7 @@
   "main": "./src/session-token.ts",
   "types": "./src/session-token.ts",
   "exports": {
-    ".": "./src/session-token.ts"
+    ".": "./src/session-token.ts",
+    "./edge-verify": "./src/edge-verify.ts"
   }
 }

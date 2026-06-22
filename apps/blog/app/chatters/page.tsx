@@ -13,6 +13,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = generatePageMetadata({
   title: "杂谈",
   description: "比说说长、比博客随意的碎碎念",
+  url: "/chatters",
 });
 
 export default function ChattersPage() {

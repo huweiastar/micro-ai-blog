@@ -1,21 +1,32 @@
-import { generatePageMetadata } from "../../lib/seo";
+import { generatePageMetadata, generatePersonStructuredData } from "../../lib/seo";
 import { getAboutProfile } from "../../lib/about";
 import { SkillGroup } from "../../components/profile/SkillGroup";
 import { ContactCard } from "../../components/profile/ContactCard";
 import { GlassCard } from "../../components/ui/GlassCard";
 import { Container } from "../../components/ui/Container";
+import { StructuredData } from "../../components/StructuredData";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = generatePageMetadata({
   title: "关于我",
   description: "个人介绍、技术栈和联系方式",
+  url: "/about",
 });
 
 export default function AboutPage() {
   const profile = getAboutProfile();
+  const personData = generatePersonStructuredData({
+    name: profile.name,
+    title: profile.tagline,
+    bio: profile.bio,
+    avatar: profile.avatar,
+    email: profile.email,
+    github: profile.github,
+  });
 
   return (
     <>
+      <StructuredData data={personData} />
       {/* 头图氛围区 */}
       <div className="relative overflow-hidden">
         <div

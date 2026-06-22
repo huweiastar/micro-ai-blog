@@ -5,8 +5,9 @@ import { getAllCategories, getCategoryByName } from "../../../lib/categories";
 import { BlogCard } from "../../../components/BlogCard";
 import { Container } from "../../../components/ui/Container";
 import { EmptyState } from "../../../components/ui/EmptyState";
-import { generatePageMetadata } from "../../../lib/seo";
+import { generatePageMetadata, generateBreadcrumbStructuredData, getSiteUrl, pageUrl } from "../../../lib/seo";
 import { renderMarkdownToHtml } from "../../../lib/posts";
+import { StructuredData } from "../../../components/StructuredData";
 import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 
@@ -26,6 +27,7 @@ export async function generateMetadata(
   return generatePageMetadata({
     title: category,
     description: `${category}专栏下的所有文章`,
+    url: pageUrl(`/categories/${encodeURIComponent(category)}`),
   });
 }
 
@@ -37,7 +39,17 @@ export default async function CategoryDetailPage(props: CategoryPageProps) {
 
   if (!catConfig) notFound();
 
+  const siteUrl = getSiteUrl();
+  const categoryUrl = pageUrl(`/categories/${encodeURIComponent(category)}`);
+  const breadcrumbData = generateBreadcrumbStructuredData([
+    { name: "首页", url: siteUrl },
+    { name: "专栏主题", url: `${siteUrl}/categories` },
+    { name: category, url: categoryUrl },
+  ]);
+
   return (
+    <>
+    <StructuredData data={breadcrumbData} />
     <Container className="py-12">
       <Link
         href="/categories"
@@ -116,5 +128,6 @@ export default async function CategoryDetailPage(props: CategoryPageProps) {
         </div>
       )}
     </Container>
+    </>
   );
 }

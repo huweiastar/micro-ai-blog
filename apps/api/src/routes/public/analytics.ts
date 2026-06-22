@@ -11,7 +11,7 @@ analyticsRoutes.post('/pageview', async (c) => {
   try {
     const body = await c.req.json();
     const payload = pageViewSchema.parse(body);
-    const now = new Date().toISOString();
+    const now = new Date();
 
     // Record event
     await db.insert(pageViewEvents).values({
@@ -49,8 +49,9 @@ analyticsRoutes.post('/pageview', async (c) => {
       });
 
     return c.json({ ok: true, data: { recorded: true } });
-  } catch (err: any) {
-    return c.json({ ok: false, error: err.message || 'Invalid payload' }, 400);
+  } catch (err: unknown) {
+    console.error('analytics POST error:', err);
+    return c.json({ ok: false, error: 'Invalid payload' }, 400);
   }
 });
 

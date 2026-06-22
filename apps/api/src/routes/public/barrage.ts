@@ -58,7 +58,8 @@ barrageRoutes.post('/', async (c) => {
         },
       },
     });
-  } catch (err: any) {
-    return c.json({ ok: false, error: err.message || 'Invalid payload' }, 400);
+  } catch (err: unknown) {
+    console.error('barrage POST error:', err);
+    return c.json({ ok: false, error: 'Invalid payload' }, 400);
   }
 });

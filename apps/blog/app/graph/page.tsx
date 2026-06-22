@@ -9,6 +9,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = generatePageMetadata({
   title: "知识图谱",
   description: "文章与标签交织的关系网络",
+  url: "/graph",
 });
 
 export default function GraphPage() {

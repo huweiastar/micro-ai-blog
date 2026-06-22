@@ -307,7 +307,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error("Create post error:", error);
     return NextResponse.json(
-      { error: "创建文章失败：" + (error as Error).message },
+      { error: "创建文章失败，请稍后重试" },
       { status: 500 }
     );
   }
@@ -389,7 +389,7 @@ export async function PUT(req: NextRequest) {
   } catch (error) {
     console.error("Update post error:", error);
     return NextResponse.json(
-      { error: "更新文章失败：" + (error as Error).message },
+      { error: "更新文章失败，请稍后重试" },
       { status: 500 }
     );
   }
@@ -426,7 +426,7 @@ export async function DELETE(req: NextRequest) {
   } catch (error) {
     console.error("Delete post error:", error);
     return NextResponse.json(
-      { error: "删除文章失败：" + (error as Error).message },
+      { error: "删除文章失败，请稍后重试" },
       { status: 500 }
     );
   }

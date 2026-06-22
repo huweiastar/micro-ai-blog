@@ -8,6 +8,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = generatePageMetadata({
   title: "相册",
   description: "镜头里的片刻与风景",
+  url: "/gallery",
 });
 
 export default function GalleryPage() {

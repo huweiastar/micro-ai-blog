@@ -75,7 +75,7 @@ ${content}
   } catch (error) {
     console.error("Publish error:", error);
     return NextResponse.json(
-      { error: "发布失败：" + (error as Error).message },
+      { error: "发布失败，请稍后重试" },
       { status: 500 }
     );
   }

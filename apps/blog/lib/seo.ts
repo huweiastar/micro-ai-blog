@@ -5,6 +5,13 @@ export function getSiteUrl(): string {
   return siteConfig.url;
 }
 
+/** 把站内路径（如 "/about"、"/blog/hello"）拼成完整 URL。自动处理首尾斜杠。 */
+export function pageUrl(path: string): string {
+  const base = siteConfig.url.replace(/\/+$/, "");
+  const suffix = path.startsWith("/") ? path : `/${path}`;
+  return `${base}${suffix}`;
+}
+
 /**
  * 构建动态 OG 分享图地址（由 /og 路由用 next/og 实时渲染品牌化卡片）。
  */
@@ -23,14 +30,24 @@ export function generatePageMetadata(meta: {
   title: string;
   description: string;
   keywords?: string;
-  url?: string;
+  /** 页面完整 URL 或站内路径（如 "/about"）。必填，避免 canonical 静默回退到首页。 */
+  url: string;
   image?: string;
   /** 文章/页面所属分类，用于动态 OG 图的配色与标签。 */
   category?: string;
   type?: "website" | "article";
+  /** type="article" 时附带的文章元数据（OG article:* 标签）。 */
+  article?: {
+    publishedTime?: string;
+    modifiedTime?: string;
+    authors?: string[];
+    tags?: string[];
+    section?: string;
+  };
 }) {
   const profile = getAboutProfile();
-  const url = meta.url || siteConfig.url;
+  // 兼容相对路径：以 "/" 开头视为站内 path，拼到 siteConfig.url 上。
+  const url = meta.url.startsWith("/") ? pageUrl(meta.url) : meta.url;
   // 优先使用显式封面，否则回退到动态生成的品牌化 OG 图。
   const image =
     meta.image || buildOgImageUrl({ title: meta.title, category: meta.category });
@@ -56,6 +73,11 @@ export function generatePageMetadata(meta: {
       siteName: profile.name,
       images: [ogImage],
       type: meta.type || "website",
+      ...(meta.type === "article" &&
+        meta.article && {
+          ...meta.article,
+          authors: meta.article.authors?.map((name) => ({ name })),
+        }),
     } as OpenGraphMeta,
     twitter: {
       card: "summary_large_image" as const,
@@ -171,6 +193,35 @@ export function generateWebsiteStructuredData(): Record<string, unknown> {
       target: `${siteConfig.url}/search?q={search_term_string}`,
       "query-input": "required name=search_term_string",
     },
+  };
+}
+
+/**
+ * 关于页 Person JSON-LD —— 帮助搜索引擎构建作者知识面板（Knowledge Panel）。
+ */
+export function generatePersonStructuredData(profile: {
+  name: string;
+  title?: string;
+  bio?: string;
+  avatar?: string;
+  email?: string;
+  github?: string;
+}): Record<string, unknown> {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: profile.name,
+    ...(profile.title && { jobTitle: profile.title }),
+    ...(profile.bio && { description: profile.bio }),
+    url: siteConfig.url,
+    ...(profile.avatar && { image: `${siteConfig.url}${profile.avatar}` }),
+    ...(profile.email && { email: `mailto:${profile.email}` }),
+    sameAs: [
+      ...(profile.github ? [profile.github] : []),
+      siteConfig.social.juejin || "",
+      siteConfig.social.zhihu || "",
+      siteConfig.social.linkedin || "",
+    ].filter(Boolean),
   };
 }
 

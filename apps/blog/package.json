@@ -26,6 +26,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1066.0",
+    "@pkg/admin-ui": "*",
     "@pkg/auth": "*",
     "@pkg/content": "*",
     "better-sqlite3": "^12.10.0",

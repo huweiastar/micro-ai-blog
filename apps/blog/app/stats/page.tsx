@@ -14,6 +14,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = generatePageMetadata({
   title: "数据统计",
   description: "博客的数字侧写：文章、字数、访问与发布节奏",
+  url: "/stats",
 });
 
 const wordsFormat = (n: number) =>

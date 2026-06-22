@@ -14,8 +14,9 @@ export async function POST(req: NextRequest) {
     const html = await renderMarkdownToHtml(markdown);
     return NextResponse.json({ html });
   } catch (error) {
+    console.error('preview render error:', error);
     return NextResponse.json(
-      { error: "渲染失败：" + (error as Error).message },
+      { error: "渲染失败，请稍后重试" },
       { status: 500 }
     );
   }

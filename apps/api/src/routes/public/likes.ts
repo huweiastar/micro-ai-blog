@@ -20,7 +20,7 @@ likesRoutes.post('/toggle', async (c) => {
   try {
     const body = await c.req.json();
     const { slug, visitorId } = likeToggleSchema.parse(body);
-    const now = new Date().toISOString();
+    const now = new Date();
 
     // Check if already liked
     const existing = await db
@@ -53,7 +53,8 @@ likesRoutes.post('/toggle', async (c) => {
       const row = await db.query.likes.findFirst({ where: eq(likes.slug, slug) });
       return c.json({ ok: true, data: { count: row?.count || 1, liked: true } });
     }
-  } catch (err: any) {
-    return c.json({ ok: false, error: err.message || 'Invalid payload' }, 400);
+  } catch (err: unknown) {
+    console.error('likes POST error:', err);
+    return c.json({ ok: false, error: 'Invalid payload' }, 400);
   }
 });

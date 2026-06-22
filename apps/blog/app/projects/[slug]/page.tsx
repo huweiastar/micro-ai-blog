@@ -3,10 +3,11 @@ import Link from "next/link";
 import { getProjects, getProjectBySlug } from "../../../lib/projects";
 import { getPostBySlug, renderMarkdownToHtml } from "../../../lib/posts";
 import { formatDate } from "../../../lib/utils";
-import { generatePageMetadata } from "../../../lib/seo";
+import { generatePageMetadata, generateBreadcrumbStructuredData, getSiteUrl, pageUrl } from "../../../lib/seo";
 import { Comment } from "../../../components/Comment";
 import { ViewCount } from "../../../components/ViewCount";
 import { ProjectCover } from "../../../components/ProjectCover";
+import { StructuredData } from "../../../components/StructuredData";
 import {
   ArrowLeft,
   Github,
@@ -37,6 +38,7 @@ export async function generateMetadata(
     description: project.description,
     keywords: project.techStack.join(", "),
     type: "website",
+    url: pageUrl(`/projects/${encodeURIComponent(params.slug)}`),
   });
 }
 
@@ -59,8 +61,17 @@ export default async function ProjectDetailPage(props: ProjectPageProps) {
     ? { __html: await renderMarkdownToHtml(project.content!) }
     : null;
   const currentPath = `/projects/${project.slug}`;
+  const siteUrl = getSiteUrl();
+  const projectUrl = pageUrl(currentPath);
+  const breadcrumbData = generateBreadcrumbStructuredData([
+    { name: "首页", url: siteUrl },
+    { name: "项目展示", url: `${siteUrl}/projects` },
+    { name: project.name, url: projectUrl },
+  ]);
 
   return (
+    <>
+    <StructuredData data={breadcrumbData} />
     <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
       <Link
         href="/projects"
@@ -239,5 +250,6 @@ export default async function ProjectDetailPage(props: ProjectPageProps) {
         </div>
       </div>
     </div>
+    </>
   );
 }

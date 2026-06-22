@@ -12,7 +12,7 @@
   "dependencies": {
     "@hono/node-server": "^1.13.7",
     "@pkg/shared": "*",
-    "drizzle-orm": "^0.36.4",
+    "drizzle-orm": "^0.45.2",
     "hono": "^4.6.14",
     "pg": "^8.13.1",
     "zod": "^3.23.8"
