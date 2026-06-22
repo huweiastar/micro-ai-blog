@@ -99,3 +99,4 @@ apps/*/public/search-index.json
 apps/*/public/sitemap.xml
 apps/*/public/rss.xml
 apps/*/public/knowledge-index.json
+apps/*/dist/
