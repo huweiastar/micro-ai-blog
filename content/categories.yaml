@@ -14,7 +14,17 @@
   description: RAG 知识库、Agent 与多模态应用
   background: gradient-4
   bgOpacity: 15
-- name: AI工具
+- name: 面试题
   description: AI 开发工具、效率工具与实用资源
   background: gradient-5
+  bgOpacity: 15
+- name: AI术语库
+  description: 专注拆解AI领域各类专有名词：包含 Agent 智能体、Skill 工具技能、MCP 模型上下文协议、RAG、Function Calling 等行业缩写与概念，抛开学术晦涩表述，结合实操案例讲清定义、用途与底层逻辑，解决阅读文档、配置工具时看不懂专业术语的问题。
+  bgOpacity: 15
+  description_long: 本专栏专注拆解AI领域各类专有名词：包含 Agent 智能体、Skill 工具技能、MCP 模型上下文协议、RAG、Function Calling 等行业缩写与概念，抛开学术晦涩表述，结合实操案例讲清定义、用途与底层逻辑，解决阅读文档、配置工具时看不懂专业术语的问题。
+- name: AI工具箱
+  description: ''
+  bgOpacity: 15
+- name: 大模型算法工程
+  description: ''
   bgOpacity: 15

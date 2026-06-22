@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Search, FolderOpen, BookOpen } from "lucide-react";
-import { ListHero } from "../../../components/admin/ListHero";
+import { ListHero } from "@pkg/admin-ui/ListHero";
 
 type Category = {
   name: string;

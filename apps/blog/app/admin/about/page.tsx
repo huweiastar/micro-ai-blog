@@ -5,7 +5,7 @@ import {
   Camera, Check, Save, Plus, Trash2,
   X, Edit3, ChevronUp, ChevronDown,
 } from "lucide-react";
-import { MarkdownEditor } from "../../../components/admin/MarkdownEditor";
+import { MarkdownEditor } from "@pkg/admin-ui/markdown-editor";
 import { useToast } from "../../../components/admin/Toast";
 import { TECH_ICON_KEYS, TechIcon } from "../../../lib/tech-icons";
 import { IconPicker } from "../../../components/admin/IconPicker";

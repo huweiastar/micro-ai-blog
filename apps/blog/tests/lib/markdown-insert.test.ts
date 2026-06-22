@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyMarkdownInsert } from "../../components/admin/MarkdownEditor/utils";
+import { applyMarkdownInsert } from "@pkg/admin-ui/markdown-editor/utils";
 import { rehypeMark } from "../../lib/rehype-mark";
 
 describe("applyMarkdownInsert 包裹", () => {

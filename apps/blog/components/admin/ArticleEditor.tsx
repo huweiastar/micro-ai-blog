@@ -19,13 +19,13 @@ import {
   X,
 } from "lucide-react";
 import { AiWriteModal } from "./ai-write-modal";
-import { SyntaxCheatsheet } from "./SyntaxCheatsheet";
+import { SyntaxCheatsheet } from "@pkg/admin-ui/SyntaxCheatsheet";
 import { useToast } from "./Toast";
-import { MarkdownEditor } from "./MarkdownEditor";
-import { EditorChrome } from "./EditorChrome";
-import { EditorInspector } from "./inspector/EditorInspector";
-import { InspectorSection } from "./inspector/InspectorSection";
-import { useEditorLayout } from "./hooks/useEditorLayout";
+import { MarkdownEditor } from "@pkg/admin-ui/markdown-editor";
+import { EditorChrome } from "@pkg/admin-ui/EditorChrome";
+import { EditorInspector } from "@pkg/admin-ui/inspector/EditorInspector";
+import { InspectorSection } from "@pkg/admin-ui/inspector/InspectorSection";
+import { useEditorLayout } from "@pkg/admin-ui/hooks/useEditorLayout";
 import { useAssistStream } from "./hooks/useAssistStream";
 import { countWords } from "../../lib/word-count";
 import type { LinkSuggestion } from "../../lib/assistant/editor-assist";

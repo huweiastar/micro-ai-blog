@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { deriveNoteTitle, deriveNoteSlug } from "../../../lib/notes";
 import { useToast } from "../../../components/admin/Toast";
-import { ListHero } from "../../../components/admin/ListHero";
+import { ListHero } from "@pkg/admin-ui/ListHero";
 
 type NoteItem = {
   slug: string;

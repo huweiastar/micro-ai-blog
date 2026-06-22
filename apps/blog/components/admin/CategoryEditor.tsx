@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import { Loader2, Save, Trash2, ArrowLeft } from "lucide-react";
-import { MarkdownEditor } from "./MarkdownEditor";
+import { MarkdownEditor } from "@pkg/admin-ui/markdown-editor";
 import { useToast } from "./Toast";
-import { EditorChrome } from "./EditorChrome";
-import { EditorInspector } from "./inspector/EditorInspector";
-import { InspectorSection } from "./inspector/InspectorSection";
-import { useEditorLayout } from "./hooks/useEditorLayout";
+import { EditorChrome } from "@pkg/admin-ui/EditorChrome";
+import { EditorInspector } from "@pkg/admin-ui/inspector/EditorInspector";
+import { InspectorSection } from "@pkg/admin-ui/inspector/InspectorSection";
+import { useEditorLayout } from "@pkg/admin-ui/hooks/useEditorLayout";
 
 export type Category = {
   id?: string;
