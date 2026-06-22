@@ -55,7 +55,7 @@ export default async function ProjectsPage() {
       <Container className="pb-12">
         <div className="space-y-5">
           {projects.map((project) => (
-            <ProjectListItem key={project.slug} project={project} />
+            <ProjectListItem key={project.slug} project={project as any} />
           ))}
         </div>
       </Container>

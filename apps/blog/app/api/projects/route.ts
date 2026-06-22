@@ -16,7 +16,7 @@ const projectsPath = path.join(contentDir(), "projects/projects.yaml");
 function readProjects(): Project[] {
   if (!fs.existsSync(projectsPath)) return [];
   const content = fs.readFileSync(projectsPath, "utf-8");
-  return (yaml.load(content, { schema: yaml.DEFAULT_SCHEMA }) as Project[]) || [];
+  return (yaml.load(content) as Project[]) || [];
 }
 
 function writeProjects(projects: Project[]) {

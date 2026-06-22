@@ -100,7 +100,7 @@ function indexProjects(): KnowledgeChunk[] {
   if (!fs.existsSync(PROJECTS_YAML)) return [];
 
   const content = fs.readFileSync(PROJECTS_YAML, "utf-8");
-  const projects = (yaml.load(content, { schema: yaml.DEFAULT_SCHEMA }) as Project[]) || [];
+  const projects = (yaml.load(content) as Project[]) || [];
   const chunks: KnowledgeChunk[] = [];
 
   for (const project of projects) {

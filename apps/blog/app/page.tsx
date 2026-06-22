@@ -115,7 +115,7 @@ export default async function HomePage() {
           bgOpacity: c.bgOpacity,
         }))}
         initialVisits={{ pv: 0, uv: 0 }}
-        barrage={[]}
+        barrage={[] as any}
       />
 
       {/* 主体三栏：左侧关于/专栏 · 中间内容流 · 右侧标签/随手记 */}

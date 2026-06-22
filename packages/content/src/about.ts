@@ -29,7 +29,7 @@ const DEFAULT_PROFILE: AboutProfile = {
 export function getAboutProfile(): AboutProfile {
   if (!fs.existsSync(profilePath)) return DEFAULT_PROFILE;
   const content = fs.readFileSync(profilePath, "utf-8");
-  const data = yaml.load(content, { schema: yaml.DEFAULT_SCHEMA });
+  const data = yaml.load(content);
   // 与默认值合并：保证旧的 profile.yaml（无 techStack 字段）也能拿到首页默认标签
   return { ...DEFAULT_PROFILE, ...(data as Partial<AboutProfile>) };
 }

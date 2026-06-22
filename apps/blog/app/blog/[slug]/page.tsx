@@ -39,7 +39,7 @@ export async function generateMetadata(
     const siteUrl = getSiteUrl();
     return generatePageMetadata({
       title: post.title,
-      description: post.summary,
+      description: post.summary || "",
       keywords: post.tags.join(", "),
       type: "article",
       url: `${siteUrl}/blog/${post.slug}`,

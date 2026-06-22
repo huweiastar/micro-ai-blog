@@ -30,7 +30,7 @@ export default async function NotesPage() {
         tags: n.tags,
         mood: n.mood,
         location: n.location,
-        images: n.images,
+        images: n.images || [],
       };
     })
   );
