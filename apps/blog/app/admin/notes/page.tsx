@@ -14,6 +14,7 @@ import {
 import { deriveNoteTitle, deriveNoteSlug } from "../../../lib/notes";
 import { useToast } from "../../../components/admin/Toast";
 import { ListHero } from "@pkg/admin-ui/ListHero";
+import { formatDate } from "../../../lib/utils";
 
 type NoteItem = {
   slug: string;
@@ -23,12 +24,6 @@ type NoteItem = {
   tags: string[];
   wordCount: number;
 };
-
-function formatDateTime(date: string): string {
-  const d = new Date(date);
-  if (Number.isNaN(d.getTime())) return date;
-  return d.toLocaleDateString("zh-CN", { year: "numeric", month: "long", day: "numeric" });
-}
 
 export default function AdminNotesPage() {
   const toast = useToast();
@@ -298,7 +293,7 @@ export default function AdminNotesPage() {
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-sm text-[var(--foreground)]">{note.title}</div>
                     <div className="mt-0.5 flex items-center gap-2 text-xs text-[var(--muted)]">
-                      <span>{formatDateTime(note.date)}</span>
+                      <span>{formatDate(note.date)}</span>
                       {note.tags.length > 0 && <span>{note.tags.join(" · ")}</span>}
                     </div>
                   </div>

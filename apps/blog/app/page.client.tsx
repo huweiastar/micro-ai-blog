@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { BarrageHero } from "../components/ui/BarrageHero";
 import type { BarrageConfig } from "../lib/barrage";
@@ -39,31 +39,54 @@ export function HomeClient({ stats, columns, initialVisits, barrage }: HomeClien
     github: profile?.github || "https://github.com/huweiastar",
     email: profile?.email ? `mailto:${profile.email}` : "mailto:your-email@example.com",
   };
-  const [visitStats, setVisitStats] = useState<{ pv: number; uv: number }>(initialVisits);
+  // PV 计数保持 SSR 注入的值，不再在客户端 setState 回写 ——
+  // 消除"服务端直出 → 客户端 effect 又刷新"的数字闪变。
+  const visitStats = initialVisits;
+  const beaconSentRef = useRef(false);
 
-  // Load visit stats — POST to record and get updated count atomically
+  // PV 上报改为 sendBeacon（页面隐藏时触发）：
+  //   1. 不阻塞首屏渲染（不再 fetch + setState）
+  //   2. 页面关闭时也能送达（navigator.sendBeacon 在 unload 阶段仍工作）
+  //   3. 同一次访问只上报一次（ref 去重，StrictMode 双调用也无影响）
   useEffect(() => {
-    const visitorId = (() => {
-      let id = localStorage.getItem("_blog_visitor_id");
-      if (!id) {
-        id = "v_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 8);
-        localStorage.setItem("_blog_visitor_id", id);
+    if (beaconSentRef.current) return;
+    const sendPV = () => {
+      if (beaconSentRef.current) return;
+      beaconSentRef.current = true;
+      const visitorId = (() => {
+        let id = localStorage.getItem("_blog_visitor_id");
+        if (!id) {
+          id = "v_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 8);
+          localStorage.setItem("_blog_visitor_id", id);
+        }
+        return id;
+      })();
+      const blob = new Blob([JSON.stringify({ visitorId })], { type: "application/json" });
+      // sendBeacon 优先；不支持时回退到 fetch keepalive
+      if (typeof navigator !== "undefined" && navigator.sendBeacon) {
+        navigator.sendBeacon("/api/analytics", blob);
+      } else {
+        fetch("/api/analytics", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ visitorId }),
+          keepalive: true,
+        }).catch(() => {});
       }
-      return id;
-    })();
+    };
 
-    fetch("/api/analytics", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ visitorId }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        // API response changed to { global: { pv, uv }, path: { ... } }
-        const stats = data.global || data;
-        setVisitStats({ pv: stats.pv ?? 0, uv: stats.uv ?? 0 });
-      })
-      .catch(() => {});
+    // 用户切走 / 最小化 / 关闭标签页时上报（不阻塞主线程）
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "hidden") sendPV();
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    // 兜底：页面卸载时也上报一次
+    window.addEventListener("pagehide", sendPV);
+
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      window.removeEventListener("pagehide", sendPV);
+    };
   }, []);
 
   // 首页技术栈标签由后台「关于我」配置（content/about/profile.yaml），通过 ProfileProvider 注入

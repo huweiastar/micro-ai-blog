@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Github, ExternalLink, Star, ArrowUpRight } from "lucide-react";
 import { GeneratedCover } from "./ui/GeneratedCover";
 import type { Project } from "../types/project";
@@ -27,14 +28,13 @@ export function ProjectCard({ project }: ProjectCardProps) {
       {/* Cover banner —— falls back to deterministic generated artwork when absent or broken */}
       <div className="mb-4 -mx-6 -mt-6 h-40 overflow-hidden rounded-t-xl">
         {showCover ? (
-          /* eslint-disable-next-line @next/next/no-img-element */
-          <img
-            src={project.cover}
+          <Image
+            src={project.cover!}
             alt={project.name}
+            fill
+            sizes="(max-width: 768px) 100vw, 480px"
             onError={() => setCoverFailed(true)}
-            loading="lazy"
-            decoding="async"
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
           <GeneratedCover

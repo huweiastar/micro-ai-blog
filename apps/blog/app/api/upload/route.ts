@@ -27,8 +27,9 @@ const ALLOWED_IMAGE_EXTENSIONS = new Set(["png", "jpg", "jpeg", "webp", "gif", "
 const BLOCKED_EXTENSIONS = new Set(["svg", "svgz", "html", "htm", "xml", "xhtml"]);
 
 /**
- * Slugify: convert Chinese/unicode text to a URL-safe string.
- * Falls back to codepoint-based romanization for unknown chars.
+ * Slugify: 把文本（含中文）转成 ASCII 文件名安全字符串。
+ * 与 lib/utils.ts 的 slugify 不同：本版本用拼音映射把汉字 ASCII 化，
+ * 因为 S3 key / 磁盘文件名不应含中文；lib/utils 的版本保留中文用于 rehype 锚点。
  */
 function slugify(text: string): string {
   const cnMap: Record<string, string> = {

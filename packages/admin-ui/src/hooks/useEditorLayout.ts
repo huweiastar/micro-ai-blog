@@ -22,6 +22,7 @@ function read(): Layout | null {
         : "split";
     return { viewMode, inspectorOpen: v.inspectorOpen === true };
   } catch {
+    // localStorage 数据损坏（用户手动改过、或旧版 schema）→ 当作未存过，回退到默认值
     return null;
   }
 }

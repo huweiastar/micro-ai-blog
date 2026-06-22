@@ -55,7 +55,11 @@ next-env.d.ts
 .playwright-mcp/
 
 # ad-hoc debug screenshots dropped at repo root (content images live in public/)
+# 已迁移到 docs/audit/，根目录不再允许出现临时截图
 /*.png
+/*.jpeg
+/*.jpg
+/*.webp
 
 # runtime data (likes counts persisted at runtime)
 /data/likes.json
