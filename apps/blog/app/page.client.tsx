@@ -8,7 +8,7 @@ import { Container } from "../components/ui/Container";
 import { AvatarDisplay } from "../components/ui/AvatarDisplay";
 import { CountUp } from "../components/ui/CountUp";
 import { useProfile } from "../components/ProfileProvider.client";
-import { Github, Mail, ArrowRight, Layers, FileText, BookOpen, FolderGit2, Eye, Users, ChevronDown } from "lucide-react";
+import { Github, Mail, ArrowRight, Layers, FileText, BookOpen, FolderGit2, Eye, Users } from "lucide-react";
 import { getCategoryStyle } from "../lib/category-style";
 import { TechIcon } from "../lib/tech-icons";
 
@@ -184,13 +184,6 @@ export function HomeClient({ stats, columns, initialVisits, barrage }: HomeClien
             ))}
           </div>
         </div>
-          {/* 底部滚动提示 */}
-          <div className="mt-10 flex justify-center">
-            <ChevronDown
-              className="animate-scroll-bounce h-6 w-6 text-[var(--muted)]"
-              aria-hidden
-            />
-          </div>
       </section>
 
       {/* Column Themes */}

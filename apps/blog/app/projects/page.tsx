@@ -1,8 +1,8 @@
+import { getProjects } from "../../lib/projects";
 import { ProjectListItem } from "../../components/ProjectListItem";
 import { PageHeader } from "../../components/ui/PageHeader";
 import { Container } from "../../components/ui/Container";
 import { generatePageMetadata } from "../../lib/seo";
-import { api } from "../../lib/api/client";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = generatePageMetadata({
@@ -10,39 +10,8 @@ export const metadata: Metadata = generatePageMetadata({
   description: "个人项目经历展示",
 });
 
-export default async function ProjectsPage() {
-  let projects: Array<{
-    slug: string;
-    name: string;
-    description: string | null;
-    techStack: string[];
-    githubUrl: string | null;
-    demoUrl: string | null;
-    highlights: string[];
-    background?: string | null;
-    problem?: string | null;
-    solution?: string | null;
-    results?: string | null;
-  }> = [];
-
-  try {
-    const { items } = await api.projects.list();
-    projects = items.map((p) => ({
-      slug: p.slug,
-      name: p.name,
-      description: p.description,
-      techStack: p.techStack,
-      githubUrl: p.githubUrl,
-      demoUrl: p.demoUrl,
-      highlights: p.highlights,
-      background: p.background,
-      problem: p.problem,
-      solution: p.solution,
-      results: p.results,
-    }));
-  } catch (err) {
-    console.error("Failed to fetch projects from API:", err);
-  }
+export default function ProjectsPage() {
+  const projects = getProjects();
 
   return (
     <>
@@ -55,7 +24,7 @@ export default async function ProjectsPage() {
       <Container className="pb-12">
         <div className="space-y-5">
           {projects.map((project) => (
-            <ProjectListItem key={project.slug} project={project as any} />
+            <ProjectListItem key={project.slug} project={project} />
           ))}
         </div>
       </Container>

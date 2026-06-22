@@ -1,10 +1,10 @@
 import Link from "next/link";
+import { getAllCategories } from "../../lib/categories";
 import { getCategoryStyle } from "../../lib/category-style";
 import { PageHeader } from "../../components/ui/PageHeader";
 import { Container } from "../../components/ui/Container";
 import { CategoryBar } from "../../components/ui/CategoryBar";
 import { generatePageMetadata } from "../../lib/seo";
-import { api } from "../../lib/api/client";
 import { ArrowUpRight } from "lucide-react";
 import type { Metadata } from "next";
 import type { CSSProperties } from "react";
@@ -14,25 +14,8 @@ export const metadata: Metadata = generatePageMetadata({
   description: "所有专栏主题",
 });
 
-export default async function CategoriesPage() {
-  let categories: Array<{
-    name: string;
-    slug: string;
-    description: string | null;
-    count: number;
-  }> = [];
-
-  try {
-    const { items } = await api.categories.list();
-    categories = items.map((c) => ({
-      name: c.name,
-      slug: c.slug,
-      description: c.description,
-      count: c.postCount,
-    }));
-  } catch (err) {
-    console.error("Failed to fetch categories from API:", err);
-  }
+export default function CategoriesPage() {
+  const categories = getAllCategories();
 
   return (
     <>
@@ -43,9 +26,9 @@ export default async function CategoriesPage() {
         countLabel="个专栏"
       />
       <Container className="pb-12">
-        {/* 分类占比条 */}
+        {/* 分类占比条（§Phase3.4） */}
         <div className="mb-10">
-          <CategoryBar categories={categories.map((c) => ({ ...c, background: null, bgOpacity: 15 }))} />
+          <CategoryBar categories={categories} />
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {categories.map((category) => {

@@ -1,13 +1,17 @@
+import { getAllArticlesSync, getAllPostsSync, getAllTags } from "../lib/posts";
+import { getProjects } from "../lib/projects";
+import { getAllCategories } from "../lib/categories";
+import { getAnalytics } from "../lib/analytics";
 import { generatePageMetadata, generateWebsiteStructuredData, getSiteUrl } from "../lib/seo";
 import { getAboutProfile } from "../lib/about";
 import { HomeClient } from "./page.client";
+import { readBarrage } from "../lib/barrage";
 import { BlogCard } from "../components/BlogCard";
 import { ProjectCard } from "../components/ProjectCard";
 import { RevealList } from "../components/RevealList";
 import { HomeActivity, type ActivityItem } from "../components/HomeActivity";
 import { LeftAside, RightAside } from "../components/home/HomeAside";
 import { Container } from "../components/ui/Container";
-import { api } from "../lib/api/client";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { StructuredData } from "../components/StructuredData";
@@ -23,102 +27,58 @@ export const metadata: Metadata = generatePageMetadata({
   type: "website",
 });
 
-export default async function HomePage() {
-  // 从 API 获取数据，失败时回退到空数据
-  let posts: any[] = [];
-  let projects: any[] = [];
-  let categories: any[] = [];
-  let tags: any[] = [];
-  let recentNotes: any[] = [];
-  let stats = { postCount: 0, totalWords: 0, projectCount: 0, columnCount: 0 };
-
-  try {
-    const [postsResult, projectsResult, categoriesResult, tagsResult] = await Promise.all([
-      api.posts.list({ page: 1, limit: 5, kind: "post" }),
-      api.projects.list(),
-      api.categories.list(),
-      api.tags.list(),
-    ]);
-
-    posts = postsResult.items.map((p) => ({
-      slug: p.slug,
+export default function HomePage() {
+  const allPosts = getAllArticlesSync();
+  const allProjects = getProjects();
+  const allCategories = getAllCategories();
+  const posts = allPosts.slice(0, 5);
+  const projects = allProjects.slice(0, 3);
+  // 最新动态：文章 + 随手记按时间合并（getAllPostsSync 已按日期倒序）
+  const recentActivity: ActivityItem[] = getAllPostsSync()
+    .slice(0, 6)
+    .map((p) => ({
+      date: p.date,
+      type: p.type === "note" ? "note" : "article",
       title: p.title,
-      date: p.publishedAt,
-      summary: p.summary || "",
-      tags: p.tags,
-      category: p.category?.name || null,
-      cover: p.cover,
-      readingTime: p.readingMins,
-      type: "post" as const,
-      wordCount: p.wordCount,
+      href: `/blog/${p.slug}`,
     }));
+  // 侧栏数据：热门标签 + 最新随手记
+  const topTags = getAllTags().slice(0, 12);
+  const recentNotes = getAllPostsSync()
+    .filter((p) => p.type === "note")
+    .slice(0, 5)
+    .map((p) => ({ slug: p.slug, title: p.title, date: p.date }));
+  const totalWords = allPosts.reduce((sum, post) => sum + post.wordCount, 0);
+  const stats = {
+    postCount: allPosts.length,
+    totalWords,
+    projectCount: allProjects.length,
+    columnCount: allCategories.length,
+  };
 
-    projects = projectsResult.items.slice(0, 3).map((p) => ({
-      slug: p.slug,
-      name: p.name,
-      description: p.description,
-      techStack: p.techStack,
-      githubUrl: p.githubUrl,
-      demoUrl: p.demoUrl,
-    }));
-
-    categories = categoriesResult.items.map((c) => ({
-      name: c.name,
-      slug: c.slug,
-      description: c.description,
-      background: c.background,
-      bgOpacity: c.bgOpacity,
-      postCount: c.postCount,
-    }));
-
-    tags = tagsResult.items.slice(0, 12);
-
-    stats = {
-      postCount: postsResult.total,
-      totalWords: posts.reduce((sum, p) => sum + (p.wordCount || 0), 0),
-      projectCount: projectsResult.items.length,
-      columnCount: categoriesResult.items.length,
-    };
-
-    // 获取最新随手记
-    try {
-      const notesResult = await api.notes.list({ page: 1, limit: 5 });
-      recentNotes = notesResult.items.map((n) => ({
-        slug: n.slug,
-        title: n.title,
-        date: n.publishedAt,
-      }));
-    } catch {
-      // 忽略
-    }
-  } catch (err) {
-    console.error("Failed to fetch data from API:", err);
-  }
-
-  // 最新动态
-  const recentActivity: ActivityItem[] = posts.slice(0, 6).map((p) => ({
-    date: p.date,
-    type: "article" as const,
-    title: p.title,
-    href: `/blog/${p.slug}`,
+  // 服务端直出，避免首屏闪 0/空 + 利于 SEO
+  const columns = allCategories.map((c) => ({
+    name: c.name,
+    desc: c.description || "",
+    background: c.background,
+    bgOpacity: c.bgOpacity,
   }));
+  // db 不可用（只读文件系统/权限问题）时兜底为 0，客户端 useEffect 会再拉取，
+  // 不能让统计读取失败拖垮整个首页渲染或构建。
+  let initialVisits = { pv: 0, uv: 0 };
+  try {
+    initialVisits = getAnalytics();
+  } catch {
+    // 保持默认值
+  }
+  const barrage = readBarrage();
 
   return (
     <div className="relative">
       <StructuredData data={generateWebsiteStructuredData()} />
-      <HomeClient
-        stats={stats}
-        columns={categories.map((c) => ({
-          name: c.name,
-          desc: c.description || "",
-          background: c.background,
-          bgOpacity: c.bgOpacity,
-        }))}
-        initialVisits={{ pv: 0, uv: 0 }}
-        barrage={[] as any}
-      />
+      <HomeClient stats={stats} columns={columns} initialVisits={initialVisits} barrage={barrage} />
 
-      {/* 主体三栏：左侧关于/专栏 · 中间内容流 · 右侧标签/随手记 */}
+      {/* 主体三栏：左侧关于/专栏 · 中间内容流 · 右侧标签/随手记，填充宽屏两侧留白 */}
       <Container size="wide" className="mb-20 mt-10">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:gap-10">
           {/* 左栏 */}
@@ -131,7 +91,7 @@ export default async function HomePage() {
                 github: profile.github,
                 email: profile.email,
               }}
-              categories={categories}
+              categories={allCategories}
             />
           </aside>
 
@@ -165,7 +125,7 @@ export default async function HomePage() {
 
           {/* 右栏 */}
           <aside className="hidden lg:col-span-3 lg:block">
-            <RightAside tags={tags} notes={recentNotes} />
+            <RightAside tags={topTags} notes={recentNotes} />
           </aside>
         </div>
       </Container>
