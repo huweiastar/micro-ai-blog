@@ -1,0 +1,21 @@
+[Unit]
+Description=micro-ai-blog API (Hono + PostgreSQL)
+After=network.target postgresql.service
+Requires=postgresql.service
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/projects/micro-ai-blog
+ExecStart=/usr/bin/npm run dev -w @app/api
+Restart=on-failure
+RestartSec=5
+Environment=NODE_ENV=production
+Environment=DATABASE_URL=postgresql://blog:blog_dev_2026@localhost:5432/micro_ai_blog
+Environment=API_PORT=3010
+EnvironmentFile=/home/ubuntu/projects/micro-ai-blog/.env.local
+StandardOutput=append:/var/log/micro-ai-api.log
+StandardError=append:/var/log/micro-ai-api.log
+
+[Install]
+WantedBy=multi-user.target
