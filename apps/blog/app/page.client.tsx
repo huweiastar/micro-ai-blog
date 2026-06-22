@@ -234,7 +234,7 @@ export function HomeClient({ stats, columns, initialVisits, barrage }: HomeClien
             <p className="text-sm text-[var(--muted)]">暂无专栏主题，敬请期待。</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 [grid-auto-rows:1fr]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 [grid-auto-rows:minmax(180px,1fr)]">
             {columns.slice(0, 8).map((theme) => {
               const style = getCategoryStyle(theme.name);
               const Icon = style.icon;
@@ -245,7 +245,7 @@ export function HomeClient({ stats, columns, initialVisits, barrage }: HomeClien
                   key={theme.name}
                   href={`/categories/${encodeURIComponent(theme.name)}`}
                   style={{ "--cat": style.gradient[0] } as React.CSSProperties}
-                  className="surface-card group relative flex flex-col overflow-hidden rounded-xl p-5 transition-all duration-300 hover:-translate-y-1 hover:border-[var(--cat)] hover:shadow-[0_18px_40px_-18px_var(--cat)]"
+                  className="surface-card group relative flex flex-col h-full overflow-hidden rounded-xl p-5 transition-all duration-300 hover:-translate-y-1 hover:border-[var(--cat)] hover:shadow-[0_18px_40px_-18px_var(--cat)]"
                 >
                   {/* Top accent bar */}
                   <div className="absolute inset-x-0 top-0 h-1 opacity-90" style={{ background: grad }} />
