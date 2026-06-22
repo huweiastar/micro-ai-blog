@@ -1,17 +1,20 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { revalidatePath } from "next/cache";
+import { ok, fail } from "../../../lib/api-response";
 
 /**
  * 只读控制面：管理端写完内容文件后调用本接口失效对应页面缓存。
  * 仅按路径 revalidate，不写任何内容。用 REVALIDATE_TOKEN 鉴权（与登录会话解耦）。
+ *
+ * 响应格式统一为 `{ ok, data }` / `{ ok: false, error }`（参见 lib/api-response.ts）。
  */
 export async function POST(req: NextRequest) {
   const expected = process.env.REVALIDATE_TOKEN;
   if (!expected) {
-    return NextResponse.json({ error: "REVALIDATE_TOKEN 未配置" }, { status: 500 });
+    return fail("REVALIDATE_TOKEN 未配置", 500);
   }
   if (req.headers.get("x-revalidate-token") !== expected) {
-    return NextResponse.json({ error: "未授权" }, { status: 401 });
+    return fail("未授权", 401);
   }
 
   let paths: string[] = [];
@@ -26,5 +29,5 @@ export async function POST(req: NextRequest) {
   if (paths.length === 0) paths = ["/"];
 
   for (const p of paths) revalidatePath(p);
-  return NextResponse.json({ revalidated: paths });
+  return ok({ revalidated: paths });
 }
