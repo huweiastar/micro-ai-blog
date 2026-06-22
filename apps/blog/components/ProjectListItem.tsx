@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Github, ExternalLink, FolderGit2, ArrowUpRight, Check } from "lucide-react";
 import type { Project } from "../types/project";
 
@@ -24,10 +25,11 @@ export function ProjectListItem({ project }: { project: Project }) {
         {/* 图标 / 封面 */}
         <div className="shrink-0">
           {cover ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <Image
               src={cover}
               alt={project.name}
+              width={64}
+              height={64}
               className="h-14 w-14 rounded-xl object-cover ring-1 ring-[var(--card-border)] sm:h-16 sm:w-16"
             />
           ) : (

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { GeneratedCover } from "./ui/GeneratedCover";
 
 interface ProjectCoverProps {
@@ -22,10 +23,11 @@ export function ProjectCover({ src, alt, seed }: ProjectCoverProps) {
   return (
     <div className="mb-6 -mx-8 -mt-8 h-64 overflow-hidden rounded-t-xl border-b border-[var(--card-border)]">
       {showImage ? (
-        /* eslint-disable-next-line @next/next/no-img-element */
-        <img
-          src={src}
+        <Image
+          src={src!}
           alt={alt}
+          fill
+          sizes="100vw"
           onError={() => setFailed(true)}
           className="w-full h-full object-cover"
         />

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
-import { ToastProvider } from "./Toast";
+import { ToastProvider } from "@pkg/admin-ui/Toast";
 
 export function AdminShell({ children, theme }: {
   children: React.ReactNode;

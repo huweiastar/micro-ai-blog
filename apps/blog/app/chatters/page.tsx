@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { getAllChattersSync } from "../../lib/chatters";
 import { GlassCard } from "../../components/ui/GlassCard";
 import { PageHeader } from "../../components/ui/PageHeader";
@@ -36,8 +37,13 @@ export default function ChattersPage() {
               <GlassCard key={c.slug} as="article" hover className="overflow-hidden">
                 <Link href={`/chatters/${c.slug}`} className="block">
                   {c.cover && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={c.cover} alt={c.title} className="h-40 w-full object-cover" loading="lazy" />
+                    <Image
+                      src={c.cover}
+                      alt={c.title}
+                      width={400}
+                      height={160}
+                      className="h-40 w-full object-cover"
+                    />
                   )}
                   <div className="p-5 pb-0">
                     <div className="mb-2 flex items-center gap-2 text-xs text-[var(--muted)]">

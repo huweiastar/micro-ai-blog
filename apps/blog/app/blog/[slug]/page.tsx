@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import {
   getAllPostsSync,
   getAllArticlesSync,
@@ -180,10 +181,12 @@ export default async function PostPage(props: PostPageProps) {
         >
           {post.cover && (
             <div className="mb-8 overflow-hidden rounded-xl border border-[var(--card-border)]">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <Image
                 src={post.cover}
                 alt={post.title}
+                width={1200}
+                height={400}
+                priority
                 className="h-56 w-full object-cover sm:h-72"
               />
             </div>

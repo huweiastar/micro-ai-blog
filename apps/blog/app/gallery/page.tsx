@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { getGalleryPhotos } from "../../lib/gallery";
 import { PageHeader } from "../../components/ui/PageHeader";
 import { Container } from "../../components/ui/Container";
@@ -41,12 +42,12 @@ export default function GalleryPage() {
                 key={photo.src + i}
                 className="group relative overflow-hidden rounded-xl border border-[var(--card-border)] bg-[var(--card)]"
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <Image
                   src={photo.src}
                   alt={photo.title || "相册照片"}
-                  loading="lazy"
-                  className="w-full cursor-zoom-in object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  className="cursor-zoom-in object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                 />
                 {(photo.title || photo.date || photo.location) && (
                   <figcaption className="pointer-events-none absolute inset-x-0 bottom-0 translate-y-2 bg-gradient-to-t from-black/70 to-transparent p-3 text-white opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
 import { getAboutProfile, saveAboutProfile } from "../../../lib/about";
+import { revalidateByKind } from "../../../lib/revalidate";
 import type { AboutProfile } from "../../../types/about";
 
 // 后台保存后立即生效：禁止 GET 被静态缓存成旧值。
@@ -33,7 +33,7 @@ export async function PUT(req: NextRequest) {
     // profile（站名/头像/标语/技术栈/简介）经根布局 ProfileProvider 全站直出，
     // 且首页 tagline、/about 均为静态预渲染。保存后必须让根布局按需失效重建，
     // 否则改了不生效（静态 HTML 仍是构建期旧值）。'layout' 覆盖全站所有页面。
-    revalidatePath("/", "layout");
+    revalidateByKind("home", undefined, "layout");
 
     return NextResponse.json({ success: true });
   } catch (error) {

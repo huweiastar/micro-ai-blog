@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Loader2, Save, Trash2, ArrowLeft } from "lucide-react";
 import { MarkdownEditor } from "@pkg/admin-ui/markdown-editor";
-import { useToast } from "./Toast";
+import { useToast } from "@pkg/admin-ui/Toast";
 import { EditorChrome } from "@pkg/admin-ui/EditorChrome";
 import { EditorInspector } from "@pkg/admin-ui/inspector/EditorInspector";
 import { InspectorSection } from "@pkg/admin-ui/inspector/InspectorSection";

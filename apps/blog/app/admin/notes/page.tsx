@@ -12,7 +12,7 @@ import {
   X,
 } from "lucide-react";
 import { deriveNoteTitle, deriveNoteSlug } from "../../../lib/notes";
-import { useToast } from "../../../components/admin/Toast";
+import { useToast } from "@pkg/admin-ui/Toast";
 import { ListHero } from "@pkg/admin-ui/ListHero";
 import { formatDate } from "../../../lib/utils";
 

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
 import { atomicWriteFile } from "../../../lib/atomic-file";
 import { readBarrage, sanitizeBarrageInput, barragePath } from "../../../lib/barrage";
+import { revalidateByKind } from "../../../lib/revalidate";
 
 // 保存后需立即生效：禁止把 GET 静态缓存成构建期旧值。
 export const dynamic = "force-dynamic";
@@ -16,7 +16,7 @@ export async function PUT(req: NextRequest) {
     const sanitized = sanitizeBarrageInput(body);
     atomicWriteFile(barragePath, JSON.stringify(sanitized, null, 2));
     // 弹幕显示在首页，写完让首页缓存失效以立即生效。
-    revalidatePath("/");
+    revalidateByKind("home");
     return NextResponse.json({ success: true, message: "弹幕已更新", data: sanitized });
   } catch (error) {
     console.error("更新弹幕失败:", error);

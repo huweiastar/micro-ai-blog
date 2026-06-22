@@ -154,13 +154,26 @@ function readAllPostFiles(): BlogPost[] {
   if (postsCache && postsCache.signature === signature) return postsCache.posts;
   const posts = files.map(parsePostFile);
   postsCache = { signature, posts };
+  // 底层数据变了，连带清空派生缓存（getAllPostsSync / getAllTags / getAllCategories 都受益）
+  postsSyncCache = null;
+  tagsCache = null;
+  categoriesCache = null;
   return posts;
 }
 
 /** 显式清空文章缓存。内容写操作（增删改）后调用，保证产物重建读到最新数据。 */
 export function invalidatePostsCache(): void {
   postsCache = null;
+  postsSyncCache = null;
+  tagsCache = null;
+  categoriesCache = null;
 }
+
+// —— 派生数据的进程级缓存（同一请求 / 同一进程生命周期内多次调用直接复用） ——
+// 缓存失效由 readAllPostFiles 的签名变更触发，不需要 TTL。
+let postsSyncCache: { posts: BlogPost[]; now: number } | null = null;
+let tagsCache: Tag[] | null = null;
+let categoriesCache: { name: string; count: number }[] | null = null;
 
 /** 文章生效的发布时间（毫秒）：优先 publish 字段，否则回退 date；解析失败按 0。 */
 export function getPublishTime(post: { publish?: string; date: string }): number {
@@ -191,6 +204,7 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
 }
 
 export function getAllTags(): Tag[] {
+  if (tagsCache) return tagsCache;
   const posts = getAllPostsSync();
   const tagMap = new Map<string, number>();
 
@@ -200,12 +214,14 @@ export function getAllTags(): Tag[] {
     });
   });
 
-  return Array.from(tagMap.entries())
+  tagsCache = Array.from(tagMap.entries())
     .map(([name, count]) => ({ name, count }))
     .sort((a, b) => b.count - a.count);
+  return tagsCache;
 }
 
 export function getAllCategories(): { name: string; count: number }[] {
+  if (categoriesCache) return categoriesCache;
   const posts = getAllPostsSync();
   const categoryMap = new Map<string, number>();
 
@@ -218,16 +234,26 @@ export function getAllCategories(): { name: string; count: number }[] {
     }
   });
 
-  return Array.from(categoryMap.entries())
+  categoriesCache = Array.from(categoryMap.entries())
     .map(([name, count]) => ({ name, count }))
     .sort((a, b) => b.count - a.count);
+  return categoriesCache;
 }
 
+/**
+ * 返回所有对访客可见的文章（非草稿 + 已到发布时间）。
+ * 同请求内多次调用直接返回缓存：按 60 秒时间桶 + 底层 posts 引用双键失效，
+ * 既避免 SSG 单页多次 getAllPostsSync 的重复 filter，又保证跨分钟时新发布文章可见。
+ */
 export function getAllPostsSync(): BlogPost[] {
+  const nowBucket = Math.floor(Date.now() / 60000); // 60s 桶，让 isPublished 跨分钟时自动失效
+  if (postsSyncCache && postsSyncCache.now === nowBucket) return postsSyncCache.posts;
   const now = Date.now();
-  return readAllPostFiles()
+  const posts = readAllPostFiles()
     .filter((post) => isPublished(post, now))
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  postsSyncCache = { posts, now: nowBucket };
+  return posts;
 }
 
 /** 已发布的正式文章（排除随手记），用于博客列表/首页等。 */

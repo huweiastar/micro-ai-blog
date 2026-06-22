@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import { AiWriteModal } from "./ai-write-modal";
 import { SyntaxCheatsheet } from "@pkg/admin-ui/SyntaxCheatsheet";
-import { useToast } from "./Toast";
+import { useToast } from "@pkg/admin-ui/Toast";
 import { MarkdownEditor } from "@pkg/admin-ui/markdown-editor";
 import { EditorChrome } from "@pkg/admin-ui/EditorChrome";
 import { EditorInspector } from "@pkg/admin-ui/inspector/EditorInspector";

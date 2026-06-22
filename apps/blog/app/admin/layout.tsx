@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { AdminShell } from "../../components/admin/AdminShell";
-import { ToastProvider } from "../../components/admin/Toast";
+import { ToastProvider } from "@pkg/admin-ui/Toast";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
