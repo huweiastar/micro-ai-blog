@@ -970,3 +970,139 @@
   animation: float-drift 5s ease-in-out infinite;
   transform-origin: center;
 }
+
+/* ============ Phase 1+2: 高级卡片 + 动效系统 ============ */
+
+/* 高级卡片: 渐变边框揭示 + 深度阴影 + 悬停抬升
+   用法: 在元素上加 .card-premium，默认无渐变边框，hover 时通过 ::before 渐变边框揭示。
+   通过 --card-accent 自定义渐变色(默认 primary→accent)。 */
+.card-premium {
+  position: relative;
+  isolation: isolate;
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.card-premium::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--card-accent, var(--primary)) 60%, transparent),
+    color-mix(in srgb, var(--card-accent-2, var(--accent)) 40%, transparent),
+    transparent 60%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.card-premium:hover::before {
+  opacity: 1;
+}
+
+.card-premium:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 20px 40px -16px color-mix(in srgb, var(--card-accent, var(--primary)) 25%, transparent),
+    0 8px 16px -8px rgba(0, 0, 0, 0.08);
+}
+
+/* 柔和的入场动画: 从下方淡入 + 去模糊, 支持交错延迟 */
+@keyframes soft-rise {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.animate-soft-rise {
+  animation: soft-rise 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* 背景浮动光斑: 用于 Hero/Section 的柔和装饰 */
+@keyframes float-orb {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.3;
+  }
+  33% {
+    transform: translate(30px, -20px) scale(1.05);
+    opacity: 0.4;
+  }
+  66% {
+    transform: translate(-20px, 15px) scale(0.95);
+    opacity: 0.25;
+  }
+}
+
+.animate-float-orb {
+  animation: float-orb 12s ease-in-out infinite;
+}
+
+.animate-float-orb-slow {
+  animation: float-orb 18s ease-in-out infinite;
+  animation-delay: -4s;
+}
+
+/* 区块标题装饰: 左侧渐变色条 + 悬停时微延伸 */
+.section-title-bar {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.section-title-bar::before {
+  content: "";
+  display: inline-block;
+  width: 4px;
+  height: 1.2em;
+  margin-right: 0.75rem;
+  border-radius: 2px;
+  background: linear-gradient(180deg, var(--primary), var(--accent));
+  transition: height 0.3s ease;
+}
+
+.section-title-bar:hover::before {
+  height: 1.5em;
+}
+
+/* 标签悬浮动效: 用于 tag cloud 类的 hover 效果 */
+.tag-float {
+  transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.tag-float:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px -4px color-mix(in srgb, var(--primary) 30%, transparent);
+}
+
+/* 时间线节点: 增强的脉冲效果 */
+@keyframes timeline-pulse {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--primary) 50%, transparent);
+  }
+  70% {
+    box-shadow: 0 0 0 8px color-mix(in srgb, var(--primary) 0%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--primary) 0%, transparent);
+  }
+}
+
+.timeline-dot-pulse {
+  animation: timeline-pulse 2.4s ease-out infinite;
+}

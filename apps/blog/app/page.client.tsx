@@ -85,24 +85,24 @@ export function HomeClient({ stats, initialVisits }: HomeClientProps) {
 
   return (
     <section className="relative overflow-hidden">
-      {/* 背景氛围光晕 */}
+      {/* 背景氛围光晕 — 柔和浮动效果 */}
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-32 left-1/2 h-[500px] w-[800px] -translate-x-1/2 rounded-full opacity-60 blur-3xl"
+        className="animate-float-orb pointer-events-none absolute -top-32 left-1/2 h-[500px] w-[800px] -translate-x-1/2 rounded-full"
         style={{
           background:
-            "radial-gradient(ellipse at center, color-mix(in srgb, var(--primary) 15%, transparent), color-mix(in srgb, var(--accent) 8%, transparent) 50%, transparent 75%)",
+            "radial-gradient(ellipse at center, color-mix(in srgb, var(--primary) 18%, transparent), color-mix(in srgb, var(--accent) 10%, transparent) 50%, transparent 75%)",
         }}
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-20 left-1/4 h-64 w-64 rounded-full opacity-40 blur-3xl"
+        className="animate-float-orb-slow pointer-events-none absolute -top-20 left-1/4 h-72 w-72 rounded-full opacity-50 blur-3xl"
         style={{ background: "radial-gradient(circle, var(--accent), transparent 70%)" }}
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-10 right-1/4 h-48 w-48 rounded-full opacity-30 blur-3xl"
-        style={{ background: "radial-gradient(circle, var(--primary), transparent 70%)" }}
+        className="animate-float-orb pointer-events-none absolute -top-10 right-1/4 h-56 w-56 rounded-full opacity-40 blur-3xl"
+        style={{ background: "radial-gradient(circle, var(--primary), transparent 70%)", animationDelay: "-6s" }}
       />
 
       <Container className="relative py-16 sm:py-24">
@@ -114,10 +114,10 @@ export function HomeClient({ stats, initialVisits }: HomeClientProps) {
 
           {/* 名字 */}
           <h1
-            className="mt-6 text-4xl font-bold tracking-tight sm:text-5xl animate-fade-in-up"
+            className="hero-title-halo mt-6 text-4xl font-bold tracking-tight sm:text-5xl animate-fade-in-up"
             style={{ animationDelay: "0.08s" }}
           >
-            <span className="bg-gradient-to-r from-[var(--primary)] via-[var(--accent)] to-[var(--primary)] bg-clip-text text-transparent">
+            <span className="title-shimmer bg-gradient-to-r from-[var(--primary)] via-[var(--accent)] to-[var(--primary)] bg-clip-text text-transparent">
               {profile?.name ?? "微观AI"}
             </span>
           </h1>
@@ -139,7 +139,7 @@ export function HomeClient({ stats, initialVisits }: HomeClientProps) {
           >
             <Link
               href="/blog"
-              className="group inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[var(--primary)] to-[var(--accent)] px-6 py-2.5 text-sm font-medium text-white shadow-lg shadow-[var(--glow-primary)]/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[var(--glow-primary)]/40"
+              className="btn-interactive group inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[var(--primary)] to-[var(--accent)] px-6 py-2.5 text-sm font-medium text-white shadow-lg shadow-[var(--glow-primary)]/25"
             >
               <BookOpen className="h-4 w-4" />
               开始阅读
@@ -149,7 +149,7 @@ export function HomeClient({ stats, initialVisits }: HomeClientProps) {
               href={socialLinks.github}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-full border border-[var(--card-border)] bg-[var(--card)]/50 px-6 py-2.5 text-sm text-[var(--foreground)] backdrop-blur-sm transition-all duration-300 hover:border-[var(--primary)]/40 hover:text-[var(--primary)]"
+              className="btn-interactive inline-flex items-center gap-2 rounded-full border border-[var(--card-border)] bg-[var(--card)]/60 px-6 py-2.5 text-sm text-[var(--foreground)] backdrop-blur-sm hover:border-[var(--primary)]/40 hover:text-[var(--primary)]"
             >
               <Github className="h-4 w-4" />
               GitHub
@@ -157,7 +157,7 @@ export function HomeClient({ stats, initialVisits }: HomeClientProps) {
             {socialLinks.email && (
               <a
                 href={socialLinks.email}
-                className="inline-flex items-center gap-2 rounded-full border border-[var(--card-border)] bg-[var(--card)]/50 px-6 py-2.5 text-sm text-[var(--foreground)] backdrop-blur-sm transition-all duration-300 hover:border-[var(--primary)]/40 hover:text-[var(--primary)]"
+                className="btn-interactive inline-flex items-center gap-2 rounded-full border border-[var(--card-border)] bg-[var(--card)]/60 px-6 py-2.5 text-sm text-[var(--foreground)] backdrop-blur-sm hover:border-[var(--primary)]/40 hover:text-[var(--primary)]"
               >
                 <Mail className="h-4 w-4" />
                 联系
@@ -167,13 +167,13 @@ export function HomeClient({ stats, initialVisits }: HomeClientProps) {
 
           {/* 数据概览 */}
           <div
-            className="mt-12 grid w-full max-w-2xl grid-cols-3 gap-4 sm:grid-cols-6 animate-fade-in-up"
+            className="mt-12 grid w-full max-w-2xl grid-cols-3 gap-3 sm:grid-cols-6 sm:gap-4 animate-fade-in-up"
             style={{ animationDelay: "0.32s" }}
           >
             {statItems.map((item) => (
               <div
                 key={item.label}
-                className="group flex flex-col items-center rounded-xl border border-[var(--card-border)] bg-[var(--card)]/50 px-3 py-4 backdrop-blur-sm transition-all duration-300 hover:border-[var(--primary)]/30 hover:bg-[var(--primary)]/[0.04]"
+                className="group flex flex-col items-center rounded-xl border border-[var(--card-border)] bg-[var(--card)]/50 px-3 py-4 backdrop-blur-sm transition-all duration-300 hover:border-[var(--primary)]/30 hover:bg-[var(--primary)]/[0.04] hover:-translate-y-0.5"
               >
                 <item.icon className="mb-1.5 h-4 w-4 text-[var(--muted)] transition-colors group-hover:text-[var(--primary)]" />
                 <div className="font-mono text-lg font-bold tabular-nums text-[var(--foreground)] sm:text-xl">

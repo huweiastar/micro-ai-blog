@@ -10,6 +10,7 @@ import { ProjectCard } from "../components/ProjectCard";
 import { HomeActivity, type ActivityItem } from "../components/HomeActivity";
 import { SideAside } from "../components/home/SideAside";
 import { ColumnGrid } from "../components/home/ColumnGrid";
+import { RevealList } from "../components/RevealList";
 import { Container } from "../components/ui/Container";
 import { StructuredData } from "../components/StructuredData";
 import type { Metadata } from "next";
@@ -99,22 +100,22 @@ export default function HomePage() {
             {/* 最新文章 */}
             <section>
               <SectionHeader title="最新文章" moreHref="/blog" />
-              <div className="grid gap-6">
+              <RevealList className="grid gap-6">
                 {posts.map((post) => (
                   <BlogCard key={post.slug} post={post} />
                 ))}
-              </div>
+              </RevealList>
             </section>
 
             {/* 精选项目 */}
             {projects.length > 0 && (
               <section>
                 <SectionHeader title="精选项目" moreHref="/projects" />
-                <div className="grid gap-6 sm:grid-cols-2">
+                <RevealList className="grid gap-6 sm:grid-cols-2">
                   {projects.map((project) => (
                     <ProjectCard key={project.name} project={project} />
                   ))}
-                </div>
+                </RevealList>
               </section>
             )}
           </div>
@@ -138,16 +139,12 @@ function SectionHeader({
 }) {
   return (
     <div className="mb-6 flex items-center justify-between">
-      <h2 className="text-2xl font-bold tracking-tight text-[var(--foreground)]">
-        <span
-          aria-hidden
-          className="mr-3 inline-block h-5 w-1 rounded-full bg-gradient-to-b from-[var(--primary)] to-[var(--accent)] align-middle"
-        />
+      <h2 className="section-title-bar text-2xl font-bold tracking-tight text-[var(--foreground)]">
         {title}
       </h2>
       <a
         href={moreHref}
-        className="text-sm text-[var(--muted)] transition-colors hover:text-[var(--primary)]"
+        className="text-sm text-[var(--muted)] transition-colors duration-200 hover:text-[var(--primary)]"
       >
         查看全部 →
       </a>

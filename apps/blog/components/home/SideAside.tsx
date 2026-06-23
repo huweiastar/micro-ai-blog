@@ -22,10 +22,10 @@ export function SideAside({ tags }: { tags: Counted[] }) {
             <Link
               key={t.name}
               href={`/tags/${encodeURIComponent(t.name)}`}
-              className="inline-flex items-center gap-1 rounded-full border border-[var(--card-border)] bg-[var(--card)] px-2.5 py-1 text-xs text-[var(--muted)] transition-colors hover:border-[var(--primary)]/50 hover:text-[var(--primary)]"
+              className="tag-float inline-flex items-center gap-1 rounded-full border border-[var(--card-border)] bg-[var(--card)] px-2.5 py-1 text-xs text-[var(--muted)] hover:border-[var(--primary)]/40 hover:text-[var(--primary)] hover:bg-[var(--primary)]/5"
             >
               {t.name}
-              <span className="font-mono tabular-nums opacity-70">{t.count}</span>
+              <span className="font-mono tabular-nums opacity-60">{t.count}</span>
             </Link>
           ))}
         </div>

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Github, ExternalLink, Star, ArrowUpRight } from "lucide-react";
+import { Github, ExternalLink, ArrowUpRight } from "lucide-react";
 import { GeneratedCover } from "./ui/GeneratedCover";
 import type { Project } from "../types/project";
 
@@ -23,10 +23,10 @@ export function ProjectCard({ project }: ProjectCardProps) {
   return (
     <Link
       href={`/projects/${project.slug}`}
-      className="group relative block rounded-xl border border-[var(--card-border)] bg-[var(--card)] p-6 overflow-hidden no-underline transition-all duration-300 hover:shadow-[var(--shadow-glow)] hover:-translate-y-1 active:scale-[0.99] cursor-pointer flex flex-col"
+      className="card-premium surface-card group relative block rounded-xl overflow-hidden no-underline cursor-pointer flex flex-col active:scale-[0.99]"
     >
-      {/* Cover banner —— falls back to deterministic generated artwork when absent or broken */}
-      <div className="mb-4 -mx-6 -mt-6 h-40 overflow-hidden rounded-t-xl">
+      {/* Cover banner */}
+      <div className="relative mb-0 h-40 overflow-hidden">
         {showCover ? (
           <Image
             src={project.cover!}
@@ -34,21 +34,23 @@ export function ProjectCard({ project }: ProjectCardProps) {
             fill
             sizes="(max-width: 768px) 100vw, 480px"
             onError={() => setCoverFailed(true)}
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]"
           />
         ) : (
           <GeneratedCover
             seed={project.slug}
             label={project.name}
-            className="transition-transform duration-500 group-hover:scale-105"
+            className="transition-transform duration-500 ease-out group-hover:scale-[1.04]"
           />
         )}
+        {/* Gradient overlay on hover */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[var(--card)] via-[var(--card)]/40 to-transparent opacity-60 transition-opacity duration-300 group-hover:opacity-40" />
       </div>
 
-      <div className="flex flex-col flex-1">
+      <div className="flex flex-col flex-1 p-6">
         <h3 className="text-xl font-semibold mb-3 text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors duration-300 flex items-center gap-2">
           <span className="line-clamp-1">{project.name}</span>
-          <Star className="w-4 h-4 shrink-0 opacity-0 -translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 text-[var(--primary)]" />
+          <ArrowUpRight className="w-4 h-4 shrink-0 opacity-0 -translate-y-2 translate-x-1 group-hover:opacity-100 group-hover:translate-y-0 group-hover:translate-x-0 transition-all duration-300 text-[var(--primary)]" />
         </h3>
 
         <p className="text-[var(--muted)] text-sm mb-5 leading-relaxed line-clamp-3">
@@ -59,7 +61,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
           {project.techStack.map((tech) => (
             <span
               key={tech}
-              className="text-xs px-2.5 py-1 rounded-[var(--radius-sm)] bg-[var(--primary)]/10 text-[var(--primary)] border border-[var(--primary)]/20"
+              className="tag-float text-xs px-2.5 py-1 rounded-[var(--radius-sm)] bg-[var(--primary)]/8 text-[var(--primary)] border border-[var(--primary)]/15"
             >
               {tech}
             </span>
@@ -69,13 +71,13 @@ export function ProjectCard({ project }: ProjectCardProps) {
         <ul className="space-y-2 mb-5">
           {project.highlights.slice(0, 4).map((highlight, index) => (
             <li key={index} className="text-sm text-[var(--muted)] flex items-start gap-2">
-              <span className="text-[var(--primary)] mt-0.5 font-bold">+</span>
+              <span className="text-[var(--primary)] mt-0.5 font-bold opacity-70">+</span>
               <span className="flex-1">{highlight}</span>
             </li>
           ))}
         </ul>
 
-        {/* 底部链接区 —— GitHub / Demo 外链需覆盖整卡 Link */}
+        {/* 底部链接区 */}
         <div className="relative z-20 flex gap-4 pt-3 mt-auto border-t border-[var(--card-border)]">
           {project.githubUrl && (
             <a
@@ -101,7 +103,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
           )}
           <span className="inline-flex items-center gap-1 text-sm text-[var(--muted)] group-hover:text-[var(--primary)] transition-colors duration-200 ml-auto">
             <span>详情</span>
-            <ArrowUpRight className="w-3 h-3" />
+            <ArrowUpRight className="w-3 h-3 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
           </span>
         </div>
       </div>
